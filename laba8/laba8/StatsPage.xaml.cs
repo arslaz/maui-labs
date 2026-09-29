@@ -13,7 +13,6 @@ public partial class StatsPage : ContentPage
 
         var books = LibraryService.Books;
         TotalCountLabel.Text = $"Общее количество книг: {books.Count}";
-
         var rated = books.Where(b => b.Rating > 0).ToList();
         AverageRatingLabel.Text = rated.Count > 0
             ? $"Средняя оценка: {rated.Average(b => b.Rating):F1} / 5"

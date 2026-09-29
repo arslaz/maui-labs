@@ -14,7 +14,11 @@
         <SearchBar Grid.Row="1"
                    x:Name="SearchBarControl"
                    Placeholder="Поиск по названию и автору"
-                   TextChanged="OnFilterChanged" />
+                   TextChanged="OnFilterChanged"
+                   BackgroundColor="White"
+                   TextColor="Black"
+                   PlaceholderColor="Gray" />
+
 
         <Grid Grid.Row="2" ColumnDefinitions="Auto,*" ColumnSpacing="10">
             <Label Grid.Column="0" Text="Жанр:" VerticalOptions="Center" />
