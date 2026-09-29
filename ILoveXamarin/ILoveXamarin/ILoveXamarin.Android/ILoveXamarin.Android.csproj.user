@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <PropertyGroup>
-    <SelectedDevice>Pixel_10a</SelectedDevice>
-    <SelectedPlatformGroup>Emulator</SelectedPlatformGroup>
-    <ActiveDebugProfile>Pixel 10a</ActiveDebugProfile>
-    <DefaultDevice>Pixel_10a</DefaultDevice>
-  </PropertyGroup>
-</Project>
