@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="laba8.SettingsPage"
+             Title="Настройки">
+
+    <ScrollView>
+        <VerticalStackLayout Spacing="12" Padding="14">
+
+            <Label Text="Сортировка по умолчанию (Preferences):" FontAttributes="Bold" />
+            <Picker x:Name="SortPicker" SelectedIndexChanged="OnSortChanged">
+                <Picker.ItemsSource>
+                    <x:Array Type="{x:Type x:String}">
+                        <x:String>По автору</x:String>
+                        <x:String>По году</x:String>
+                        <x:String>По оценке</x:String>
+                    </x:Array>
+                </Picker.ItemsSource>
+            </Picker>
+
+            <Grid ColumnDefinitions="*,Auto" Margin="0,6">
+                <Label Grid.Column="0" Text="Только оцененные книги:" VerticalOptions="Center" />
+                <Switch Grid.Column="1" x:Name="RatedSwitch" Toggled="OnRatedChanged" />
+            </Grid>
+
+            <Label Text="Файловая система (FileSystem):" FontAttributes="Bold" Margin="0,10,0,0" />
+            <Button Text="Экспортировать каталог в файл" Clicked="OnExportClicked" />
+            <Button Text="Восстановить каталог из файла" Clicked="OnImportClicked" />
+
+            <Label Text="Сброс всех данных:" FontAttributes="Bold" Margin="0,10,0,0" />
+            <Button Text="Сбросить все данные" BackgroundColor="Red" Clicked="OnResetClicked" />
+
+            <Label x:Name="StatusLabel" TextColor="Gray" FontSize="12" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>

@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:converters="clr-namespace:laba6.Converters"
+             xmlns:models="clr-namespace:laba6.Models"
+             xmlns:viewModels="clr-namespace:laba6.ViewModels"
+             x:Class="laba6.MainPage"
+             x:Name="RootPage"
+             Title="Каталог книг">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <!-- Конверторы значений -->
+            <converters:RatingToColorConverter x:Key="RatingToColorConverter" />
+            <converters:BoolToStatusConverter x:Key="BoolToStatusConverter" />
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+    <Grid RowDefinitions="Auto, Auto, *, Auto" Padding="15" RowSpacing="10">
+
+        <!-- 1. Информационная панель со счетчиками -->
+        <Border Grid.Row="0"
+                StrokeShape="RoundRectangle 10"
+                Stroke="#512BD4"
+                StrokeThickness="1"
+                Background="#F0EEFA"
+                Padding="12,8">
+            <Grid ColumnDefinitions="*, *">
+                <VerticalStackLayout Grid.Column="0" HorizontalOptions="Center">
+                    <Label Text="Всего книг" FontSize="12" TextColor="#666" HorizontalOptions="Center" />
+                    <Label Text="{Binding TotalBooksCount}" FontSize="20" FontAttributes="Bold" TextColor="#512BD4" HorizontalOptions="Center" />
+                </VerticalStackLayout>
+                <VerticalStackLayout Grid.Column="1" HorizontalOptions="Center">
+                    <Label Text="Прочитано" FontSize="12" TextColor="#666" HorizontalOptions="Center" />
+                    <Label Text="{Binding ReadBooksCount}" FontSize="20" FontAttributes="Bold" TextColor="Green" HorizontalOptions="Center" />
+                </VerticalStackLayout>
+            </Grid>
+        </Border>
+
+        <!-- 2. Форма добавления новой книги -->
+        <Border Grid.Row="1"
+                StrokeShape="RoundRectangle 10"
+                Stroke="#CCC"
+                StrokeThickness="1"
+                Padding="12">
+            <VerticalStackLayout Spacing="8">
+                <Label Text="Добавить новую книгу" FontAttributes="Bold" FontSize="15" />
+                
+                <Grid ColumnDefinitions="*, *" ColumnSpacing="8" RowDefinitions="Auto, Auto" RowSpacing="8">
+                    <Entry Grid.Row="0" Grid.Column="0"
+                           Placeholder="Название книги"
+                           Text="{Binding NewTitle}" />
+                    <Entry Grid.Row="0" Grid.Column="1"
+                           Placeholder="Автор"
+                           Text="{Binding NewAuthor}" />
+                    <Entry Grid.Row="1" Grid.Column="0"
+                           Placeholder="Год издания"
+                           Keyboard="Numeric"
+                           Text="{Binding NewYear}" />
+                    <Entry Grid.Row="1" Grid.Column="1"
+                           Placeholder="Рейтинг (0 - 5)"
+                           Keyboard="Numeric"
+                           Text="{Binding NewRating}" />
+                </Grid>
+
+                <Grid ColumnDefinitions="*, Auto" ColumnSpacing="8">
+                    <Button Grid.Column="0"
+                            Text="Добавить книгу"
+                            Command="{Binding AddBookCommand}"
+                            BackgroundColor="#512BD4"
+                            TextColor="White" />
+                    <Button Grid.Column="1"
+                            Text="Очистить всё"
+                            Command="{Binding ClearBooksCommand}"
+                            BackgroundColor="#E0E0E0"
+                            TextColor="#333" />
+                </Grid>
+            </VerticalStackLayout>
+        </Border>
+
+        <!-- 3. Список книг (CollectionView) -->
+        <CollectionView Grid.Row="2"
+                        ItemsSource="{Binding Books}"
+                        SelectionMode="None">
+
+            <!-- Шаблон пустого списка (EmptyView) -->
+            <CollectionView.EmptyView>
+                <VerticalStackLayout HorizontalOptions="Center"
+                                     VerticalOptions="Center"
+                                     Spacing="12"
+                                     Padding="30">
+                    <Image Source="dotnet_bot.png"
+                           HeightRequest="100"
+                           WidthRequest="100"
+                           HorizontalOptions="Center"
+                           Opacity="0.5" />
+                    <Label Text="Список книг пуст"
+                           FontSize="18"
+                           FontAttributes="Bold"
+                           HorizontalOptions="Center"
+                           TextColor="Gray" />
+                    <Label Text="Заполните форму выше и нажмите «Добавить книгу»"
+                           FontSize="13"
+                           HorizontalOptions="Center"
+                           TextColor="Gray" />
+                </VerticalStackLayout>
+            </CollectionView.EmptyView>
+
+            <!-- Шаблон элемента списка (DataTemplate) -->
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:Book">
+                    <Border StrokeShape="RoundRectangle 8"
+                            Stroke="#E0E0E0"
+                            StrokeThickness="1"
+                            Margin="0,4"
+                            Padding="10">
+                        <Grid ColumnDefinitions="Auto, *, Auto" ColumnSpacing="12">
+                            
+                            <!-- 1) Элемент Image -->
+                            <Image Grid.Column="0"
+                                   Source="{Binding CoverImage}"
+                                   WidthRequest="45"
+                                   HeightRequest="45"
+                                   VerticalOptions="Center"
+                                   Aspect="AspectFit" />
+
+                            <!-- 2) Информационные Label -->
+                            <VerticalStackLayout Grid.Column="1" Spacing="3" VerticalOptions="Center">
+                                <!-- Название с DataTrigger (зачеркивание и серый цвет для прочитанных книг) -->
+                                <Label Text="{Binding Title}"
+                                       FontSize="16"
+                                       FontAttributes="Bold">
+                                    <Label.Triggers>
+                                        <DataTrigger TargetType="Label" Binding="{Binding IsRead}" Value="True">
+                                            <Setter Property="TextDecorations" Value="Strikethrough" />
+                                            <Setter Property="TextColor" Value="Gray" />
+                                        </DataTrigger>
+                                    </Label.Triggers>
+                                </Label>
+
+                                <!-- Автор и год -->
+                                <Label FontSize="13" TextColor="#555">
+                                    <Label.FormattedText>
+                                        <FormattedString>
+                                            <Span Text="{Binding Author}" />
+                                            <Span Text=" • " />
+                                            <Span Text="{Binding Year}" />
+                                            <Span Text=" г." />
+                                        </FormattedString>
+                                    </Label.FormattedText>
+                                </Label>
+
+                                <!-- Статус прочтения через 2-й конвертор (BoolToStatusConverter) -->
+                                <Label Text="{Binding IsRead, Converter={StaticResource BoolToStatusConverter}}"
+                                       FontSize="12"
+                                       TextColor="#777" />
+
+                                <!-- Рейтинг с 1-м конвертором в цвет (RatingToColorConverter) -->
+                                <HorizontalStackLayout Spacing="5">
+                                    <Label Text="★ Рейтинг:" FontSize="13" TextColor="#555" />
+                                    <Label Text="{Binding Rating, StringFormat='{0:F1}'}"
+                                           FontSize="13"
+                                           FontAttributes="Bold"
+                                           TextColor="{Binding Rating, Converter={StaticResource RatingToColorConverter}}" />
+                                </HorizontalStackLayout>
+                            </VerticalStackLayout>
+
+                            <!-- 3) Элемент Switch (двусторонняя привязка TwoWay к IsRead) и кнопка удаления -->
+                            <VerticalStackLayout Grid.Column="2"
+                                                 VerticalOptions="Center"
+                                                 HorizontalOptions="End"
+                                                 Spacing="6">
+                                <Label Text="Прочитано" FontSize="11" HorizontalOptions="Center" TextColor="#666" />
+                                <Switch IsToggled="{Binding IsRead, Mode=TwoWay}"
+                                        HorizontalOptions="Center" />
+                                <Button Text="✕"
+                                        FontSize="11"
+                                        Padding="0"
+                                        HeightRequest="24"
+                                        WidthRequest="24"
+                                        CornerRadius="12"
+                                        BackgroundColor="#FFEBEE"
+                                        TextColor="Red"
+                                        Command="{Binding Source={x:Reference RootPage}, Path=BindingContext.RemoveBookCommand}"
+                                        CommandParameter="{Binding .}"
+                                        HorizontalOptions="Center" />
+                            </VerticalStackLayout>
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <!-- Подсказка по цветам рейтинга -->
+        <Border Grid.Row="3"
+                StrokeShape="RoundRectangle 6"
+                Stroke="#EEE"
+                Padding="8,4"
+                Background="#FAFAFA">
+            <HorizontalStackLayout HorizontalOptions="Center" Spacing="15">
+                <HorizontalStackLayout Spacing="4">
+                    <BoxView Color="Green" WidthRequest="10" HeightRequest="10" CornerRadius="5" VerticalOptions="Center" />
+                    <Label Text="&gt; 4: Отлично" FontSize="11" TextColor="#555" VerticalOptions="Center" />
+                </HorizontalStackLayout>
+                <HorizontalStackLayout Spacing="4">
+                    <BoxView Color="DarkOrange" WidthRequest="10" HeightRequest="10" CornerRadius="5" VerticalOptions="Center" />
+                    <Label Text="3–4: Хорошо" FontSize="11" TextColor="#555" VerticalOptions="Center" />
+                </HorizontalStackLayout>
+                <HorizontalStackLayout Spacing="4">
+                    <BoxView Color="Red" WidthRequest="10" HeightRequest="10" CornerRadius="5" VerticalOptions="Center" />
+                    <Label Text="&lt; 3: Низкий" FontSize="11" TextColor="#555" VerticalOptions="Center" />
+                </HorizontalStackLayout>
+            </HorizontalStackLayout>
+        </Border>
+
+    </Grid>
+
+</ContentPage>

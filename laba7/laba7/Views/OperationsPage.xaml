@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:controls="clr-namespace:laba7.Controls"
+             xmlns:models="clr-namespace:laba7.Models"
+             xmlns:views="clr-namespace:laba7.Views"
+             x:Class="laba7.Views.OperationsPage"
+             x:Name="ThisPage"
+             Title="Финансовые операции"
+             BackgroundColor="#F8FAFC">
+
+    <Grid RowDefinitions="Auto, Auto, *" Padding="16, 12" RowSpacing="12">
+
+        <!-- Верхний информационный блок с балансом -->
+        <Border Grid.Row="0"
+                StrokeShape="RoundRectangle 16"
+                StrokeThickness="0"
+                BackgroundColor="#1E293B"
+                Padding="20, 16">
+            <Border.Shadow>
+                <Shadow Brush="#0F172A" Offset="0,4" Radius="10" Opacity="0.15"/>
+            </Border.Shadow>
+            <Grid ColumnDefinitions="*, Auto" VerticalOptions="Center">
+                <VerticalStackLayout Spacing="4">
+                    <Label Text="Текущий баланс"
+                           TextColor="#94A3B8"
+                           FontSize="13" />
+                    <Label x:Name="QuickBalanceLabel"
+                           Text="0 ₽"
+                           TextColor="White"
+                           FontSize="24"
+                           FontAttributes="Bold" />
+                </VerticalStackLayout>
+                
+                <Label x:Name="OperationsCountLabel"
+                       Grid.Column="1"
+                       Text="0 операций"
+                       TextColor="#CBD5E1"
+                       FontSize="13"
+                       VerticalOptions="Center" />
+            </Grid>
+        </Border>
+
+        <!-- Кнопки перехода и действий -->
+        <Grid Grid.Row="1" ColumnDefinitions="*, *" ColumnSpacing="10">
+            <!-- Кнопка навигации на страницу добавления -->
+            <Button Grid.Column="0"
+                    Text="➕ Добавить"
+                    BackgroundColor="#4F46E5"
+                    TextColor="White"
+                    FontAttributes="Bold"
+                    CornerRadius="12"
+                    HeightRequest="46"
+                    Clicked="OnAddTransactionClicked" />
+
+            <!-- Кнопка навигации на страницу баланса -->
+            <Button Grid.Column="1"
+                    Text="📊 Баланс"
+                    BackgroundColor="#0EA5E9"
+                    TextColor="White"
+                    FontAttributes="Bold"
+                    CornerRadius="12"
+                    HeightRequest="46"
+                    Clicked="OnViewBalanceClicked" />
+        </Grid>
+
+        <!-- Список операций с использованием пользовательского элемента управления TransactionCard -->
+        <Grid Grid.Row="2">
+            <!-- Сообщение при пустом списке -->
+            <Label x:Name="EmptyListLabel"
+                   Text="Список операций пуст.&#10;Нажмите «➕ Добавить», чтобы внести операцию."
+                   TextColor="#64748B"
+                   FontSize="14"
+                   HorizontalTextAlignment="Center"
+                   VerticalOptions="Center"
+                   HorizontalOptions="Center"
+                   IsVisible="False" />
+
+            <!-- Коллекция операций -->
+            <CollectionView x:Name="TransactionsCollectionView"
+                            SelectionMode="None"
+                            ItemsSource="{Binding Transactions, Source={x:Reference ThisPage}}">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:TransactionItem">
+                        <!-- Повторно используемый элемент управления TransactionCard (ContentView) -->
+                        <controls:TransactionCard
+                            Description="{Binding Description}"
+                            Amount="{Binding Amount}"
+                            IsIncome="{Binding IsIncome}"
+                            DeleteCommand="{Binding DeleteCommand, Source={x:Reference ThisPage}}"
+                            DeleteCommandParameter="{Binding .}" />
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </Grid>
+
+    </Grid>
+
+</ContentPage>

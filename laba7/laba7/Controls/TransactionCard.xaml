@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="laba7.Controls.TransactionCard">
+    <Border StrokeShape="RoundRectangle 12"
+            StrokeThickness="1"
+            Stroke="#CBD5E1"
+            BackgroundColor="White"
+            Padding="14,12"
+            Margin="0,4,0,8">
+        <Border.Shadow>
+            <Shadow Brush="#000000" Offset="0,2" Radius="5" Opacity="0.06"/>
+        </Border.Shadow>
+        <Grid ColumnDefinitions="Auto, *, Auto, Auto" ColumnSpacing="12" VerticalOptions="Center">
+            <!-- Индикатор типа: зеленый для дохода, красный для расхода -->
+            <Border Grid.Column="0"
+                    StrokeShape="RoundRectangle 20"
+                    StrokeThickness="0"
+                    WidthRequest="40"
+                    HeightRequest="40"
+                    HorizontalOptions="Center"
+                    VerticalOptions="Center"
+                    x:Name="TypeBadge">
+                <Label x:Name="TypeIcon"
+                       Text="↓"
+                       FontSize="18"
+                       FontAttributes="Bold"
+                       HorizontalOptions="Center"
+                       VerticalOptions="Center" />
+            </Border>
+
+            <!-- Описание операции и подпись -->
+            <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
+                <Label x:Name="DescriptionLabel"
+                       FontSize="15"
+                       FontAttributes="Bold"
+                       TextColor="#0F172A"
+                       LineBreakMode="TailTruncation" />
+                <Label x:Name="TypeTextLabel"
+                       FontSize="12"
+                       TextColor="#64748B" />
+            </VerticalStackLayout>
+
+            <!-- Сумма операции -->
+            <Label Grid.Column="2"
+                   x:Name="AmountLabel"
+                   FontSize="16"
+                   FontAttributes="Bold"
+                   VerticalOptions="Center"
+                   HorizontalOptions="End" />
+
+            <!-- Кнопка для удаления операции -->
+            <Button Grid.Column="3"
+                    x:Name="DeleteBtn"
+                    Text="✕"
+                    TextColor="#DC2626"
+                    BackgroundColor="#FEE2E2"
+                    CornerRadius="16"
+                    WidthRequest="32"
+                    HeightRequest="32"
+                    Padding="0"
+                    FontSize="13"
+                    FontAttributes="Bold"
+                    VerticalOptions="Center" />
+        </Grid>
+    </Border>
+</ContentView>

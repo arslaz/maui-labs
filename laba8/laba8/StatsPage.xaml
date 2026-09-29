@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="laba8.StatsPage"
+             Title="Статистика">
+
+    <ScrollView>
+        <VerticalStackLayout Spacing="14" Padding="14">
+
+            <Label Text="Статистика библиотеки" FontSize="20" FontAttributes="Bold" />
+
+            <Label x:Name="TotalCountLabel" FontSize="16" />
+            <Label x:Name="AverageRatingLabel" FontSize="16" />
+
+            <Label Text="Распределение по жанрам:" FontAttributes="Bold" Margin="0,10,0,0" />
+
+            <CollectionView x:Name="GenresCollectionView" HeightRequest="300">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Label Text="{Binding .}" FontSize="15" Padding="4" />
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>

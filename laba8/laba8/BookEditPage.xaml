@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="laba8.BookEditPage"
+             Title="Книга">
+
+    <ScrollView>
+        <VerticalStackLayout Spacing="10" Padding="14">
+
+            <Label Text="Название книги:" />
+            <Entry x:Name="TitleEntry" />
+
+            <Label Text="Автор:" />
+            <Entry x:Name="AuthorEntry" />
+
+            <Label Text="Год издания:" />
+            <Entry x:Name="YearEntry" Keyboard="Numeric" />
+
+            <Label Text="Жанр:" />
+            <Picker x:Name="GenrePicker" SelectedIndex="0">
+                <Picker.ItemsSource>
+                    <x:Array Type="{x:Type x:String}">
+                        <x:String>Классика</x:String>
+                        <x:String>Фантастика</x:String>
+                        <x:String>Детектив</x:String>
+                        <x:String>Роман</x:String>
+                        <x:String>Наука</x:String>
+                        <x:String>Другое</x:String>
+                    </x:Array>
+                </Picker.ItemsSource>
+            </Picker>
+
+            <Label Text="Количество страниц:" />
+            <Entry x:Name="PageCountEntry" Keyboard="Numeric" />
+
+            <Label Text="Оценка (1-5):" />
+            <Picker x:Name="RatingPicker" SelectedIndex="0">
+                <Picker.ItemsSource>
+                    <x:Array Type="{x:Type x:String}">
+                        <x:String>Без оценки</x:String>
+                        <x:String>1</x:String>
+                        <x:String>2</x:String>
+                        <x:String>3</x:String>
+                        <x:String>4</x:String>
+                        <x:String>5</x:String>
+                    </x:Array>
+                </Picker.ItemsSource>
+            </Picker>
+
+            <Label Text="Краткий отзыв:" />
+            <Editor x:Name="ReviewEditor" HeightRequest="80" />
+
+            <Grid ColumnDefinitions="*,Auto">
+                <Label Grid.Column="0" Text="Личный отзыв (SecureStorage):" VerticalOptions="Center" />
+                <Switch Grid.Column="1" x:Name="PrivateSwitch" />
+            </Grid>
+
+            <Button Text="Сохранить" Clicked="OnSaveClicked" Margin="0,10,0,0" />
+            <Button x:Name="DeleteButton" Text="Удалить" BackgroundColor="Red" Clicked="OnDeleteClicked" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>

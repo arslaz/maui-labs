@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:controls="clr-namespace:laba67.Controls"
+             xmlns:pages="clr-namespace:laba67.Pages"
+             xmlns:models="clr-namespace:laba67.Models"
+             x:Class="laba67.Pages.CatalogPage"
+             x:DataType="pages:CatalogPage"
+             Title="Каталог книг"
+             BackgroundColor="#F8FAFC">
+
+    <ContentPage.ToolbarItems>
+        <ToolbarItem Text="🔖 Закладки"
+                     Clicked="OnBookmarksClicked"
+                     Priority="0" />
+    </ContentPage.ToolbarItems>
+
+    <Grid RowDefinitions="Auto,*" Padding="16,12">
+        <!-- Header Banner -->
+        <Border Grid.Row="0"
+                StrokeShape="RoundRectangle 16"
+                StrokeThickness="0"
+                BackgroundColor="#4F46E5"
+                Padding="20"
+                Margin="0,0,0,16">
+            <VerticalStackLayout Spacing="6">
+                <Label Text="📚 Электронная библиотека"
+                       FontSize="22"
+                       FontAttributes="Bold"
+                       TextColor="White" />
+                <Label Text="Книги сохраняют страницу, на которой вы остановились. Закладки ставятся на конкретные страницы."
+                       FontSize="13"
+                       TextColor="#C7D2FE" />
+                <Button Text="Перейти к закладкам"
+                        BackgroundColor="#6366F1"
+                        TextColor="White"
+                        FontAttributes="Bold"
+                        CornerRadius="8"
+                        HeightRequest="38"
+                        HorizontalOptions="Start"
+                        Margin="0,8,0,0"
+                        Clicked="OnBookmarksClicked" />
+            </VerticalStackLayout>
+        </Border>
+
+        <!-- Books List -->
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout Spacing="4">
+                <Label Text="Список доступных книг"
+                       FontSize="16"
+                       FontAttributes="Bold"
+                       TextColor="#334155"
+                       Margin="4,0,0,8" />
+
+                <!-- Collection of Books rendered with custom BookCard control -->
+                <CollectionView ItemsSource="{Binding Books}"
+                                SelectionMode="None">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="models:Book">
+                            <controls:BookCard BookTitle="{Binding Title}"
+                                               Author="{Binding Author}"
+                                               Progress="{Binding Progress}"
+                                               PageInfo="{Binding CurrentPageText}"
+                                               Command="{Binding Source={RelativeSource AncestorType={x:Type pages:CatalogPage}}, Path=OpenBookCommand}"
+                                               CommandParameter="{Binding .}" />
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </VerticalStackLayout>
+        </ScrollView>
+    </Grid>
+
+</ContentPage>

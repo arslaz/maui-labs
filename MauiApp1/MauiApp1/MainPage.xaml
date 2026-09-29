@@ -1,0 +1,36 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MauiApp1.MainPage">
+
+    <VerticalStackLayout
+        Spacing="25"
+        VerticalOptions="Center"
+        HorizontalOptions="Center">
+
+        <Label
+            x:Name="CounterLabel"
+            Text="0"
+            FontSize="64"
+            FontAttributes="Bold"
+            TextColor="DarkBlue"
+            HorizontalOptions="Center" />
+
+        <Label
+            Text="Раз нажали:"
+            FontSize="24"
+            TextColor="Gray"
+            HorizontalOptions="Center" />
+
+        <Button
+            Text="Кликни меня!"
+            FontSize="28"
+            BackgroundColor="DeepSkyBlue"
+            TextColor="White"
+            CornerRadius="20"
+            Padding="30,15"
+            Clicked="OnCounterClicked"
+            HorizontalOptions="Center" />
+
+    </VerticalStackLayout>
+</ContentPage>

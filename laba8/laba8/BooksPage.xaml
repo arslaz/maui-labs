@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:local="clr-namespace:laba8"
+             x:Class="laba8.BooksPage"
+             Title="Книги">
+
+    <Grid RowDefinitions="Auto,Auto,Auto,*" Padding="12" RowSpacing="8">
+
+        <Button Grid.Row="0"
+                Text="+ Добавить книгу"
+                Clicked="OnAddClicked" />
+
+        <SearchBar Grid.Row="1"
+                   x:Name="SearchBarControl"
+                   Placeholder="Поиск по названию и автору"
+                   TextChanged="OnFilterChanged" />
+
+        <Grid Grid.Row="2" ColumnDefinitions="Auto,*" ColumnSpacing="10">
+            <Label Grid.Column="0" Text="Жанр:" VerticalOptions="Center" />
+            <Picker Grid.Column="1"
+                    x:Name="GenrePicker"
+                    SelectedIndex="0"
+                    SelectedIndexChanged="OnFilterChanged">
+                <Picker.ItemsSource>
+                    <x:Array Type="{x:Type x:String}">
+                        <x:String>Все жанры</x:String>
+                        <x:String>Классика</x:String>
+                        <x:String>Фантастика</x:String>
+                        <x:String>Детектив</x:String>
+                        <x:String>Роман</x:String>
+                        <x:String>Наука</x:String>
+                        <x:String>Другое</x:String>
+                    </x:Array>
+                </Picker.ItemsSource>
+            </Picker>
+        </Grid>
+
+        <CollectionView Grid.Row="3"
+                        x:Name="BooksCollection"
+                        SelectionMode="Single"
+                        SelectionChanged="OnBookSelected">
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="local:Book">
+                    <Border StrokeShape="RoundRectangle 8"
+                            Stroke="#CCCCCC"
+                            Padding="10"
+                            Margin="0,0,0,8">
+                        <VerticalStackLayout Spacing="3">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <Label Grid.Column="0" Text="{Binding Title}" FontAttributes="Bold" FontSize="16" />
+                                <Label Grid.Column="1" Text="{Binding Score}" TextColor="DarkOrange" />
+                            </Grid>
+                            <Label Text="{Binding Info}" FontSize="12" TextColor="Gray" />
+                            <Label Text="{Binding Status}" FontSize="11" TextColor="RoyalBlue" />
+                            <Label Text="{Binding Review}" FontSize="12" MaxLines="2" />
+                        </VerticalStackLayout>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+    </Grid>
+
+</ContentPage>

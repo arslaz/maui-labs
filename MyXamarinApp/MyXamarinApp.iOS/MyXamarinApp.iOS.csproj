@@ -1,0 +1,11 @@
+<Project Sdk="MSBuild.Sdk.Extras/3.0.44">
+  <PropertyGroup>
+    <TargetFramework>xamarinios10</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <IPhoneResourcePrefix>Resources</IPhoneResourcePrefix>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Xamarin.Forms" Version="5.0.0.2612" />
+    <ProjectReference Include="..\MyXamarinApp\MyXamarinApp.csproj" />
+  </ItemGroup>
+</Project>

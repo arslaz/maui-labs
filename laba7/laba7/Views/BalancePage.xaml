@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:controls="clr-namespace:laba7.Controls"
+             x:Class="laba7.Views.BalancePage"
+             x:Name="ThisBalancePage"
+             Title="Баланс и статистика"
+             BackgroundColor="#F8FAFC">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="16" Spacing="16">
+
+            <!-- Карточка баланса -->
+            <Border StrokeShape="RoundRectangle 16"
+                    StrokeThickness="0"
+                    BackgroundColor="#0F172A"
+                    Padding="24, 20">
+                <Border.Shadow>
+                    <Shadow Brush="#000000" Offset="0,4" Radius="12" Opacity="0.18"/>
+                </Border.Shadow>
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="Текущий баланс"
+                           TextColor="#94A3B8"
+                           FontSize="14" />
+                    <Label x:Name="BalanceValueLabel"
+                           Text="0 ₽"
+                           TextColor="#4ADE80"
+                           FontSize="32"
+                           FontAttributes="Bold" />
+                    <Label x:Name="BalanceStatusLabel"
+                           Text="Баланс положительный"
+                           TextColor="#CBD5E1"
+                           FontSize="13" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Блок передачи данных при навигации -->
+            <Border StrokeShape="RoundRectangle 12"
+                    StrokeThickness="1"
+                    Stroke="#CBD5E1"
+                    BackgroundColor="#F1F5F9"
+                    Padding="14">
+                <VerticalStackLayout Spacing="4">
+                    <Label Text="📋 Данные, переданные при переходе:"
+                           FontAttributes="Bold"
+                           TextColor="#334155"
+                           FontSize="13" />
+                    <Label x:Name="NavConstructorInfoLabel"
+                           TextColor="#475569"
+                           FontSize="12" />
+                    <Label x:Name="NavPropertyInfoLabel"
+                           TextColor="#475569"
+                           FontSize="12" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Секция: Повторное использование пользовательского элемента ContentView (TransactionCard) -->
+            <VerticalStackLayout Spacing="8">
+                <Label Text="Последняя операция (элемент ContentView):"
+                       FontAttributes="Bold"
+                       TextColor="#1E293B"
+                       FontSize="15" />
+
+                <!-- Повторно используемый компонент TransactionCard -->
+                <controls:TransactionCard x:Name="RecentTransactionCard"
+                                          IsVisible="False"
+                                          DeleteCommand="{Binding DeleteRecentCommand, Source={x:Reference ThisBalancePage}}" />
+
+                <Label x:Name="NoTransactionsLabel"
+                       Text="Нет доступных операций"
+                       TextColor="#94A3B8"
+                       FontSize="14"
+                       IsVisible="True" />
+            </VerticalStackLayout>
+
+            <!-- Кнопка возврата по стеку навигации -->
+            <Button Text="⬅ Вернуться к операциям"
+                    BackgroundColor="#334155"
+                    TextColor="White"
+                    FontAttributes="Bold"
+                    CornerRadius="12"
+                    HeightRequest="46"
+                    Clicked="OnBackButtonClicked"
+                    Margin="0, 10, 0, 0" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>

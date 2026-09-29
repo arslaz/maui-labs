@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:pages="clr-namespace:laba67.Pages"
+             xmlns:models="clr-namespace:laba67.Models"
+             x:Class="laba67.Pages.BookmarksPage"
+             x:DataType="pages:BookmarksPage"
+             Title="Мои закладки"
+             BackgroundColor="#F8FAFC">
+
+    <Grid RowDefinitions="Auto,*,Auto" Padding="16,12">
+
+        <!-- Info Header -->
+        <Border Grid.Row="0"
+                StrokeShape="RoundRectangle 12"
+                StrokeThickness="1"
+                Stroke="#E2E8F0"
+                BackgroundColor="White"
+                Padding="16"
+                Margin="0,0,0,12">
+            <VerticalStackLayout Spacing="4">
+                <Label Text="🔖 Сохранённые закладки по страницам"
+                       FontSize="17"
+                       FontAttributes="Bold"
+                       TextColor="#1E293B" />
+                <Label Text="Каждая закладка привязана к конкретной странице. Нажмите кнопку, чтобы открыть книгу на этой странице."
+                       FontSize="12"
+                       TextColor="#64748B" />
+            </VerticalStackLayout>
+        </Border>
+
+        <!-- Bookmarks List -->
+        <CollectionView Grid.Row="1"
+                        ItemsSource="{Binding Bookmarks}"
+                        SelectionMode="None">
+            <CollectionView.EmptyView>
+                <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="8" Padding="20">
+                    <Label Text="📑"
+                           FontSize="40"
+                           HorizontalOptions="Center" />
+                    <Label Text="Закладок пока нет"
+                           FontSize="16"
+                           FontAttributes="Bold"
+                           TextColor="#64748B"
+                           HorizontalOptions="Center" />
+                    <Label Text="Откройте книгу и сохраните закладку на нужной странице"
+                           FontSize="13"
+                           TextColor="#94A3B8"
+                           HorizontalOptions="Center" />
+                </VerticalStackLayout>
+            </CollectionView.EmptyView>
+
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:Bookmark">
+                    <Border StrokeShape="RoundRectangle 12"
+                            Stroke="#E2E8F0"
+                            StrokeThickness="1"
+                            BackgroundColor="White"
+                            Margin="0,4,0,8"
+                            Padding="14">
+                        <Border.Shadow>
+                            <Shadow Brush="#000000"
+                                    Offset="0,1"
+                                    Radius="4"
+                                    Opacity="0.05" />
+                        </Border.Shadow>
+
+                        <Grid RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+                            <!-- Icon -->
+                            <Border Grid.RowSpan="3"
+                                    Grid.Column="0"
+                                    StrokeShape="RoundRectangle 8"
+                                    BackgroundColor="#FEF3C7"
+                                    StrokeThickness="0"
+                                    WidthRequest="44"
+                                    HeightRequest="44"
+                                    VerticalOptions="Center">
+                                <Label Text="📌"
+                                       FontSize="20"
+                                       HorizontalOptions="Center"
+                                       VerticalOptions="Center" />
+                            </Border>
+
+                            <!-- Title and Page -->
+                            <VerticalStackLayout Grid.Row="0" Grid.Column="1" Spacing="2">
+                                <Label Text="{Binding BookTitle}"
+                                       FontSize="15"
+                                       FontAttributes="Bold"
+                                       TextColor="#1E293B" />
+                                <Label Text="{Binding PageNumber, StringFormat='Страница {0}'}"
+                                       FontSize="12"
+                                       TextColor="#D97706"
+                                       FontAttributes="Bold" />
+                            </VerticalStackLayout>
+
+                            <!-- Date -->
+                            <Label Grid.Row="0"
+                                   Grid.Column="2"
+                                   Text="{Binding FormattedDate}"
+                                   FontSize="11"
+                                   TextColor="#94A3B8"
+                                   VerticalOptions="Start" />
+
+                            <!-- Note -->
+                            <Label Grid.Row="1"
+                                   Grid.Column="1"
+                                   Grid.ColumnSpan="2"
+                                   Text="{Binding Note}"
+                                   FontSize="13"
+                                   TextColor="#475569"
+                                   Margin="0,4,0,8" />
+
+                            <!-- Jump to Page Button -->
+                            <Button Grid.Row="2"
+                                    Grid.Column="1"
+                                    Grid.ColumnSpan="2"
+                                    Text="{Binding PageNumber, StringFormat='Перейти к чтению (стр. {0})'}"
+                                    BackgroundColor="#EEF2FF"
+                                    TextColor="#4F46E5"
+                                    FontAttributes="Bold"
+                                    FontSize="12"
+                                    HeightRequest="34"
+                                    CornerRadius="6"
+                                    Clicked="OnOpenBookmarkClicked"
+                                    CommandParameter="{Binding .}" />
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <!-- Back Button -->
+        <Button Grid.Row="2"
+                Text="← Назад"
+                BackgroundColor="#4F46E5"
+                TextColor="White"
+                FontAttributes="Bold"
+                CornerRadius="8"
+                HeightRequest="44"
+                Margin="0,8,0,0"
+                Clicked="OnBackButtonClicked" />
+
+    </Grid>
+
+</ContentPage>

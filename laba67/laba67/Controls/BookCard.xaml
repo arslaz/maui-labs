@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="laba67.Controls.BookCard"
+             x:Name="ThisControl">
+
+    <Border StrokeShape="RoundRectangle 14"
+            Stroke="#E2E8F0"
+            StrokeThickness="1"
+            BackgroundColor="White"
+            Margin="0,6,0,6"
+            Padding="16">
+        <Border.Shadow>
+            <Shadow Brush="#000000"
+                    Offset="0,2"
+                    Radius="6"
+                    Opacity="0.06" />
+        </Border.Shadow>
+
+        <Border.GestureRecognizers>
+            <TapGestureRecognizer Command="{Binding Command, Source={x:Reference ThisControl}}"
+                                  CommandParameter="{Binding CommandParameter, Source={x:Reference ThisControl}}" />
+        </Border.GestureRecognizers>
+
+        <Grid RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
+            <!-- Book Icon Container -->
+            <Border Grid.RowSpan="3"
+                    Grid.Column="0"
+                    StrokeShape="RoundRectangle 10"
+                    StrokeThickness="0"
+                    BackgroundColor="#EEF2FF"
+                    WidthRequest="54"
+                    HeightRequest="68"
+                    VerticalOptions="Center">
+                <Label Text="📖"
+                       FontSize="26"
+                       HorizontalOptions="Center"
+                       VerticalOptions="Center" />
+            </Border>
+
+            <!-- Book Info -->
+            <VerticalStackLayout Grid.Row="0" Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                <Label Text="{Binding BookTitle, Source={x:Reference ThisControl}}"
+                       FontSize="16"
+                       FontAttributes="Bold"
+                       TextColor="#1E293B"
+                       LineBreakMode="TailTruncation"
+                       MaxLines="1" />
+                <Label Text="{Binding Author, Source={x:Reference ThisControl}}"
+                       FontSize="13"
+                       TextColor="#64748B"
+                       LineBreakMode="TailTruncation"
+                       MaxLines="1" />
+            </VerticalStackLayout>
+
+            <!-- Read / Open Button -->
+            <Button Grid.Row="0"
+                    Grid.RowSpan="3"
+                    Grid.Column="2"
+                    Text="Открыть"
+                    FontSize="12"
+                    FontAttributes="Bold"
+                    BackgroundColor="#4F46E5"
+                    TextColor="White"
+                    CornerRadius="8"
+                    Padding="12,0"
+                    HeightRequest="36"
+                    VerticalOptions="Center"
+                    Command="{Binding Command, Source={x:Reference ThisControl}}"
+                    CommandParameter="{Binding CommandParameter, Source={x:Reference ThisControl}}" />
+
+            <!-- Progress & Page Section -->
+            <Grid Grid.Row="1"
+                  Grid.Column="1"
+                  Margin="0,8,0,0"
+                  ColumnDefinitions="*,Auto"
+                  ColumnSpacing="8"
+                  VerticalOptions="End">
+                <ProgressBar Grid.Column="0"
+                             Progress="{Binding Progress, Source={x:Reference ThisControl}}"
+                             ProgressColor="#4F46E5"
+                             HeightRequest="6"
+                             VerticalOptions="Center" />
+                <HorizontalStackLayout Grid.Column="1" Spacing="4" VerticalOptions="Center">
+                    <Label Text="{Binding PageInfo, Source={x:Reference ThisControl}}"
+                           FontSize="11"
+                           TextColor="#64748B"
+                           VerticalOptions="Center" />
+                    <Label Text="{Binding Progress, Source={x:Reference ThisControl}, StringFormat='({0:P0})'}"
+                           FontSize="12"
+                           FontAttributes="Bold"
+                           TextColor="#4F46E5"
+                           VerticalOptions="Center" />
+                </HorizontalStackLayout>
+            </Grid>
+        </Grid>
+    </Border>
+</ContentView>
