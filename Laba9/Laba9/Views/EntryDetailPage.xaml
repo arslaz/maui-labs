@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:Laba9.ViewModels"
+             x:Class="Laba9.Views.EntryDetailPage"
+             x:DataType="vm:EntryDetailViewModel"
+             Title="{Binding Title}">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="16" Spacing="16">
+
+            <!-- Информационный баннер об ошибке валидации -->
+            <Border Stroke="#E53935"
+                    StrokeThickness="1.5"
+                    BackgroundColor="#FFEBEE"
+                    StrokeShape="RoundRectangle 10"
+                    Padding="12"
+                    IsVisible="{Binding HasError}">
+                <HorizontalStackLayout Spacing="10" VerticalOptions="Center">
+                    <Label Text="⚠️" FontSize="18" VerticalOptions="Center" />
+                    <Label Text="{Binding ErrorMessage}"
+                           TextColor="#C62828"
+                           FontAttributes="Bold"
+                           FontSize="14"
+                           LineBreakMode="WordWrap"
+                           VerticalOptions="Center" />
+                </HorizontalStackLayout>
+            </Border>
+
+            <!-- Основная карточка записи -->
+            <Border Stroke="{AppThemeBinding Light=#E0E0E0, Dark=#333333}"
+                    StrokeThickness="1"
+                    BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#1E1E1E}"
+                    StrokeShape="RoundRectangle 12"
+                    Padding="16">
+                <VerticalStackLayout Spacing="14">
+
+                    <!-- Заголовок записи -->
+                    <Label Text="Заголовок записи *" 
+                           FontSize="13" 
+                           FontAttributes="Bold" 
+                           TextColor="{AppThemeBinding Light=#616161, Dark=#B0B0B0}" />
+                    <Border Stroke="{AppThemeBinding Light=#CCCCCC, Dark=#444444}"
+                            StrokeThickness="1"
+                            StrokeShape="RoundRectangle 8"
+                            Padding="10,4">
+                        <Entry Text="{Binding TitleText}"
+                               Placeholder="Например: Прогулка в парке"
+                               FontSize="16"
+                               TextColor="{AppThemeBinding Light=#212121, Dark=#FFFFFF}"
+                               ClearButtonVisibility="WhileEditing" />
+                    </Border>
+
+                    <!-- Дата записи с защитой от ввода в будущем -->
+                    <Grid ColumnDefinitions="*, *" ColumnSpacing="12">
+                        <VerticalStackLayout Grid.Column="0" Spacing="4">
+                            <Label Text="Дата записи 📅" 
+                                   FontSize="13" 
+                                   FontAttributes="Bold" 
+                                   TextColor="{AppThemeBinding Light=#616161, Dark=#B0B0B0}" />
+                            <Border Stroke="{AppThemeBinding Light=#CCCCCC, Dark=#444444}"
+                                    StrokeThickness="1"
+                                    StrokeShape="RoundRectangle 8"
+                                    Padding="10,2">
+                                <DatePicker Date="{Binding EntryDate}"
+                                            MaximumDate="{Binding MaxDate}"
+                                            Format="dd.MM.yyyy"
+                                            TextColor="{AppThemeBinding Light=#212121, Dark=#FFFFFF}" />
+                            </Border>
+                            <Label Text="(макс. сегодня)" 
+                                   FontSize="11" 
+                                   TextColor="{AppThemeBinding Light=#757575, Dark=#888888}" />
+                        </VerticalStackLayout>
+
+                        <!-- Настроение -->
+                        <VerticalStackLayout Grid.Column="1" Spacing="4">
+                            <Label Text="Настроение 🎭" 
+                                   FontSize="13" 
+                                   FontAttributes="Bold" 
+                                   TextColor="{AppThemeBinding Light=#616161, Dark=#B0B0B0}" />
+                            <Border Stroke="{AppThemeBinding Light=#CCCCCC, Dark=#444444}"
+                                    StrokeThickness="1"
+                                    StrokeShape="RoundRectangle 8"
+                                    Padding="8,2">
+                                <Picker ItemsSource="{Binding AvailableMoods}"
+                                        SelectedItem="{Binding SelectedMood}"
+                                        Title="Выберите настроение"
+                                        TextColor="{AppThemeBinding Light=#212121, Dark=#FFFFFF}" />
+                            </Border>
+                        </VerticalStackLayout>
+                    </Grid>
+
+                    <!-- Теги -->
+                    <Label Text="Теги (через запятую или пробел)" 
+                           FontSize="13" 
+                           FontAttributes="Bold" 
+                           TextColor="{AppThemeBinding Light=#616161, Dark=#B0B0B0}" />
+                    <Border Stroke="{AppThemeBinding Light=#CCCCCC, Dark=#444444}"
+                            StrokeThickness="1"
+                            StrokeShape="RoundRectangle 8"
+                            Padding="10,4">
+                        <Entry Text="{Binding TagsText}"
+                               Placeholder="#мысли, #планы, #учеба"
+                               FontSize="14"
+                               TextColor="{AppThemeBinding Light=#212121, Dark=#FFFFFF}" />
+                    </Border>
+
+                    <!-- Переключатели опций: Избранное и Конфиденциальность -->
+                    <Grid ColumnDefinitions="*, *" ColumnSpacing="12" Margin="0,4,0,0">
+                        <!-- Избранное -->
+                        <Border Grid.Column="0"
+                                Stroke="{AppThemeBinding Light=#E0E0E0, Dark=#333333}"
+                                StrokeThickness="1"
+                                StrokeShape="RoundRectangle 8"
+                                Padding="10">
+                            <HorizontalStackLayout Spacing="8" VerticalOptions="Center">
+                                <Switch IsToggled="{Binding IsFavorite}" />
+                                <Label Text="В избранное ⭐" 
+                                       FontSize="13" 
+                                       VerticalOptions="Center"
+                                       TextColor="{AppThemeBinding Light=#212121, Dark=#FFFFFF}" />
+                            </HorizontalStackLayout>
+                        </Border>
+
+                        <!-- Конфиденциальность -->
+                        <Border Grid.Column="1"
+                                Stroke="{AppThemeBinding Light=#E0E0E0, Dark=#333333}"
+                                StrokeThickness="1"
+                                StrokeShape="RoundRectangle 8"
+                                Padding="10">
+                            <HorizontalStackLayout Spacing="8" VerticalOptions="Center">
+                                <Switch IsToggled="{Binding IsConfidential}" />
+                                <Label Text="Секретно 🔒" 
+                                       FontSize="13" 
+                                       VerticalOptions="Center"
+                                       TextColor="{AppThemeBinding Light=#212121, Dark=#FFFFFF}" />
+                            </HorizontalStackLayout>
+                        </Border>
+                    </Grid>
+
+                    <!-- Текст записи -->
+                    <Label Text="Текст записи *" 
+                           FontSize="13" 
+                           FontAttributes="Bold" 
+                           TextColor="{AppThemeBinding Light=#616161, Dark=#B0B0B0}"
+                           Margin="0,6,0,0" />
+                    <Border Stroke="{AppThemeBinding Light=#CCCCCC, Dark=#444444}"
+                            StrokeThickness="1"
+                            StrokeShape="RoundRectangle 8"
+                            Padding="10">
+                        <Editor Text="{Binding ContentText}"
+                                Placeholder="Опишите ваши мысли, события или достижения..."
+                                AutoSize="TextChanges"
+                                MinimumHeightRequest="160"
+                                FontSize="{Binding FontSize}"
+                                TextColor="{AppThemeBinding Light=#212121, Dark=#FFFFFF}" />
+                    </Border>
+
+                    <!-- Информационная строка статуса -->
+                    <Label Text="{Binding StatusInfo}" 
+                           FontSize="11" 
+                           TextColor="{AppThemeBinding Light=#757575, Dark=#9E9E9E}" />
+
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Блок управляющих кнопок (все привязаны к командам ViewModel) -->
+            <Grid ColumnDefinitions="*, *" ColumnSpacing="12">
+                <Button Grid.Column="0"
+                        Text="💾 Сохранить"
+                        Command="{Binding SaveCommand}"
+                        BackgroundColor="#512BD4"
+                        TextColor="White"
+                        FontAttributes="Bold"
+                        CornerRadius="8"
+                        HeightRequest="48" />
+
+                <Button Grid.Column="1"
+                        Text="Отмена"
+                        Command="{Binding CancelCommand}"
+                        BackgroundColor="{AppThemeBinding Light=#E0E0E0, Dark=#424242}"
+                        TextColor="{AppThemeBinding Light=#212121, Dark=#FFFFFF}"
+                        CornerRadius="8"
+                        HeightRequest="48" />
+            </Grid>
+
+            <!-- Дополнительные действия: Поделиться и Удалить -->
+            <Grid ColumnDefinitions="*, *" ColumnSpacing="12">
+                <Button Grid.Column="0"
+                        Text="📤 Поделиться"
+                        Command="{Binding ShareCommand}"
+                        BackgroundColor="{AppThemeBinding Light=#EDE7F6, Dark=#311B92}"
+                        TextColor="{AppThemeBinding Light=#512BD4, Dark=#B39DDB}"
+                        CornerRadius="8"
+                        HeightRequest="44" />
+
+                <Button Grid.Column="1"
+                        Text="🗑️ Удалить"
+                        Command="{Binding DeleteCommand}"
+                        BackgroundColor="{AppThemeBinding Light=#FFEBEE, Dark=#B71C1C}"
+                        TextColor="{AppThemeBinding Light=#C62828, Dark=#FFCDD2}"
+                        CornerRadius="8"
+                        HeightRequest="44" />
+            </Grid>
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>

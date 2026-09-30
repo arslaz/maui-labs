@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:Laba9.ViewModels"
+             x:Class="Laba9.Views.SettingsPage"
+             x:DataType="vm:SettingsViewModel"
+             Title="{Binding Title}">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="16" Spacing="16">
+
+            <!-- Статусное уведомление -->
+            <Border Stroke="#512BD4"
+                    StrokeThickness="1"
+                    BackgroundColor="{AppThemeBinding Light=#EDE7F6, Dark=#311B92}"
+                    StrokeShape="RoundRectangle 10"
+                    Padding="12"
+                    IsVisible="{Binding HasStatusMessage}">
+                <HorizontalStackLayout Spacing="8" VerticalOptions="Center">
+                    <Label Text="ℹ️" FontSize="16" VerticalOptions="Center" />
+                    <Label Text="{Binding StatusMessage}"
+                           TextColor="{AppThemeBinding Light=#512BD4, Dark=#D1C4E9}"
+                           FontSize="13"
+                           FontAttributes="Bold"
+                           VerticalOptions="Center" />
+                </HorizontalStackLayout>
+            </Border>
+
+            <!-- Блок 1: Внешний вид -->
+            <Border Stroke="{AppThemeBinding Light=#E0E0E0, Dark=#333333}"
+                    StrokeThickness="1"
+                    BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#1E1E1E}"
+                    StrokeShape="RoundRectangle 12"
+                    Padding="16">
+                <VerticalStackLayout Spacing="12">
+                    <Label Text="🎨 Внешний вид и шрифт"
+                           FontSize="15"
+                           FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light=#212121, Dark=#FFFFFF}" />
+
+                    <!-- Тема оформления -->
+                    <Label Text="Тема приложения"
+                           FontSize="13"
+                           TextColor="{AppThemeBinding Light=#616161, Dark=#B0B0B0}" />
+                    <Border Stroke="{AppThemeBinding Light=#CCCCCC, Dark=#444444}"
+                            StrokeThickness="1"
+                            StrokeShape="RoundRectangle 8"
+                            Padding="8,2">
+                        <Picker ItemsSource="{Binding AvailableThemes}"
+                                SelectedItem="{Binding Theme}"
+                                Title="Выберите тему"
+                                TextColor="{AppThemeBinding Light=#212121, Dark=#FFFFFF}" />
+                    </Border>
+
+                    <!-- Размер шрифта -->
+                    <Label Text="Размер шрифта текста"
+                           FontSize="13"
+                           TextColor="{AppThemeBinding Light=#616161, Dark=#B0B0B0}" />
+                    <Border Stroke="{AppThemeBinding Light=#CCCCCC, Dark=#444444}"
+                            StrokeThickness="1"
+                            StrokeShape="RoundRectangle 8"
+                            Padding="8,2">
+                        <Picker ItemsSource="{Binding AvailableFontSizes}"
+                                SelectedItem="{Binding FontSize}"
+                                Title="Выберите размер шрифта"
+                                TextColor="{AppThemeBinding Light=#212121, Dark=#FFFFFF}" />
+                    </Border>
+
+                    <!-- Предпросмотр шрифта -->
+                    <Border Stroke="{AppThemeBinding Light=#E0E0E0, Dark=#333333}"
+                            StrokeThickness="1"
+                            StrokeShape="RoundRectangle 8"
+                            BackgroundColor="{AppThemeBinding Light=#F9F9F9, Dark=#262626}"
+                            Padding="12"
+                            Margin="0,4,0,0">
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="Предпросмотр шрифта:"
+                                   FontSize="11"
+                                   TextColor="{AppThemeBinding Light=#757575, Dark=#9E9E9E}" />
+                            <Label Text="«Каждая страница твоего дневника — это отражение твоей жизни.»"
+                                   FontSize="{Binding FontSize}"
+                                   TextColor="{AppThemeBinding Light=#212121, Dark=#FFFFFF}" />
+                        </VerticalStackLayout>
+                    </Border>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Блок 2: Сортировка по умолчанию -->
+            <Border Stroke="{AppThemeBinding Light=#E0E0E0, Dark=#333333}"
+                    StrokeThickness="1"
+                    BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#1E1E1E}"
+                    StrokeShape="RoundRectangle 12"
+                    Padding="16">
+                <VerticalStackLayout Spacing="12">
+                    <Label Text="🗂️ Сортировка записей"
+                           FontSize="15"
+                           FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light=#212121, Dark=#FFFFFF}" />
+
+                    <Label Text="Порядок отображения по умолчанию"
+                           FontSize="13"
+                           TextColor="{AppThemeBinding Light=#616161, Dark=#B0B0B0}" />
+                    <Border Stroke="{AppThemeBinding Light=#CCCCCC, Dark=#444444}"
+                            StrokeThickness="1"
+                            StrokeShape="RoundRectangle 8"
+                            Padding="8,2">
+                        <Picker ItemsSource="{Binding AvailableSortOptions}"
+                                SelectedItem="{Binding DefaultSort}"
+                                Title="Выберите сортировку"
+                                TextColor="{AppThemeBinding Light=#212121, Dark=#FFFFFF}" />
+                    </Border>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Блок 3: Резервное копирование и экспорт -->
+            <Border Stroke="{AppThemeBinding Light=#E0E0E0, Dark=#333333}"
+                    StrokeThickness="1"
+                    BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#1E1E1E}"
+                    StrokeShape="RoundRectangle 12"
+                    Padding="16">
+                <VerticalStackLayout Spacing="12">
+                    <Label Text="📦 Резервное копирование"
+                           FontSize="15"
+                           FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light=#212121, Dark=#FFFFFF}" />
+
+                    <Label Text="Создание отдельного файла копии и восстановление данных при необходимости."
+                           FontSize="12"
+                           TextColor="{AppThemeBinding Light=#757575, Dark=#9E9E9E}" />
+
+                    <Grid ColumnDefinitions="*, *" ColumnSpacing="10">
+                        <Button Grid.Column="0"
+                                Text="Создать копию"
+                                Command="{Binding BackupDataCommand}"
+                                BackgroundColor="#512BD4"
+                                TextColor="White"
+                                CornerRadius="8"
+                                HeightRequest="44" />
+
+                        <Button Grid.Column="1"
+                                Text="Восстановить"
+                                Command="{Binding RestoreDataCommand}"
+                                BackgroundColor="{AppThemeBinding Light=#EDE7F6, Dark=#311B92}"
+                                TextColor="{AppThemeBinding Light=#512BD4, Dark=#D1C4E9}"
+                                CornerRadius="8"
+                                HeightRequest="44" />
+                    </Grid>
+
+                    <Button Text="📝 Загрузить демонстрационные записи"
+                            Command="{Binding CreateSampleDataCommand}"
+                            BackgroundColor="{AppThemeBinding Light=#E0E0E0, Dark=#424242}"
+                            TextColor="{AppThemeBinding Light=#212121, Dark=#FFFFFF}"
+                            CornerRadius="8"
+                            HeightRequest="40" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Блок 4: Опасная зона / Сброс всех данных -->
+            <Border Stroke="#EF5350"
+                    StrokeThickness="1"
+                    BackgroundColor="{AppThemeBinding Light=#FFEBEE, Dark=#2C1414}"
+                    StrokeShape="RoundRectangle 12"
+                    Padding="16">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="⚠️ Опасная зона"
+                           FontSize="15"
+                           FontAttributes="Bold"
+                           TextColor="#C62828" />
+
+                    <Label Text="Удаление всех сохраненных записей из файловой системы и сброс пользовательских настроек Preferences."
+                           FontSize="12"
+                           TextColor="{AppThemeBinding Light=#B71C1C, Dark=#EF9A9A}" />
+
+                    <Button Text="🗑️ Сбросить все сохраненные данные"
+                            Command="{Binding ResetAllDataCommand}"
+                            BackgroundColor="#D32F2F"
+                            TextColor="White"
+                            FontAttributes="Bold"
+                            CornerRadius="8"
+                            HeightRequest="46" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Блок 5: Системная информация -->
+            <Border Stroke="{AppThemeBinding Light=#E0E0E0, Dark=#333333}"
+                    StrokeThickness="1"
+                    BackgroundColor="{AppThemeBinding Light=#FAFAFA, Dark=#1A1A1A}"
+                    StrokeShape="RoundRectangle 12"
+                    Padding="14">
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Файловое хранилище JSON:"
+                           FontSize="11"
+                           FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light=#616161, Dark=#B0B0B0}" />
+                    <Label Text="{Binding StoragePath}"
+                           FontSize="10"
+                           TextColor="{AppThemeBinding Light=#757575, Dark=#888888}"
+                           LineBreakMode="CharacterWrap" />
+                    <Label Text="{Binding EntriesCount, StringFormat='Записей в базе данных: {0}'}"
+                           FontSize="11"
+                           TextColor="{AppThemeBinding Light=#616161, Dark=#B0B0B0}"
+                           Margin="0,4,0,0" />
+                </VerticalStackLayout>
+            </Border>
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>

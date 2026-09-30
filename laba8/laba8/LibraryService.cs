@@ -112,10 +112,6 @@ public static class LibraryService
         {
             File.Delete(FilePath);
         }
-        if (File.Exists(ExportPath))
-        {
-            File.Delete(ExportPath);
-        }
         Preferences.Default.Clear();
         try
         {

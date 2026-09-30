@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:Laba9.ViewModels"
+             xmlns:models="clr-namespace:Laba9.Models"
+             x:Class="Laba9.MainPage"
+             x:DataType="vm:MainViewModel"
+             x:Name="ThisPage"
+             Title="{Binding Title}">
+
+    <Grid RowDefinitions="Auto, Auto, Auto, *" Padding="14,10" RowSpacing="10">
+
+        <!-- Верхняя панель: Заголовок, статистика и кнопки быстрых действий -->
+        <Border Grid.Row="0"
+                Stroke="{AppThemeBinding Light=#E0E0E0, Dark=#333333}"
+                StrokeThickness="1"
+                BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#1E1E1E}"
+                StrokeShape="RoundRectangle 12"
+                Padding="14,10">
+            <Grid ColumnDefinitions="*, Auto, Auto" ColumnSpacing="10" VerticalOptions="Center">
+                <VerticalStackLayout Grid.Column="0" VerticalOptions="Center" Spacing="2">
+                    <Label Text="📖 Электронный дневник" 
+                           FontSize="17" 
+                           FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light=#512BD4, Dark=#B39DDB}" />
+                    <Label Text="{Binding StatisticsText}" 
+                           FontSize="11" 
+                           TextColor="{AppThemeBinding Light=#757575, Dark=#9E9E9E}" />
+                </VerticalStackLayout>
+
+                <!-- Кнопка Новая запись -->
+                <Button Grid.Column="1"
+                        Text="➕ Новая"
+                        Command="{Binding AddEntryCommand}"
+                        BackgroundColor="#512BD4"
+                        TextColor="White"
+                        FontAttributes="Bold"
+                        CornerRadius="8"
+                        Padding="10,0"
+                        HeightRequest="38" />
+
+                <!-- Кнопка Настройки -->
+                <Button Grid.Column="2"
+                        Text="⚙️"
+                        Command="{Binding OpenSettingsCommand}"
+                        BackgroundColor="{AppThemeBinding Light=#EDE7F6, Dark=#311B92}"
+                        TextColor="{AppThemeBinding Light=#512BD4, Dark=#D1C4E9}"
+                        FontSize="15"
+                        CornerRadius="8"
+                        WidthRequest="38"
+                        HeightRequest="38" />
+            </Grid>
+        </Border>
+
+        <!-- Поисковая строка -->
+        <Border Grid.Row="1"
+                Stroke="{AppThemeBinding Light=#CCCCCC, Dark=#444444}"
+                StrokeThickness="1"
+                StrokeShape="RoundRectangle 10"
+                BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#1E1E1E}"
+                Padding="6,0">
+            <SearchBar Text="{Binding SearchText}"
+                       SearchCommand="{Binding SearchCommand}"
+                       Placeholder="🔍 Поиск по заголовку, тексту или #тегам..."
+                       FontSize="13"
+                       TextColor="{AppThemeBinding Light=#212121, Dark=#FFFFFF}"
+                       CancelButtonColor="#512BD4" />
+        </Border>
+
+        <!-- Фильтры: Фильтрация по настроению и переключатель избранных -->
+        <Grid Grid.Row="2" ColumnDefinitions="*, Auto" ColumnSpacing="8">
+            <!-- Выбор фильтра настроения -->
+            <Border Grid.Column="0"
+                    Stroke="{AppThemeBinding Light=#CCCCCC, Dark=#444444}"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 8"
+                    BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#1E1E1E}"
+                    Padding="8,2">
+                <Picker ItemsSource="{Binding MoodFilters}"
+                        SelectedItem="{Binding SelectedMoodFilter}"
+                        Title="🎭 Фильтр по настроению"
+                        FontSize="12"
+                        TextColor="{AppThemeBinding Light=#212121, Dark=#FFFFFF}" />
+            </Border>
+
+            <!-- Переключатель Только избранные -->
+            <Border Grid.Column="1"
+                    Stroke="{AppThemeBinding Light=#E0E0E0, Dark=#333333}"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 8"
+                    BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#1E1E1E}"
+                    Padding="8,2">
+                <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                    <CheckBox IsChecked="{Binding OnlyFavorites}" />
+                    <Label Text="Только ⭐" 
+                           FontSize="12" 
+                           VerticalOptions="Center"
+                           TextColor="{AppThemeBinding Light=#212121, Dark=#FFFFFF}" />
+                </HorizontalStackLayout>
+            </Border>
+        </Grid>
+
+        <!-- Основной список записей с поддержкой Pull-To-Refresh -->
+        <RefreshView Grid.Row="3"
+                     IsRefreshing="{Binding IsBusy}"
+                     Command="{Binding RefreshCommand}">
+            <CollectionView ItemsSource="{Binding Entries}"
+                            SelectionMode="None">
+
+                <!-- Вид для пустого списка записей -->
+                <CollectionView.EmptyView>
+                    <VerticalStackLayout Spacing="16" 
+                                         HorizontalOptions="Center" 
+                                         VerticalOptions="Center" 
+                                         Padding="24">
+                        <Label Text="📝" FontSize="48" HorizontalOptions="Center" />
+                        <Label Text="Записи не найдены" 
+                               FontSize="18" 
+                               FontAttributes="Bold" 
+                               HorizontalOptions="Center"
+                               TextColor="{AppThemeBinding Light=#424242, Dark=#EEEEEE}" />
+                        <Label Text="Попробуйте изменить поисковый запрос или фильтры, либо создайте новую запись."
+                               FontSize="13" 
+                               HorizontalTextAlignment="Center"
+                               TextColor="{AppThemeBinding Light=#757575, Dark=#9E9E9E}" />
+                        <Button Text="➕ Добавить запись"
+                                Command="{Binding AddEntryCommand}"
+                                BackgroundColor="#512BD4"
+                                TextColor="White"
+                                CornerRadius="8"
+                                HeightRequest="42"
+                                Margin="0,10,0,0" />
+                        <Button Text="Сбросить фильтры"
+                                Command="{Binding ClearFilterCommand}"
+                                BackgroundColor="{AppThemeBinding Light=#E0E0E0, Dark=#424242}"
+                                TextColor="{AppThemeBinding Light=#212121, Dark=#FFFFFF}"
+                                CornerRadius="8"
+                                HeightRequest="36" />
+                    </VerticalStackLayout>
+                </CollectionView.EmptyView>
+
+                <!-- Шаблон карточки записи -->
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:DiaryEntry">
+                        <Border Margin="0,5"
+                                Padding="14"
+                                StrokeShape="RoundRectangle 12"
+                                Stroke="{AppThemeBinding Light=#E0E0E0, Dark=#333333}"
+                                StrokeThickness="1"
+                                BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#1E1E1E}">
+
+                            <!-- Одиночное нажатие для открытия записи -->
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer 
+                                    Command="{Binding BindingContext.OpenEntryCommand, Source={x:Reference ThisPage}}"
+                                    CommandParameter="{Binding .}" />
+                            </Border.GestureRecognizers>
+
+                            <!-- Контекстное меню по условию задания:
+                                 «Редактировать», «Удалить», «Пометить как избранное» и «Поделиться» -->
+                            <FlyoutBase.ContextFlyout>
+                                <MenuFlyout>
+                                    <MenuFlyoutItem Text="✏️ Редактировать"
+                                                    Command="{Binding BindingContext.EditEntryCommand, Source={x:Reference ThisPage}}"
+                                                    CommandParameter="{Binding .}" />
+
+                                    <MenuFlyoutItem Text="⭐ Пометить как избранное"
+                                                    Command="{Binding BindingContext.ToggleFavoriteCommand, Source={x:Reference ThisPage}}"
+                                                    CommandParameter="{Binding .}" />
+
+                                    <MenuFlyoutItem Text="📤 Поделиться"
+                                                    Command="{Binding BindingContext.ShareEntryCommand, Source={x:Reference ThisPage}}"
+                                                    CommandParameter="{Binding .}" />
+
+                                    <MenuFlyoutSeparator />
+
+                                    <MenuFlyoutItem Text="🗑️ Удалить"
+                                                    Command="{Binding BindingContext.DeleteEntryCommand, Source={x:Reference ThisPage}}"
+                                                    CommandParameter="{Binding .}" />
+                                </MenuFlyout>
+                            </FlyoutBase.ContextFlyout>
+
+                            <!-- Внутреннее содержимое карточки записи -->
+                            <VerticalStackLayout Spacing="8">
+                                <!-- Верхняя строка: Настроение, Дата и Индикаторы (⭐, 🔒) -->
+                                <Grid ColumnDefinitions="Auto, *, Auto">
+                                    <Border Grid.Column="0"
+                                            Stroke="Transparent"
+                                            BackgroundColor="{AppThemeBinding Light=#F0EDFB, Dark=#2E1C59}"
+                                            StrokeShape="RoundRectangle 6"
+                                            Padding="6,2">
+                                        <Label Text="{Binding Mood}"
+                                               FontSize="11"
+                                               TextColor="{AppThemeBinding Light=#512BD4, Dark=#B39DDB}" />
+                                    </Border>
+
+                                    <Label Grid.Column="1"
+                                           Text="{Binding FormattedShortDate}"
+                                           FontSize="11"
+                                           TextColor="{AppThemeBinding Light=#757575, Dark=#9E9E9E}"
+                                           Margin="10,0,0,0"
+                                           VerticalOptions="Center" />
+
+                                    <!-- Значки Избранное и Конфиденциальность -->
+                                    <HorizontalStackLayout Grid.Column="2" Spacing="6" VerticalOptions="Center">
+                                        <Label Text="⭐" 
+                                               FontSize="13" 
+                                               IsVisible="{Binding IsFavorite}" />
+                                        <Label Text="🔒" 
+                                               FontSize="13" 
+                                               IsVisible="{Binding IsConfidential}" />
+                                    </HorizontalStackLayout>
+                                </Grid>
+
+                                <!-- Заголовок записи -->
+                                <Label Text="{Binding Title}"
+                                       FontSize="16"
+                                       FontAttributes="Bold"
+                                       TextColor="{AppThemeBinding Light=#212121, Dark=#FFFFFF}"
+                                       MaxLines="1"
+                                       LineBreakMode="TailTruncation" />
+
+                                <!-- Краткий фрагмент содержимого с учетом динамического размера шрифта -->
+                                <Label Text="{Binding DisplaySnippet}"
+                                       FontSize="{Binding BindingContext.FontSize, Source={x:Reference ThisPage}}"
+                                       TextColor="{AppThemeBinding Light=#424242, Dark=#D0D0D0}"
+                                       MaxLines="2"
+                                       LineBreakMode="TailTruncation" />
+
+                                <!-- Отображение тегов -->
+                                <Label Text="{Binding TagsDisplay}"
+                                       FontSize="11"
+                                       TextColor="{AppThemeBinding Light=#512BD4, Dark=#80CBC4}"
+                                       FontAttributes="Italic"
+                                       IsVisible="{Binding HasTags}" />
+
+                                <!-- Подсказка о контекстном меню -->
+                                <Label Text="💡 Долгое нажатие для меню (контекстные действия)"
+                                       FontSize="9"
+                                       TextColor="{AppThemeBinding Light=#9E9E9E, Dark=#666666}"
+                                       Margin="0,2,0,0" />
+                            </VerticalStackLayout>
+
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+
+            </CollectionView>
+        </RefreshView>
+
+    </Grid>
+
+</ContentPage>
