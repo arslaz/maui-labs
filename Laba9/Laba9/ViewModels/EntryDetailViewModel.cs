@@ -190,6 +190,8 @@ public class EntryDetailViewModel : BaseViewModel, IQueryAttributable
             else
             {
                 SetError("Запись не найдена!");
+                await DialogService.ShowAlertAsync("Запись не найдена", "Запрашиваемая запись не найдена или была удалена.");
+                await Shell.Current.GoToAsync("..");
             }
         }
         catch (Exception ex)
@@ -309,12 +311,8 @@ public class EntryDetailViewModel : BaseViewModel, IQueryAttributable
         {
             IsBusy = true;
             var entries = await _storageService.LoadEntriesAsync();
-            var target = entries.FirstOrDefault(e => e.Id == _currentEntry.Id);
-            if (target != null)
-            {
-                entries.Remove(target);
-                await _storageService.SaveEntriesAsync(entries);
-            }
+            entries.RemoveAll(e => e.Id == _currentEntry.Id);
+            await _storageService.SaveEntriesAsync(entries);
 
             await Shell.Current.GoToAsync("..");
         }

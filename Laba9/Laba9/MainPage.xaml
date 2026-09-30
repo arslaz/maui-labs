@@ -17,9 +17,17 @@
                 BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#1E1E1E}"
                 StrokeShape="RoundRectangle 12"
                 Padding="14,10">
-            <Grid ColumnDefinitions="*, Auto, Auto" ColumnSpacing="10" VerticalOptions="Center">
-                <VerticalStackLayout Grid.Column="0" VerticalOptions="Center" Spacing="2">
-                    <Label Text="📖 Электронный дневник" 
+            <Grid ColumnDefinitions="Auto, *, Auto, Auto" ColumnSpacing="10" VerticalOptions="Center">
+                <!-- Логотип приложения из ресурсов -->
+                <Image Grid.Column="0"
+                       Source="app_logo.png"
+                       WidthRequest="36"
+                       HeightRequest="36"
+                       VerticalOptions="Center"
+                       Aspect="AspectFit" />
+
+                <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
+                    <Label Text="Электронный дневник" 
                            FontSize="17" 
                            FontAttributes="Bold"
                            TextColor="{AppThemeBinding Light=#512BD4, Dark=#B39DDB}" />
@@ -109,11 +117,16 @@
 
                 <!-- Вид для пустого списка записей -->
                 <CollectionView.EmptyView>
-                    <VerticalStackLayout Spacing="16" 
+                    <VerticalStackLayout Spacing="14" 
                                          HorizontalOptions="Center" 
                                          VerticalOptions="Center" 
                                          Padding="24">
-                        <Label Text="📝" FontSize="48" HorizontalOptions="Center" />
+                        <Image Source="app_logo.png"
+                               WidthRequest="72"
+                               HeightRequest="72"
+                               Opacity="0.85"
+                               HorizontalOptions="Center"
+                               Aspect="AspectFit" />
                         <Label Text="Записи не найдены" 
                                FontSize="18" 
                                FontAttributes="Bold" 

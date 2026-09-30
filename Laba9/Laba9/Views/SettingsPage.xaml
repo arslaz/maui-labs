@@ -26,6 +26,31 @@
                 </HorizontalStackLayout>
             </Border>
 
+            <!-- Блок с логотипом и информацией о приложении -->
+            <Border Stroke="{AppThemeBinding Light=#E0E0E0, Dark=#333333}"
+                    StrokeThickness="1"
+                    BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#1E1E1E}"
+                    StrokeShape="RoundRectangle 12"
+                    Padding="14">
+                <Grid ColumnDefinitions="Auto, *" ColumnSpacing="14" VerticalOptions="Center">
+                    <Image Grid.Column="0"
+                           Source="app_logo.png"
+                           WidthRequest="50"
+                           HeightRequest="50"
+                           VerticalOptions="Center"
+                           Aspect="AspectFit" />
+                    <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
+                        <Label Text="Электронный Дневник"
+                               FontSize="16"
+                               FontAttributes="Bold"
+                               TextColor="{AppThemeBinding Light=#512BD4, Dark=#B39DDB}" />
+                        <Label Text="Лабораторная работа • .NET MAUI"
+                               FontSize="12"
+                               TextColor="{AppThemeBinding Light=#757575, Dark=#9E9E9E}" />
+                    </VerticalStackLayout>
+                </Grid>
+            </Border>
+
             <!-- Блок 1: Внешний вид -->
             <Border Stroke="{AppThemeBinding Light=#E0E0E0, Dark=#333333}"
                     StrokeThickness="1"

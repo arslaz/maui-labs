@@ -96,6 +96,7 @@ public class MainViewModel : BaseViewModel
         FontSize = _settingsService.FontSize;
 
         _settingsService.SettingsChanged += OnSettingsChanged;
+        _storageService.EntriesChanged += OnEntriesChanged;
 
         LoadEntriesCommand = new Command(async () => await LoadEntriesAsync());
         AddEntryCommand = new Command(async () => await OnAddEntryAsync());
@@ -114,6 +115,14 @@ public class MainViewModel : BaseViewModel
     {
         FontSize = _settingsService.FontSize;
         ApplyFilters();
+    }
+
+    private void OnEntriesChanged(object? sender, EventArgs e)
+    {
+        MainThread.BeginInvokeOnMainThread(async () =>
+        {
+            await LoadEntriesAsync();
+        });
     }
 
     public async Task LoadEntriesAsync()
@@ -220,7 +229,7 @@ public class MainViewModel : BaseViewModel
 
         if (!confirm) return;
 
-        _allEntries.Remove(entry);
+        _allEntries.RemoveAll(e => e.Id == entry.Id);
         await _storageService.SaveEntriesAsync(_allEntries);
         ApplyFilters();
     }
@@ -229,9 +238,13 @@ public class MainViewModel : BaseViewModel
     {
         if (entry == null) return;
 
-        entry.IsFavorite = !entry.IsFavorite;
-        await _storageService.SaveEntriesAsync(_allEntries);
-        ApplyFilters();
+        var target = _allEntries.FirstOrDefault(e => e.Id == entry.Id);
+        if (target != null)
+        {
+            target.IsFavorite = !target.IsFavorite;
+            await _storageService.SaveEntriesAsync(_allEntries);
+            ApplyFilters();
+        }
     }
 
     private async Task OnShareEntryAsync(DiaryEntry? entry)

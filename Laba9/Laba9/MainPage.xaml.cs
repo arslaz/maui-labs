@@ -18,4 +18,10 @@ public partial class MainPage : ContentPage
         base.OnAppearing();
         await _viewModel.LoadEntriesAsync();
     }
+
+    protected override async void OnNavigatedTo(NavigatedToEventArgs args)
+    {
+        base.OnNavigatedTo(args);
+        await _viewModel.LoadEntriesAsync();
+    }
 }

@@ -17,6 +17,8 @@ public class DiaryStorageService : IDiaryStorageService
     public string StorageFilePath => Path.Combine(FileSystem.AppDataDirectory, "diary_entries.json");
     public string BackupFilePath => Path.Combine(FileSystem.AppDataDirectory, "diary_backup.json");
 
+    public event EventHandler? EntriesChanged;
+
     public async Task<List<DiaryEntry>> LoadEntriesAsync()
     {
         if (!File.Exists(StorageFilePath))
@@ -91,6 +93,7 @@ public class DiaryStorageService : IDiaryStorageService
 
         var json = JsonSerializer.Serialize(serializableList, _jsonOptions);
         await File.WriteAllTextAsync(StorageFilePath, json, Encoding.UTF8);
+        EntriesChanged?.Invoke(this, EventArgs.Empty);
     }
 
     public async Task<string> ExportBackupAsync()
@@ -110,6 +113,7 @@ public class DiaryStorageService : IDiaryStorageService
             return false;
 
         File.Copy(BackupFilePath, StorageFilePath, true);
+        EntriesChanged?.Invoke(this, EventArgs.Empty);
         return true;
     }
 
@@ -131,6 +135,7 @@ public class DiaryStorageService : IDiaryStorageService
         }
 
         await Task.CompletedTask;
+        EntriesChanged?.Invoke(this, EventArgs.Empty);
     }
 
     public async Task CreateSampleDataAsync()

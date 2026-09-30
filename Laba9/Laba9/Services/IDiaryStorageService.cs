@@ -7,6 +7,8 @@ public interface IDiaryStorageService
     string StorageFilePath { get; }
     string BackupFilePath { get; }
 
+    event EventHandler? EntriesChanged;
+
     Task<List<DiaryEntry>> LoadEntriesAsync();
     Task SaveEntriesAsync(IEnumerable<DiaryEntry> entries);
     Task<string> ExportBackupAsync();
