@@ -17,77 +17,91 @@
                 BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#1E1E1E}"
                 StrokeShape="RoundRectangle 12"
                 Padding="14,10">
-            <Grid ColumnDefinitions="Auto, *, Auto, Auto" ColumnSpacing="10" VerticalOptions="Center">
+            <Grid ColumnDefinitions="Auto, *, Auto, Auto" ColumnSpacing="12" VerticalOptions="Center">
                 <!-- Логотип приложения из ресурсов -->
                 <Image Grid.Column="0"
                        Source="app_logo.png"
-                       WidthRequest="36"
-                       HeightRequest="36"
+                       WidthRequest="40"
+                       HeightRequest="40"
                        VerticalOptions="Center"
                        Aspect="AspectFit" />
 
                 <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
                     <Label Text="Электронный дневник" 
-                           FontSize="17" 
+                           FontSize="18" 
                            FontAttributes="Bold"
                            TextColor="{AppThemeBinding Light=#512BD4, Dark=#B39DDB}" />
                     <Label Text="{Binding StatisticsText}" 
-                           FontSize="11" 
+                           FontSize="12" 
                            TextColor="{AppThemeBinding Light=#757575, Dark=#9E9E9E}" />
                 </VerticalStackLayout>
 
                 <!-- Кнопка Новая запись -->
-                <Button Grid.Column="1"
+                <Button Grid.Column="2"
                         Text="➕ Новая"
                         Command="{Binding AddEntryCommand}"
                         BackgroundColor="#512BD4"
                         TextColor="White"
                         FontAttributes="Bold"
-                        CornerRadius="8"
-                        Padding="10,0"
-                        HeightRequest="38" />
+                        FontSize="14"
+                        CornerRadius="10"
+                        Padding="14,0"
+                        HeightRequest="44" />
 
                 <!-- Кнопка Настройки -->
-                <Button Grid.Column="2"
+                <Button Grid.Column="3"
                         Text="⚙️"
                         Command="{Binding OpenSettingsCommand}"
                         BackgroundColor="{AppThemeBinding Light=#EDE7F6, Dark=#311B92}"
                         TextColor="{AppThemeBinding Light=#512BD4, Dark=#D1C4E9}"
-                        FontSize="15"
-                        CornerRadius="8"
-                        WidthRequest="38"
-                        HeightRequest="38" />
+                        FontSize="20"
+                        CornerRadius="10"
+                        WidthRequest="44"
+                        HeightRequest="44"
+                        Padding="0" />
             </Grid>
         </Border>
 
         <!-- Поисковая строка -->
         <Border Grid.Row="1"
-                Stroke="{AppThemeBinding Light=#CCCCCC, Dark=#444444}"
+                Stroke="{AppThemeBinding Light=#E0E0E0, Dark=#444444}"
                 StrokeThickness="1"
                 StrokeShape="RoundRectangle 10"
                 BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#1E1E1E}"
-                Padding="6,0">
-            <SearchBar Text="{Binding SearchText}"
-                       SearchCommand="{Binding SearchCommand}"
-                       Placeholder="🔍 Поиск по заголовку, тексту или #тегам..."
+                Padding="12,2">
+            <Grid ColumnDefinitions="Auto, *" ColumnSpacing="10" VerticalOptions="Center">
+                <Label Grid.Column="0"
+                       Text="🔍"
+                       FontSize="15"
+                       VerticalOptions="Center" />
+                <Entry Grid.Column="1"
+                       Text="{Binding SearchText}"
+                       Placeholder="Поиск по заголовку, тексту или #тегам..."
                        FontSize="13"
                        TextColor="{AppThemeBinding Light=#212121, Dark=#FFFFFF}"
-                       CancelButtonColor="#512BD4" />
+                       PlaceholderColor="{AppThemeBinding Light=#8E8E93, Dark=#9E9E9E}"
+                       BackgroundColor="Transparent"
+                       VerticalOptions="Center"
+                       ReturnCommand="{Binding SearchCommand}"
+                       ClearButtonVisibility="WhileEditing" />
+            </Grid>
         </Border>
 
         <!-- Фильтры: Фильтрация по настроению и переключатель избранных -->
-        <Grid Grid.Row="2" ColumnDefinitions="*, Auto" ColumnSpacing="8">
+        <Grid Grid.Row="2" ColumnDefinitions="*, Auto" ColumnSpacing="10">
             <!-- Выбор фильтра настроения -->
             <Border Grid.Column="0"
-                    Stroke="{AppThemeBinding Light=#CCCCCC, Dark=#444444}"
+                    Stroke="{AppThemeBinding Light=#E0E0E0, Dark=#444444}"
                     StrokeThickness="1"
-                    StrokeShape="RoundRectangle 8"
+                    StrokeShape="RoundRectangle 10"
                     BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#1E1E1E}"
-                    Padding="8,2">
+                    HeightRequest="46"
+                    Padding="10,0">
                 <Picker ItemsSource="{Binding MoodFilters}"
                         SelectedItem="{Binding SelectedMoodFilter}"
                         Title="🎭 Фильтр по настроению"
-                        FontSize="12"
+                        FontSize="13"
+                        VerticalOptions="Center"
                         TextColor="{AppThemeBinding Light=#212121, Dark=#FFFFFF}" />
             </Border>
 
@@ -95,13 +109,16 @@
             <Border Grid.Column="1"
                     Stroke="{AppThemeBinding Light=#E0E0E0, Dark=#333333}"
                     StrokeThickness="1"
-                    StrokeShape="RoundRectangle 8"
+                    StrokeShape="RoundRectangle 10"
                     BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#1E1E1E}"
-                    Padding="8,2">
-                <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
-                    <CheckBox IsChecked="{Binding OnlyFavorites}" />
+                    HeightRequest="46"
+                    Padding="12,0">
+                <HorizontalStackLayout Spacing="8" VerticalOptions="Center">
+                    <CheckBox IsChecked="{Binding OnlyFavorites}"
+                              VerticalOptions="Center" />
                     <Label Text="Только ⭐" 
-                           FontSize="12" 
+                           FontSize="13" 
+                           FontAttributes="Bold"
                            VerticalOptions="Center"
                            TextColor="{AppThemeBinding Light=#212121, Dark=#FFFFFF}" />
                 </HorizontalStackLayout>
@@ -110,7 +127,7 @@
 
         <!-- Основной список записей с поддержкой Pull-To-Refresh -->
         <RefreshView Grid.Row="3"
-                     IsRefreshing="{Binding IsBusy}"
+                     IsRefreshing="{Binding IsRefreshing}"
                      Command="{Binding RefreshCommand}">
             <CollectionView ItemsSource="{Binding Entries}"
                             SelectionMode="None">
@@ -195,34 +212,52 @@
 
                             <!-- Внутреннее содержимое карточки записи -->
                             <VerticalStackLayout Spacing="8">
-                                <!-- Верхняя строка: Настроение, Дата и Индикаторы (⭐, 🔒) -->
-                                <Grid ColumnDefinitions="Auto, *, Auto">
+                                <!-- Верхняя строка: Настроение, Дата, Индикаторы и кнопка контекстного меню -->
+                                <Grid ColumnDefinitions="Auto, *, Auto, Auto" ColumnSpacing="8" VerticalOptions="Center">
                                     <Border Grid.Column="0"
                                             Stroke="Transparent"
                                             BackgroundColor="{AppThemeBinding Light=#F0EDFB, Dark=#2E1C59}"
                                             StrokeShape="RoundRectangle 6"
-                                            Padding="6,2">
+                                            Padding="8,3"
+                                            VerticalOptions="Center">
                                         <Label Text="{Binding Mood}"
-                                               FontSize="11"
+                                               FontSize="12"
+                                               FontAttributes="Bold"
                                                TextColor="{AppThemeBinding Light=#512BD4, Dark=#B39DDB}" />
                                     </Border>
 
                                     <Label Grid.Column="1"
                                            Text="{Binding FormattedShortDate}"
-                                           FontSize="11"
+                                           FontSize="12"
                                            TextColor="{AppThemeBinding Light=#757575, Dark=#9E9E9E}"
-                                           Margin="10,0,0,0"
+                                           Margin="6,0,0,0"
                                            VerticalOptions="Center" />
 
                                     <!-- Значки Избранное и Конфиденциальность -->
                                     <HorizontalStackLayout Grid.Column="2" Spacing="6" VerticalOptions="Center">
                                         <Label Text="⭐" 
-                                               FontSize="13" 
-                                               IsVisible="{Binding IsFavorite}" />
+                                               FontSize="14" 
+                                               IsVisible="{Binding IsFavorite}"
+                                               VerticalOptions="Center" />
                                         <Label Text="🔒" 
-                                               FontSize="13" 
-                                               IsVisible="{Binding IsConfidential}" />
+                                               FontSize="14" 
+                                               IsVisible="{Binding IsConfidential}"
+                                               VerticalOptions="Center" />
                                     </HorizontalStackLayout>
+
+                                    <!-- Читаемая кнопка контекстного меню для каждой записи -->
+                                    <Button Grid.Column="3"
+                                            Text="⋮ Меню"
+                                            Command="{Binding BindingContext.ShowContextMenuCommand, Source={x:Reference ThisPage}}"
+                                            CommandParameter="{Binding .}"
+                                            BackgroundColor="{AppThemeBinding Light=#EDE7F6, Dark=#331B92}"
+                                            TextColor="{AppThemeBinding Light=#512BD4, Dark=#D1C4E9}"
+                                            FontSize="12"
+                                            FontAttributes="Bold"
+                                            CornerRadius="8"
+                                            HeightRequest="36"
+                                            Padding="10,0"
+                                            VerticalOptions="Center" />
                                 </Grid>
 
                                 <!-- Заголовок записи -->

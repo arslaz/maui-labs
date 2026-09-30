@@ -18,4 +18,13 @@ public static class DialogService
         }
         return false;
     }
+
+    public static async Task<string> ShowActionSheetAsync(string title, string cancel, string? destruction, params string[] buttons)
+    {
+        if (Shell.Current != null)
+        {
+            return await Shell.Current.DisplayActionSheetAsync(title, cancel, destruction, buttons);
+        }
+        return string.Empty;
+    }
 }

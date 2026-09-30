@@ -15,8 +15,15 @@ public class MainViewModel : BaseViewModel
     private string _selectedMoodFilter = "Все настроения";
     private bool _onlyFavorites;
     private bool _isEmpty;
+    private bool _isRefreshing;
     private double _fontSize;
     private string _statisticsText = string.Empty;
+
+    public bool IsRefreshing
+    {
+        get => _isRefreshing;
+        set => SetProperty(ref _isRefreshing, value);
+    }
 
     public ObservableCollection<DiaryEntry> Entries { get; } = new();
     public List<string> MoodFilters => MoodHelper.FilterMoods;
@@ -87,6 +94,7 @@ public class MainViewModel : BaseViewModel
     public ICommand SearchCommand { get; }
     public ICommand ClearFilterCommand { get; }
     public ICommand RefreshCommand { get; }
+    public ICommand ShowContextMenuCommand { get; }
 
     public MainViewModel(IDiaryStorageService storageService, ISettingsService settingsService)
     {
@@ -108,7 +116,13 @@ public class MainViewModel : BaseViewModel
         OpenSettingsCommand = new Command(async () => await OnOpenSettingsAsync());
         SearchCommand = new Command(ApplyFilters);
         ClearFilterCommand = new Command(OnClearFilter);
-        RefreshCommand = new Command(async () => await LoadEntriesAsync());
+        RefreshCommand = new Command(async () =>
+        {
+            IsRefreshing = true;
+            await LoadEntriesAsync();
+            IsRefreshing = false;
+        });
+        ShowContextMenuCommand = new Command<DiaryEntry>(async (e) => await OnShowContextMenuAsync(e));
     }
 
     private void OnSettingsChanged()
@@ -125,15 +139,25 @@ public class MainViewModel : BaseViewModel
         });
     }
 
+    private readonly SemaphoreSlim _loadLock = new(1, 1);
+    private bool _reloadQueued;
+
     public async Task LoadEntriesAsync()
     {
-        if (IsBusy) return;
+        if (!await _loadLock.WaitAsync(0))
+        {
+            _reloadQueued = true;
+            return;
+        }
 
         try
         {
-            IsBusy = true;
-            _allEntries = await _storageService.LoadEntriesAsync();
-            ApplyFilters();
+            do
+            {
+                _reloadQueued = false;
+                _allEntries = await _storageService.LoadEntriesAsync();
+                ApplyFilters();
+            } while (_reloadQueued);
         }
         catch (Exception ex)
         {
@@ -142,6 +166,8 @@ public class MainViewModel : BaseViewModel
         finally
         {
             IsBusy = false;
+            IsRefreshing = false;
+            _loadLock.Release();
         }
     }
 
@@ -272,5 +298,37 @@ public class MainViewModel : BaseViewModel
     private async Task OnOpenSettingsAsync()
     {
         await Shell.Current.GoToAsync("settings");
+    }
+
+    private async Task OnShowContextMenuAsync(DiaryEntry? entry)
+    {
+        if (entry == null) return;
+
+        string favAction = entry.IsFavorite ? "⭐ Снять отметку избранного" : "⭐ Пометить как избранное";
+
+        string action = await DialogService.ShowActionSheetAsync(
+            $"Действия: {entry.Title}",
+            "Отмена",
+            "🗑️ Удалить",
+            "✏️ Редактировать",
+            favAction,
+            "📤 Поделиться");
+
+        if (action == "✏️ Редактировать")
+        {
+            await OnEditEntryAsync(entry);
+        }
+        else if (action == "🗑️ Удалить")
+        {
+            await OnDeleteEntryAsync(entry);
+        }
+        else if (action == favAction)
+        {
+            await OnToggleFavoriteAsync(entry);
+        }
+        else if (action == "📤 Поделиться")
+        {
+            await OnShareEntryAsync(entry);
+        }
     }
 }

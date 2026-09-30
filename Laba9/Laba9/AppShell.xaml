@@ -8,13 +8,13 @@
     Title="Электронный дневник">
 
     <TabBar>
-        <Tab Title="Дневник">
+        <Tab Title="Дневник" Icon="tab_diary.png">
             <ShellContent
                 Title="Дневник"
                 ContentTemplate="{DataTemplate local:MainPage}"
                 Route="MainPage" />
         </Tab>
-        <Tab Title="Настройки">
+        <Tab Title="Настройки" Icon="tab_settings.png">
             <ShellContent
                 Title="Настройки"
                 ContentTemplate="{DataTemplate views:SettingsPage}"

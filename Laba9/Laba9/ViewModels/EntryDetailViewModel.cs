@@ -206,6 +206,8 @@ public class EntryDetailViewModel : BaseViewModel, IQueryAttributable
 
     private async Task OnSaveAsync()
     {
+        ClearError();
+
         // 1. Защита от ввода даты в будущем
         if (EntryDate.Date > DateTime.Today)
         {
