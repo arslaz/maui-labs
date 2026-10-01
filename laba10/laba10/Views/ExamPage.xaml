@@ -1,0 +1,473 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:laba10.ViewModels"
+             xmlns:models="clr-namespace:laba10.Models"
+             xmlns:selectors="clr-namespace:laba10.Selectors"
+             xmlns:converters="clr-namespace:laba10.Converters"
+             x:Class="laba10.Views.ExamPage"
+             x:DataType="vm:ExamViewModel"
+             BackgroundColor="#0F172A"
+             Shell.NavBarIsVisible="False">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <converters:ScoreToColorConverter x:Key="ScoreToColorConverter" />
+            <converters:LevelToColorConverter x:Key="LevelToColorConverter" />
+            <converters:BooleanToStringConverter x:Key="BoolToStringConverter" />
+            <converters:BooleanToColorConverter x:Key="WordCountColorConverter"
+                                                TrueColor="#10B981"
+                                                FalseColor="#EF4444" />
+            <converters:SelectedOptionToBackgroundConverter x:Key="OptionBgConverter" />
+            <converters:SelectedOptionToBorderConverter x:Key="OptionBorderConverter" />
+            <converters:SelectedOptionToBadgeColorConverter x:Key="OptionBadgeConverter" />
+            <converters:PairSelectedToColorConverter x:Key="PairSelectedConverter" />
+
+            <!-- ШАБЛОН 1: Вопрос на аудирование (Listening) -->
+            <DataTemplate x:Key="ListeningTemplate" x:DataType="models:ListeningQuestion">
+                <ScrollView>
+                    <VerticalStackLayout Spacing="16" Padding="4,8,4,20">
+                        <!-- Карточка вопроса -->
+                        <Border StrokeShape="RoundRectangle 16" Stroke="#334155" Background="#1E293B" Padding="16">
+                            <VerticalStackLayout Spacing="8">
+                                <HorizontalStackLayout Spacing="8" VerticalOptions="Center">
+                                    <Image Source="ic_listening.png" WidthRequest="22" HeightRequest="22" Aspect="AspectFit"/>
+                                    <Label Text="{Binding Title}" FontSize="16" FontAttributes="Bold" TextColor="#F8FAFC"/>
+                                </HorizontalStackLayout>
+                                <Label Text="{Binding Instructions}" FontSize="13" TextColor="#94A3B8"/>
+                            </VerticalStackLayout>
+                        </Border>
+
+                        <!-- Симулятор аудиоплеера с поддержкой URL и локального пути -->
+                        <Border StrokeShape="RoundRectangle 16" Stroke="#4338CA" Background="#1E1B4B" Padding="18">
+                            <VerticalStackLayout Spacing="12">
+                                <!-- Верхняя строка: Название и живой таймер воспроизведения -->
+                                <Grid ColumnDefinitions="*, Auto" RowDefinitions="Auto, Auto">
+                                    <Label Grid.Row="0" Grid.Column="0" Text="{Binding AudioTitle}" FontSize="16" FontAttributes="Bold" TextColor="#E0E7FF"/>
+                                    <Label Grid.Row="1" Grid.Column="0" Text="{Binding SpeakerRole, StringFormat='Спикеры: {0}'}" FontSize="12" TextColor="#A5B4FC" Margin="0,2,0,0"/>
+
+                                    <Border Grid.Row="0" Grid.RowSpan="2" Grid.Column="1" StrokeShape="RoundRectangle 8" Background="#312E81" Padding="10,4" VerticalOptions="Center">
+                                        <Label Text="{Binding FormattedPlaybackTime}" FontSize="13" FontAttributes="Bold" TextColor="#C7D2FE"/>
+                                    </Border>
+                                </Grid>
+
+                                <!-- Источник аудио (Ссылка или локальный путь) -->
+                                <Border StrokeShape="RoundRectangle 8" Background="#0F172A" Stroke="#312E81" Padding="10,6">
+                                    <Grid ColumnDefinitions="Auto, *">
+                                        <Label Grid.Column="0" Text="{Binding SourceTypeBadge}" FontSize="11" FontAttributes="Bold" TextColor="#38BDF8" VerticalOptions="Center" Margin="0,0,8,0"/>
+                                        <Label Grid.Column="1" Text="{Binding AudioSource}" FontSize="11" TextColor="#94A3B8" LineBreakMode="TailTruncation" VerticalOptions="Center"/>
+                                    </Grid>
+                                </Border>
+
+                                <!-- Прогресс-бар воспроизведения -->
+                                <ProgressBar Progress="{Binding AudioProgress}" ProgressColor="#6366F1" HeightRequest="6"/>
+
+                                <!-- Статус воспроизведения -->
+                                <Label Text="{Binding AudioStatusText}" FontSize="12" TextColor="#BAE6FD" HorizontalOptions="Center"/>
+
+                                <!-- Кнопки управления воспроизведением (с достаточным местом без усечения текста) -->
+                                <Grid ColumnDefinitions="*, *, Auto" ColumnSpacing="10">
+                                    <Button Grid.Column="0"
+                                            Text="Воспроизвести"
+                                            ImageSource="ic_play.png"
+                                            Command="{Binding PlayAudioCommand}"
+                                            BackgroundColor="#4F46E5"
+                                            TextColor="White"
+                                            FontAttributes="Bold"
+                                            FontSize="12"
+                                            CornerRadius="10"
+                                            HeightRequest="42"/>
+
+                                    <Button Grid.Column="1"
+                                            Text="Пауза"
+                                            ImageSource="ic_pause.png"
+                                            Command="{Binding PauseAudioCommand}"
+                                            BackgroundColor="#334155"
+                                            TextColor="#CBD5E1"
+                                            FontSize="12"
+                                            CornerRadius="10"
+                                            HeightRequest="42"/>
+
+                                    <Button Grid.Column="2"
+                                            Text="↺ Повтор"
+                                            Command="{Binding ReplayAudioCommand}"
+                                            BackgroundColor="#1E293B"
+                                            TextColor="#94A3B8"
+                                            FontSize="12"
+                                            CornerRadius="10"
+                                            HeightRequest="42"/>
+                                </Grid>
+
+                                <!-- Кнопка показа текста диалога -->
+                                <Button Text="{Binding IsTranscriptVisible, Converter={converters:BooleanToStringConverter TrueText='Скрыть текст диалога ▲', FalseText='Показать текст диалога (Transcript) ▼'}}"
+                                        Command="{Binding ToggleTranscriptCommand}"
+                                        BackgroundColor="Transparent"
+                                        TextColor="#818CF8"
+                                        FontSize="11"
+                                        HeightRequest="30"/>
+
+                                <!-- Блок текста диалога (если развернут) -->
+                                <Border IsVisible="{Binding IsTranscriptVisible}"
+                                        StrokeShape="RoundRectangle 10"
+                                        Background="#0F172A"
+                                        Stroke="#475569"
+                                        Padding="12">
+                                    <VerticalStackLayout Spacing="6">
+                                        <Label Text="Транскрипт аудиозаписи:" FontSize="11" FontAttributes="Bold" TextColor="#94A3B8"/>
+                                        <Label Text="{Binding AudioTranscript}" FontSize="13" TextColor="#F8FAFC" LineBreakMode="WordWrap"/>
+                                    </VerticalStackLayout>
+                                </Border>
+                            </VerticalStackLayout>
+                        </Border>
+
+                        <!-- Заголовок вариантов ответа -->
+                        <Label Text="Выберите правильное утверждение (нажмите на вариант):" 
+                               FontSize="14" FontAttributes="Bold" TextColor="#F8FAFC" Margin="4,4,0,0"/>
+
+                        <!-- Вариант 0 (A) -->
+                        <Border StrokeShape="RoundRectangle 14"
+                                Stroke="{Binding IsOption0Selected, Converter={StaticResource OptionBorderConverter}}"
+                                Background="{Binding IsOption0Selected, Converter={StaticResource OptionBgConverter}}"
+                                StrokeThickness="1.5"
+                                Padding="14">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding SelectOptionCommand}" CommandParameter="0"/>
+                            </Border.GestureRecognizers>
+                            <Grid ColumnDefinitions="Auto, *, Auto" ColumnSpacing="12" VerticalOptions="Center">
+                                <Border Grid.Column="0" StrokeShape="RoundRectangle 18" StrokeThickness="0"
+                                        Background="{Binding IsOption0Selected, Converter={StaticResource OptionBadgeConverter}}"
+                                        WidthRequest="36" HeightRequest="36" VerticalOptions="Center">
+                                    <Label Text="A" TextColor="White" FontAttributes="Bold" FontSize="14" HorizontalOptions="Center" VerticalOptions="Center"/>
+                                </Border>
+                                <Label Grid.Column="1" Text="{Binding Options[0]}" TextColor="#F8FAFC" FontSize="13" LineBreakMode="WordWrap" VerticalOptions="Center"/>
+                                <Image Grid.Column="2" Source="ic_check.png" WidthRequest="20" HeightRequest="20" Aspect="AspectFit"
+                                       IsVisible="{Binding IsOption0Selected}" VerticalOptions="Center"/>
+                            </Grid>
+                        </Border>
+
+                        <!-- Вариант 1 (B) -->
+                        <Border StrokeShape="RoundRectangle 14"
+                                Stroke="{Binding IsOption1Selected, Converter={StaticResource OptionBorderConverter}}"
+                                Background="{Binding IsOption1Selected, Converter={StaticResource OptionBgConverter}}"
+                                StrokeThickness="1.5"
+                                Padding="14">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding SelectOptionCommand}" CommandParameter="1"/>
+                            </Border.GestureRecognizers>
+                            <Grid ColumnDefinitions="Auto, *, Auto" ColumnSpacing="12" VerticalOptions="Center">
+                                <Border Grid.Column="0" StrokeShape="RoundRectangle 18" StrokeThickness="0"
+                                        Background="{Binding IsOption1Selected, Converter={StaticResource OptionBadgeConverter}}"
+                                        WidthRequest="36" HeightRequest="36" VerticalOptions="Center">
+                                    <Label Text="B" TextColor="White" FontAttributes="Bold" FontSize="14" HorizontalOptions="Center" VerticalOptions="Center"/>
+                                </Border>
+                                <Label Grid.Column="1" Text="{Binding Options[1]}" TextColor="#F8FAFC" FontSize="13" LineBreakMode="WordWrap" VerticalOptions="Center"/>
+                                <Image Grid.Column="2" Source="ic_check.png" WidthRequest="20" HeightRequest="20" Aspect="AspectFit"
+                                       IsVisible="{Binding IsOption1Selected}" VerticalOptions="Center"/>
+                            </Grid>
+                        </Border>
+
+                        <!-- Вариант 2 (C) -->
+                        <Border StrokeShape="RoundRectangle 14"
+                                Stroke="{Binding IsOption2Selected, Converter={StaticResource OptionBorderConverter}}"
+                                Background="{Binding IsOption2Selected, Converter={StaticResource OptionBgConverter}}"
+                                StrokeThickness="1.5"
+                                Padding="14">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding SelectOptionCommand}" CommandParameter="2"/>
+                            </Border.GestureRecognizers>
+                            <Grid ColumnDefinitions="Auto, *, Auto" ColumnSpacing="12" VerticalOptions="Center">
+                                <Border Grid.Column="0" StrokeShape="RoundRectangle 18" StrokeThickness="0"
+                                        Background="{Binding IsOption2Selected, Converter={StaticResource OptionBadgeConverter}}"
+                                        WidthRequest="36" HeightRequest="36" VerticalOptions="Center">
+                                    <Label Text="C" TextColor="White" FontAttributes="Bold" FontSize="14" HorizontalOptions="Center" VerticalOptions="Center"/>
+                                </Border>
+                                <Label Grid.Column="1" Text="{Binding Options[2]}" TextColor="#F8FAFC" FontSize="13" LineBreakMode="WordWrap" VerticalOptions="Center"/>
+                                <Image Grid.Column="2" Source="ic_check.png" WidthRequest="20" HeightRequest="20" Aspect="AspectFit"
+                                       IsVisible="{Binding IsOption2Selected}" VerticalOptions="Center"/>
+                            </Grid>
+                        </Border>
+
+                        <!-- Вариант 3 (D) -->
+                        <Border StrokeShape="RoundRectangle 14"
+                                Stroke="{Binding IsOption3Selected, Converter={StaticResource OptionBorderConverter}}"
+                                Background="{Binding IsOption3Selected, Converter={StaticResource OptionBgConverter}}"
+                                StrokeThickness="1.5"
+                                Padding="14">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding SelectOptionCommand}" CommandParameter="3"/>
+                            </Border.GestureRecognizers>
+                            <Grid ColumnDefinitions="Auto, *, Auto" ColumnSpacing="12" VerticalOptions="Center">
+                                <Border Grid.Column="0" StrokeShape="RoundRectangle 18" StrokeThickness="0"
+                                        Background="{Binding IsOption3Selected, Converter={StaticResource OptionBadgeConverter}}"
+                                        WidthRequest="36" HeightRequest="36" VerticalOptions="Center">
+                                    <Label Text="D" TextColor="White" FontAttributes="Bold" FontSize="14" HorizontalOptions="Center" VerticalOptions="Center"/>
+                                </Border>
+                                <Label Grid.Column="1" Text="{Binding Options[3]}" TextColor="#F8FAFC" FontSize="13" LineBreakMode="WordWrap" VerticalOptions="Center"/>
+                                <Image Grid.Column="2" Source="ic_check.png" WidthRequest="20" HeightRequest="20" Aspect="AspectFit"
+                                       IsVisible="{Binding IsOption3Selected}" VerticalOptions="Center"/>
+                            </Grid>
+                        </Border>
+
+                    </VerticalStackLayout>
+                </ScrollView>
+            </DataTemplate>
+
+            <!-- ШАБЛОН 2: Вопрос на соответствия со штрафами (Match Pairs) -->
+            <DataTemplate x:Key="MatchPairsTemplate" x:DataType="models:MatchPairsQuestion">
+                <ScrollView>
+                    <VerticalStackLayout Spacing="16" Padding="4,8,4,20">
+                        <Border StrokeShape="RoundRectangle 16" Stroke="#334155" Background="#1E293B" Padding="16">
+                            <VerticalStackLayout Spacing="8">
+                                <HorizontalStackLayout Spacing="8" VerticalOptions="Center">
+                                    <Image Source="ic_matching.png" WidthRequest="22" HeightRequest="22" Aspect="AspectFit"/>
+                                    <Label Text="{Binding Title}" FontSize="16" FontAttributes="Bold" TextColor="#F8FAFC"/>
+                                </HorizontalStackLayout>
+                                <Label Text="{Binding Instructions}" FontSize="13" TextColor="#94A3B8"/>
+                                <!-- Предупреждение о штрафах -->
+                                <Border StrokeShape="RoundRectangle 8" Background="#450A0A" Stroke="#EF4444" Padding="10,6">
+                                    <Label Text="{Binding PenaltyPerMistake, StringFormat='⚠️ Внимание: Штраф за каждую ошибочную пару: {0:F1} баллов!'}"
+                                           FontSize="12" FontAttributes="Bold" TextColor="#FCA5A5"/>
+                                </Border>
+                            </VerticalStackLayout>
+                        </Border>
+
+                        <!-- Инструкция текущего шага связывания -->
+                        <Border StrokeShape="RoundRectangle 10" Stroke="#0284C7" Background="#0C4A6E" Padding="12">
+                            <Label Text="{Binding SelectedLeftStatusText}" FontSize="13" FontAttributes="Bold" TextColor="#38BDF8"/>
+                        </Border>
+
+                        <Label Text="Пары для связывания (нажмите на термин слева):" FontSize="14" FontAttributes="Bold" TextColor="#F8FAFC"/>
+
+                        <!-- Список элементов слева и связанных значений -->
+                        <VerticalStackLayout Spacing="8" BindableLayout.ItemsSource="{Binding MatchPairDisplayItems}">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="models:MatchPairDisplayItem">
+                                    <Border StrokeShape="RoundRectangle 12" Stroke="#334155" Background="#1E293B" Padding="12">
+                                        <Grid ColumnDefinitions="*, Auto, *" ColumnSpacing="8" VerticalOptions="Center">
+                                            <!-- Левый термин -->
+                                            <Button Grid.Column="0" Text="{Binding LeftText}"
+                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type models:MatchPairsQuestion}}, Path=SelectLeftCommand}"
+                                                    CommandParameter="{Binding LeftText}"
+                                                    BackgroundColor="{Binding IsSelected, Converter={StaticResource PairSelectedConverter}}"
+                                                    TextColor="#F8FAFC" FontSize="12" CornerRadius="8"/>
+
+                                            <Label Grid.Column="1" Text="⟷" FontSize="16" TextColor="#64748B" VerticalOptions="Center"/>
+
+                                            <!-- Правый элемент (или подсказка) -->
+                                            <HorizontalStackLayout Grid.Column="2" Spacing="4" VerticalOptions="Center">
+                                                <Button Text="{Binding SelectedRightText, TargetNullValue='[Нажмите значение справа]'}"
+                                                        BackgroundColor="#0F172A" TextColor="#38BDF8" FontSize="11" CornerRadius="8"
+                                                        HeightRequest="36"/>
+                                                <Button Text="✕" WidthRequest="32" HeightRequest="32" CornerRadius="6"
+                                                        IsVisible="{Binding IsMatched}"
+                                                        BackgroundColor="#7F1D1D" TextColor="White" FontSize="11"
+                                                        Command="{Binding Source={RelativeSource AncestorType={x:Type models:MatchPairsQuestion}}, Path=ClearPairCommand}"
+                                                        CommandParameter="{Binding LeftText}"/>
+                                            </HorizontalStackLayout>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </VerticalStackLayout>
+
+                        <Label Text="Свободные значения справа (нажмите для соединения с выбранным):" FontSize="13" FontAttributes="Bold" TextColor="#CBD5E1"/>
+
+                        <!-- Доступные варианты справа -->
+                        <FlexLayout Wrap="Wrap" AlignItems="Center">
+                            <BindableLayout.ItemsSource>
+                                <Binding Path="AvailableRightItems"/>
+                            </BindableLayout.ItemsSource>
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="x:String">
+                                    <Button Text="{Binding .}"
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type models:MatchPairsQuestion}}, Path=SelectRightCommand}"
+                                            CommandParameter="{Binding .}"
+                                            BackgroundColor="#0D9488" TextColor="White" FontSize="12" CornerRadius="8"
+                                            Margin="0,0,8,8" HeightRequest="38"/>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </FlexLayout>
+
+                    </VerticalStackLayout>
+                </ScrollView>
+            </DataTemplate>
+
+            <!-- ШАБЛОН 3: Написание эссе с жестким лимитом слов (Essay) -->
+            <DataTemplate x:Key="EssayTemplate" x:DataType="models:EssayQuestion">
+                <ScrollView>
+                    <VerticalStackLayout Spacing="14" Padding="4,8,4,20">
+                        <Border StrokeShape="RoundRectangle 16" Stroke="#334155" Background="#1E293B" Padding="16">
+                            <VerticalStackLayout Spacing="8">
+                                <HorizontalStackLayout Spacing="8" VerticalOptions="Center">
+                                    <Image Source="ic_essay.png" WidthRequest="22" HeightRequest="22" Aspect="AspectFit"/>
+                                    <Label Text="{Binding Title}" FontSize="16" FontAttributes="Bold" TextColor="#F8FAFC"/>
+                                </HorizontalStackLayout>
+                                <Label Text="{Binding Instructions}" FontSize="13" TextColor="#94A3B8"/>
+                                <Border StrokeShape="RoundRectangle 10" Background="#0F172A" Stroke="#EA580C" Padding="12">
+                                    <VerticalStackLayout Spacing="4">
+                                        <Label Text="Тема эссе (Writing Prompt):" FontSize="12" FontAttributes="Bold" TextColor="#FB923C"/>
+                                        <Label Text="{Binding TopicPrompt}" FontSize="14" TextColor="#F8FAFC"/>
+                                    </VerticalStackLayout>
+                                </Border>
+                            </VerticalStackLayout>
+                        </Border>
+
+                        <!-- Индикатор выполнения лимита слов -->
+                        <Border StrokeShape="RoundRectangle 10" Background="#1E293B" Stroke="#334155" Padding="12">
+                            <Grid ColumnDefinitions="*, Auto" VerticalOptions="Center">
+                                <Label Grid.Column="0"
+                                       Text="{Binding WordCountStatusText}"
+                                       FontSize="13"
+                                       FontAttributes="Bold"
+                                       TextColor="{Binding IsWordCountMet, Converter={StaticResource WordCountColorConverter}}"/>
+
+                                <Border Grid.Column="1" StrokeShape="RoundRectangle 6"
+                                        Background="{Binding IsWordCountMet, Converter={StaticResource WordCountColorConverter}}"
+                                        Padding="8,3">
+                                    <Label Text="{Binding IsWordCountMet, Converter={converters:BooleanToStringConverter TrueText='ГОТОВО', FalseText='МЕНЬШЕ МИНИМУМА'}}"
+                                           FontSize="10" FontAttributes="Bold" TextColor="White"/>
+                                </Border>
+                            </Grid>
+                        </Border>
+
+                        <!-- Поле ввода эссе -->
+                        <Border StrokeShape="RoundRectangle 14" Stroke="#475569" Background="#0F172A" Padding="12">
+                            <Editor Text="{Binding UserEssayText, Mode=TwoWay}"
+                                    Placeholder="Введите текст вашего эссе на английском языке... Соблюдайте академическую структуру (введение, аргументы, заключение)."
+                                    PlaceholderColor="#64748B"
+                                    TextColor="#F8FAFC"
+                                    FontSize="14"
+                                    HeightRequest="260"
+                                    AutoSize="Disabled"/>
+                        </Border>
+
+                    </VerticalStackLayout>
+                </ScrollView>
+            </DataTemplate>
+
+            <!-- Селектор шаблонов вопросов -->
+            <selectors:QuestionTemplateSelector x:Key="QuestionTemplateSelector"
+                                                ListeningTemplate="{StaticResource ListeningTemplate}"
+                                                MatchPairsTemplate="{StaticResource MatchPairsTemplate}"
+                                                EssayTemplate="{StaticResource EssayTemplate}" />
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+    <Grid RowDefinitions="Auto, Auto, *, Auto" Padding="16,10,16,16" RowSpacing="12">
+
+        <!-- Верхняя статусная панель: Название, уровень, таймер и кнопка заморозки -->
+        <Border Grid.Row="0"
+                StrokeShape="RoundRectangle 16"
+                Stroke="#334155"
+                Background="#1E293B"
+                Padding="14,10">
+            <Grid ColumnDefinitions="*, Auto, Auto" ColumnSpacing="10" VerticalOptions="Center">
+                <VerticalStackLayout Grid.Column="0" Spacing="2">
+                    <Label Text="{Binding CurrentTest.Title}" FontSize="15" FontAttributes="Bold" TextColor="#F8FAFC" LineBreakMode="TailTruncation"/>
+                    <HorizontalStackLayout Spacing="6">
+                        <Label Text="{Binding CurrentTest.Level, StringFormat='Уровень: {0}'}" FontSize="12" TextColor="#818CF8"/>
+                        <Label Text="•" FontSize="12" TextColor="#64748B"/>
+                        <Label Text="{Binding CurrentQuestionIndex, StringFormat='Вопрос {0}'}" FontSize="12" TextColor="#94A3B8"/>
+                        <Label Text="{Binding TotalQuestionsCount, StringFormat='из {0}'}" FontSize="12" TextColor="#94A3B8"/>
+                    </HorizontalStackLayout>
+                </VerticalStackLayout>
+
+                <!-- Таймер -->
+                <Border Grid.Column="1" StrokeShape="RoundRectangle 10" Stroke="#EF4444" Background="#450A0A" Padding="10,6">
+                    <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                        <Image Source="ic_timer.png" WidthRequest="16" HeightRequest="16" Aspect="AspectFit"/>
+                        <Label Text="{Binding FormattedTimeRemaining}" FontSize="14" FontAttributes="Bold" TextColor="#FCA5A5"/>
+                    </HorizontalStackLayout>
+                </Border>
+
+                <!-- Команда заморозки теста (Сохранение в JSON и выход) -->
+                <Button Grid.Column="2"
+                        Text="Заморозить"
+                        ImageSource="ic_freeze.png"
+                        Command="{Binding FreezeAndExitCommand}"
+                        BackgroundColor="#0284C7"
+                        TextColor="White"
+                        FontSize="11"
+                        FontAttributes="Bold"
+                        CornerRadius="8"
+                        HeightRequest="36"/>
+            </Grid>
+        </Border>
+
+        <!-- Прогресс-бар экзамена -->
+        <ProgressBar Grid.Row="1" Progress="{Binding ExamProgress}" ProgressColor="#4F46E5" HeightRequest="4"/>
+
+        <!-- Центральная область: динамический показ вопроса через CollectionView и DataTemplateSelector -->
+        <CollectionView Grid.Row="2"
+                        ItemsSource="{Binding CurrentQuestionList}"
+                        ItemTemplate="{StaticResource QuestionTemplateSelector}"
+                        SelectionMode="None"/>
+
+        <!-- Нижняя панель навигации по вопросам -->
+        <Grid Grid.Row="3" ColumnDefinitions="Auto, *, Auto" ColumnSpacing="12" VerticalOptions="Center">
+            <!-- Кнопка Назад -->
+            <Button Grid.Column="0"
+                    Text="← Назад"
+                    Command="{Binding PreviousQuestionCommand}"
+                    IsEnabled="{Binding CanGoPrevious}"
+                    BackgroundColor="#334155"
+                    TextColor="#F8FAFC"
+                    FontSize="13"
+                    CornerRadius="10"
+                    HeightRequest="44"/>
+
+            <!-- Переключатели вопросов (1, 2, 3) -->
+            <HorizontalStackLayout Grid.Column="1" Spacing="8" HorizontalOptions="Center" VerticalOptions="Center">
+                <Button Text="1. Аудио"
+                        Command="{Binding GoToQuestionCommand}"
+                        CommandParameter="{x:Int32 0}"
+                        BackgroundColor="#1E293B"
+                        TextColor="#94A3B8"
+                        FontSize="11"
+                        HeightRequest="34"
+                        CornerRadius="8"/>
+                <Button Text="2. Пары"
+                        Command="{Binding GoToQuestionCommand}"
+                        CommandParameter="{x:Int32 1}"
+                        BackgroundColor="#1E293B"
+                        TextColor="#94A3B8"
+                        FontSize="11"
+                        HeightRequest="34"
+                        CornerRadius="8"/>
+                <Button Text="3. Эссе"
+                        Command="{Binding GoToQuestionCommand}"
+                        CommandParameter="{x:Int32 2}"
+                        BackgroundColor="#1E293B"
+                        TextColor="#94A3B8"
+                        FontSize="11"
+                        HeightRequest="34"
+                        CornerRadius="8"/>
+            </HorizontalStackLayout>
+
+            <!-- Кнопка Вперед или Завершить -->
+            <Button Grid.Column="2"
+                    Text="Вперед →"
+                    Command="{Binding NextQuestionCommand}"
+                    IsVisible="{Binding CanGoNext}"
+                    BackgroundColor="#4F46E5"
+                    TextColor="White"
+                    FontAttributes="Bold"
+                    FontSize="13"
+                    CornerRadius="10"
+                    HeightRequest="44"/>
+
+            <Button Grid.Column="2"
+                    Text="Завершить ✓"
+                    Command="{Binding SubmitExamCommand}"
+                    IsVisible="{Binding IsLastQuestion}"
+                    BackgroundColor="#10B981"
+                    TextColor="White"
+                    FontAttributes="Bold"
+                    FontSize="13"
+                    CornerRadius="10"
+                    HeightRequest="44"/>
+        </Grid>
+
+    </Grid>
+
+</ContentPage>

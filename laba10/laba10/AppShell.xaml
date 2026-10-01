@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Shell
+    x:Class="laba10.AppShell"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:local="clr-namespace:laba10"
+    xmlns:views="clr-namespace:laba10.Views"
+    Title="CEFR Language Exam"
+    BackgroundColor="#0F172A"
+    ForegroundColor="#F8FAFC"
+    TitleColor="#F8FAFC"
+    UnselectedColor="#64748B"
+    Shell.TabBarBackgroundColor="#0F172A"
+    Shell.TabBarForegroundColor="#818CF8"
+    Shell.TabBarUnselectedColor="#64748B"
+    Shell.TabBarTitleColor="#F8FAFC">
+
+    <TabBar>
+        <Tab Title="Экзамены" Icon="ic_book.png">
+            <ShellContent
+                Title="Каталог"
+                ContentTemplate="{DataTemplate local:MainPage}"
+                Route="MainPage" />
+        </Tab>
+
+        <Tab Title="Статистика" Icon="ic_stats.png">
+            <ShellContent
+                Title="Статистика и Настройки"
+                ContentTemplate="{DataTemplate views:SettingsAndStatsPage}"
+                Route="SettingsAndStatsPage" />
+        </Tab>
+    </TabBar>
+
+</Shell>

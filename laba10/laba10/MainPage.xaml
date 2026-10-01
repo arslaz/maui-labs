@@ -1,0 +1,360 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:laba10.ViewModels"
+             xmlns:models="clr-namespace:laba10.Models"
+             xmlns:converters="clr-namespace:laba10.Converters"
+             x:Class="laba10.MainPage"
+             x:DataType="vm:MainViewModel"
+             BackgroundColor="#0F172A"
+             Title="Экзамены">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <converters:ScoreToColorConverter x:Key="ScoreToColorConverter" />
+            <converters:LevelToColorConverter x:Key="LevelToColorConverter" />
+            <converters:BooleanToStringConverter x:Key="TeacherModeTextConverter"
+                                                TrueText="Учитель (Вкл)"
+                                                FalseText="Режим учителя" />
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+    <ScrollView>
+        <VerticalStackLayout Spacing="18" Padding="20">
+
+            <!-- Хедер-баннер -->
+            <Border StrokeShape="RoundRectangle 20"
+                    StrokeThickness="0"
+                    Background="#1E293B"
+                    Padding="22">
+                <Border.Shadow>
+                    <Shadow Brush="#4F46E5" Offset="0,6" Radius="16" Opacity="0.25"/>
+                </Border.Shadow>
+                <Grid ColumnDefinitions="*, Auto" RowDefinitions="Auto, Auto, Auto" RowSpacing="8">
+                    <Label Grid.Row="0" Grid.Column="0"
+                           Text="ЯЗЫКОВОЙ ЭКЗАМЕН CEFR"
+                           FontSize="12"
+                           FontAttributes="Bold"
+                           TextColor="#818CF8"
+                           CharacterSpacing="1.5"/>
+
+                    <Label Grid.Row="1" Grid.Column="0"
+                           Text="Комплексное тестирование"
+                           FontSize="24"
+                           FontAttributes="Bold"
+                           TextColor="#F8FAFC"/>
+
+                    <Label Grid.Row="2" Grid.Column="0"
+                           Text="{Binding StudentGreeting}"
+                           FontSize="14"
+                           TextColor="#94A3B8"/>
+
+                    <Image Grid.Row="0" Grid.RowSpan="3" Grid.Column="1"
+                           Source="ic_exam_hero.png"
+                           WidthRequest="100"
+                           HeightRequest="75"
+                           Aspect="AspectFit"/>
+                </Grid>
+            </Border>
+
+            <!-- Баннер замороженного теста (если сохранен в JSON) -->
+            <Border IsVisible="{Binding HasFrozenTest}"
+                    StrokeShape="RoundRectangle 16"
+                    Stroke="#0284C7"
+                    StrokeThickness="1.5"
+                    Background="#0C4A6E"
+                    Padding="16">
+                <VerticalStackLayout Spacing="10">
+                    <HorizontalStackLayout Spacing="10" VerticalOptions="Center">
+                        <Image Source="ic_freeze.png" WidthRequest="26" HeightRequest="26" Aspect="AspectFit"/>
+                        <Label Text="Обнаружен замороженный тест!" 
+                               FontSize="16" 
+                               FontAttributes="Bold" 
+                               TextColor="#38BDF8"/>
+                    </HorizontalStackLayout>
+
+                    <Label Text="{Binding FrozenTestInfo}" 
+                           FontSize="13" 
+                           TextColor="#BAE6FD" 
+                           LineBreakMode="WordWrap"/>
+
+                    <Grid ColumnDefinitions="*, *" ColumnSpacing="12" Margin="0,4,0,0">
+                        <Button Grid.Column="0"
+                                Text="Возобновить тест"
+                                ImageSource="ic_play.png"
+                                Command="{Binding ResumeFrozenTestCommand}"
+                                BackgroundColor="#0284C7"
+                                TextColor="White"
+                                FontAttributes="Bold"
+                                CornerRadius="10"/>
+
+                        <Button Grid.Column="1"
+                                Text="Сбросить сессию"
+                                Command="{Binding DiscardFrozenTestCommand}"
+                                BackgroundColor="#334155"
+                                TextColor="#CBD5E1"
+                                CornerRadius="10"/>
+                    </Grid>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Панель фильтрации (Preferences) и режим преподавателя (SecureStorage) -->
+            <Border StrokeShape="RoundRectangle 16"
+                    Stroke="#334155"
+                    StrokeThickness="1"
+                    Background="#1E293B"
+                    Padding="16,14">
+                <VerticalStackLayout Spacing="12">
+                    <!-- Верхняя строка: Фильтр по уровню -->
+                    <Grid ColumnDefinitions="*, Auto" VerticalOptions="Center">
+                        <Label Grid.Column="0"
+                               Text="Уровень (Preferences):"
+                               FontSize="13"
+                               TextColor="#94A3B8"
+                               LineBreakMode="TailTruncation"
+                               VerticalOptions="Center"/>
+
+                        <Border Grid.Column="1"
+                                StrokeShape="RoundRectangle 8"
+                                Background="#0F172A"
+                                Stroke="#475569"
+                                Padding="12,0"
+                                WidthRequest="110">
+                            <Picker ItemsSource="{Binding AvailableLevels}"
+                                    SelectedItem="{Binding SelectedLevel}"
+                                    TextColor="#F8FAFC"
+                                    FontSize="13"
+                                    HeightRequest="36"/>
+                        </Border>
+                    </Grid>
+
+                    <!-- Нижняя строка: Кнопка режима преподавателя во всю ширину -->
+                    <Button Text="{Binding IsTeacherMode, Converter={StaticResource TeacherModeTextConverter}}"
+                            ImageSource="ic_security.png"
+                            Command="{Binding EnterTeacherModeCommand}"
+                            BackgroundColor="#312E81"
+                            TextColor="#C7D2FE"
+                            FontAttributes="Bold"
+                            FontSize="13"
+                            HeightRequest="40"
+                            CornerRadius="10"/>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Панель действий преподавателя (если режим активен) -->
+            <Border IsVisible="{Binding IsTeacherMode}"
+                    StrokeShape="RoundRectangle 14"
+                    Stroke="#6366F1"
+                    StrokeThickness="1"
+                    Background="#312E81"
+                    Padding="14,10">
+                <Grid ColumnDefinitions="*, Auto" ColumnSpacing="10" VerticalOptions="Center">
+                    <Label Grid.Column="0"
+                           Text="Режим преподавателя активирован (SecureStorage верифицирован)"
+                           FontSize="13"
+                           TextColor="#E0E7FF"
+                           VerticalOptions="Center"/>
+                    <Button Grid.Column="1"
+                            Text="+ Создать тест"
+                            Command="{Binding CreateNewTestCommand}"
+                            BackgroundColor="#4F46E5"
+                            TextColor="White"
+                            FontAttributes="Bold"
+                            FontSize="12"
+                            HeightRequest="34"
+                            CornerRadius="8"/>
+                </Grid>
+            </Border>
+
+            <!-- Заголовок списка -->
+            <HorizontalStackLayout Spacing="8" Margin="0,6,0,0">
+                <Image Source="ic_book.png" WidthRequest="22" HeightRequest="22" Aspect="AspectFit"/>
+                <Label Text="Доступные экзамены"
+                       FontSize="18"
+                       FontAttributes="Bold"
+                       TextColor="#F8FAFC"/>
+            </HorizontalStackLayout>
+
+            <!-- Список тестов с поддержкой контекстного меню -->
+            <CollectionView ItemsSource="{Binding FilteredTests}"
+                            SelectionMode="None">
+                <CollectionView.EmptyView>
+                    <VerticalStackLayout Spacing="10" Padding="30" HorizontalOptions="Center">
+                        <Label Text="Нет тестов для выбранного уровня"
+                               FontSize="16"
+                               TextColor="#64748B"
+                               HorizontalOptions="Center"/>
+                    </VerticalStackLayout>
+                </CollectionView.EmptyView>
+
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:ExamTest">
+                        <Border StrokeShape="RoundRectangle 18"
+                                Stroke="#334155"
+                                StrokeThickness="1"
+                                Background="#1E293B"
+                                Padding="18"
+                                Margin="0,0,0,14">
+                            <Border.Shadow>
+                                <Shadow Brush="Black" Offset="0,4" Radius="10" Opacity="0.2"/>
+                            </Border.Shadow>
+
+                            <!-- Контекстное меню для управления тестом (FlyoutBase.ContextFlyout) при правом клике -->
+                            <FlyoutBase.ContextFlyout>
+                                <MenuFlyout>
+                                    <MenuFlyoutItem Text="✏️ Редактировать вопросы (Режим преподавателя)"
+                                                    IconImageSource="ic_security.png"
+                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type vm:MainViewModel}}, Path=EditTestCommand}"
+                                                    CommandParameter="{Binding .}"/>
+                                    <MenuFlyoutItem Text="Дублировать тест"
+                                                    IconImageSource="ic_duplicate.png"
+                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type vm:MainViewModel}}, Path=DuplicateTestCommand}"
+                                                    CommandParameter="{Binding .}"/>
+                                    <MenuFlyoutItem Text="Экспортировать структуру в JSON"
+                                                    IconImageSource="ic_export.png"
+                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type vm:MainViewModel}}, Path=ExportTestCommand}"
+                                                    CommandParameter="{Binding .}"/>
+                                    <MenuFlyoutItem Text="Сбросить прогресс и баллы"
+                                                    IconImageSource="ic_reset.png"
+                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type vm:MainViewModel}}, Path=ResetProgressCommand}"
+                                                    CommandParameter="{Binding .}"/>
+                                    <MenuFlyoutSeparator />
+                                    <MenuFlyoutItem Text="Удалить тест из каталога"
+                                                    IconImageSource="ic_trash.png"
+                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type vm:MainViewModel}}, Path=DeleteTestCommand}"
+                                                    CommandParameter="{Binding .}"/>
+                                </MenuFlyout>
+                            </FlyoutBase.ContextFlyout>
+
+                            <VerticalStackLayout Spacing="12">
+                                <!-- Верхняя строка: бейдж уровня, таймер и статус -->
+                                <Grid ColumnDefinitions="Auto, Auto, *, Auto" ColumnSpacing="8" VerticalOptions="Center">
+                                    <!-- Бейдж уровня -->
+                                    <Border Grid.Column="0"
+                                            StrokeShape="RoundRectangle 8"
+                                            StrokeThickness="0"
+                                            Background="{Binding Level, Converter={StaticResource LevelToColorConverter}}"
+                                            Padding="10,4">
+                                        <Label Text="{Binding Level}"
+                                               FontSize="12"
+                                               FontAttributes="Bold"
+                                               TextColor="White"/>
+                                    </Border>
+
+                                    <!-- Таймер -->
+                                    <Border Grid.Column="1"
+                                            StrokeShape="RoundRectangle 8"
+                                            Stroke="#475569"
+                                            StrokeThickness="1"
+                                            Background="#0F172A"
+                                            Padding="8,4">
+                                        <HorizontalStackLayout Spacing="4" VerticalOptions="Center">
+                                            <Image Source="ic_timer.png" WidthRequest="14" HeightRequest="14" Aspect="AspectFit"/>
+                                            <Label Text="{Binding TimeLimitMinutes, StringFormat='{0} мин'}"
+                                                   FontSize="12"
+                                                   TextColor="#CBD5E1"/>
+                                        </HorizontalStackLayout>
+                                    </Border>
+
+                                    <!-- Результат (если сдан) -->
+                                    <Border Grid.Column="3"
+                                            IsVisible="{Binding IsCompleted}"
+                                            StrokeShape="RoundRectangle 8"
+                                            StrokeThickness="0"
+                                            Background="{Binding LastScore, Converter={StaticResource ScoreToColorConverter}}"
+                                            Padding="10,4">
+                                        <Label Text="{Binding LastScore, StringFormat='Балл: {0:F1}%'}"
+                                               FontSize="12"
+                                               FontAttributes="Bold"
+                                               TextColor="White"/>
+                                    </Border>
+                                </Grid>
+
+                                <!-- Название и описание -->
+                                <Label Text="{Binding Title}"
+                                       FontSize="17"
+                                       FontAttributes="Bold"
+                                       TextColor="#F8FAFC"/>
+
+                                <Label Text="{Binding Description}"
+                                       FontSize="13"
+                                       TextColor="#94A3B8"
+                                       LineBreakMode="WordWrap"/>
+
+                                <!-- Набор типов вопросов в тесте -->
+                                <FlexLayout Wrap="Wrap" AlignItems="Center">
+                                    <Border StrokeShape="RoundRectangle 6" Background="#0F172A" Padding="8,4" Margin="0,0,6,6">
+                                        <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                                            <Image Source="ic_listening.png" WidthRequest="16" HeightRequest="16" Aspect="AspectFit"/>
+                                            <Label Text="Аудирование" FontSize="11" TextColor="#CBD5E1" VerticalOptions="Center"/>
+                                        </HorizontalStackLayout>
+                                    </Border>
+
+                                    <Border StrokeShape="RoundRectangle 6" Background="#0F172A" Padding="8,4" Margin="0,0,6,6">
+                                        <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                                            <Image Source="ic_matching.png" WidthRequest="16" HeightRequest="16" Aspect="AspectFit"/>
+                                            <Label Text="Соответствия (штрафы)" FontSize="11" TextColor="#CBD5E1" VerticalOptions="Center"/>
+                                        </HorizontalStackLayout>
+                                    </Border>
+
+                                    <Border StrokeShape="RoundRectangle 6" Background="#0F172A" Padding="8,4" Margin="0,0,6,6">
+                                        <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                                            <Image Source="ic_essay.png" WidthRequest="16" HeightRequest="16" Aspect="AspectFit"/>
+                                            <Label Text="Эссе (лимит слов)" FontSize="11" TextColor="#CBD5E1" VerticalOptions="Center"/>
+                                        </HorizontalStackLayout>
+                                    </Border>
+                                </FlexLayout>
+
+                                <!-- Нижняя строка: Кнопка Старта, Кнопка Редактирования (Режим учителя) и Кнопка Опций -->
+                                <Grid ColumnDefinitions="*, Auto, Auto" ColumnSpacing="8" Margin="0,4,0,0">
+                                    <Button Grid.Column="0"
+                                            Text="Начать экзамен"
+                                            ImageSource="ic_play.png"
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type vm:MainViewModel}}, Path=StartTestCommand}"
+                                            CommandParameter="{Binding .}"
+                                            BackgroundColor="#4F46E5"
+                                            TextColor="White"
+                                            FontAttributes="Bold"
+                                            CornerRadius="10"
+                                            HeightRequest="42"/>
+
+                                    <!-- Кнопка скрытого режима преподавателя для редактирования вопросов -->
+                                    <Button Grid.Column="1"
+                                            Text="✏️ Вопросы"
+                                            IsVisible="{Binding Source={RelativeSource AncestorType={x:Type vm:MainViewModel}}, Path=IsTeacherMode}"
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type vm:MainViewModel}}, Path=EditTestCommand}"
+                                            CommandParameter="{Binding .}"
+                                            BackgroundColor="#312E81"
+                                            TextColor="#C7D2FE"
+                                            BorderColor="#6366F1"
+                                            BorderWidth="1"
+                                            FontSize="12"
+                                            FontAttributes="Bold"
+                                            Padding="10,0"
+                                            HeightRequest="42"
+                                            CornerRadius="10"
+                                            ToolTipProperties.Text="Редактировать вопросы теста"/>
+
+                                    <!-- Кнопка вызова контекстного меню: дублирование, экспорт, сброс, удаление -->
+                                    <Button Grid.Column="2"
+                                            Text="⋮ Опции"
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type vm:MainViewModel}}, Path=ShowTestOptionsCommand}"
+                                            CommandParameter="{Binding .}"
+                                            BackgroundColor="#334155"
+                                            TextColor="#CBD5E1"
+                                            FontSize="13"
+                                            FontAttributes="Bold"
+                                            Padding="12,0"
+                                            HeightRequest="42"
+                                            CornerRadius="10"
+                                            ToolTipProperties.Text="Контекстное меню теста"/>
+                                </Grid>
+                            </VerticalStackLayout>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

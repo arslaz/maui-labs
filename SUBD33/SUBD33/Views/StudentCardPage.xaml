@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="SUBD33.Views.StudentCardPage"
+             Title="Карточка студента">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="24" Spacing="16" MaximumWidthRequest="550" HorizontalOptions="Center">
+            
+            <HorizontalStackLayout Spacing="10">
+                <Button Text="← Назад" Clicked="OnBackClicked" HeightRequest="40" />
+                <Label Text="👤 Карточка студента" FontSize="20" FontAttributes="Bold" VerticalOptions="Center" />
+            </HorizontalStackLayout>
+
+            <!-- Основная панель с фото и данными -->
+            <Border Stroke="LightGray" StrokeThickness="1" Padding="16">
+                <Grid ColumnDefinitions="160, *" ColumnSpacing="16">
+                    
+                    <!-- PictureBox: Фото студента с режимом Zoom (AspectFit) -->
+                    <Border Grid.Column="0" Stroke="Gray" HeightRequest="160" WidthRequest="160" VerticalOptions="Start">
+                        <Image x:Name="ImgPhoto" Aspect="AspectFit" HorizontalOptions="Fill" VerticalOptions="Fill" />
+                    </Border>
+
+                    <!-- Данные студента (Задание 4) -->
+                    <VerticalStackLayout Grid.Column="1" Spacing="8">
+                        <Label x:Name="LblFullName" Text="ФИО Студента" FontSize="18" FontAttributes="Bold" />
+                        <Label x:Name="LblGroup" Text="Группа: ПО2311" FontSize="14" />
+                        <Label x:Name="LblCourse" Text="Курс: 4" FontSize="14" />
+                        
+                        <BoxView HeightRequest="1" Color="LightGray" Margin="0,4" />
+
+                        <Label x:Name="LblIncidentCount" Text="Количество инцидентов: 0" FontSize="14" />
+                        <Label x:Name="LblAvgPanic" Text="Средний уровень паники: 0.0" FontSize="14" />
+                        <Label x:Name="LblTopTrigger" Text="Самый частый триггер: —" FontSize="14" />
+                    </VerticalStackLayout>
+                </Grid>
+            </Border>
+
+            <!-- Список инцидентов этого студента -->
+            <Label Text="Инциденты данного студента:" FontAttributes="Bold" FontSize="16" Margin="0,10,0,0" />
+
+            <CollectionView x:Name="StudentIncidentsList" SelectionMode="None">
+                <CollectionView.EmptyView>
+                    <Label Text="Инцидентов не найдено." TextColor="Gray" Margin="10" />
+                </CollectionView.EmptyView>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Border Stroke="LightGray" StrokeThickness="0.5" Padding="10" Margin="0,2">
+                            <Grid ColumnDefinitions="120, *, 70, 70" ColumnSpacing="8">
+                                <Label Grid.Column="0" Text="{Binding DateDisplay}" VerticalOptions="Center" FontSize="12" />
+                                <Label Grid.Column="1" Text="{Binding TriggerName}" VerticalOptions="Center" FontAttributes="Bold" />
+                                <Label Grid.Column="2" Text="{Binding PanicLevel, StringFormat='Паника: {0}'}" VerticalOptions="Center" FontSize="12" />
+                                <Label Grid.Column="3" Text="{Binding HelpedDisplay, StringFormat='Помогло: {0}'}" VerticalOptions="Center" FontSize="12" />
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

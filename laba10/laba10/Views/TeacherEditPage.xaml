@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:laba10.ViewModels"
+             x:Class="laba10.Views.TeacherEditPage"
+             x:DataType="vm:TeacherEditViewModel"
+             BackgroundColor="#0F172A"
+             Title="Конструктор тестов">
+
+    <ScrollView>
+        <VerticalStackLayout Spacing="16" Padding="20">
+
+            <!-- Заголовок -->
+            <Border StrokeShape="RoundRectangle 16" Stroke="#4338CA" Background="#1E1B4B" Padding="18">
+                <Grid ColumnDefinitions="Auto, *" ColumnSpacing="12" VerticalOptions="Center">
+                    <Image Grid.Column="0" Source="ic_security.png" WidthRequest="36" HeightRequest="36" Aspect="AspectFit"/>
+                    <VerticalStackLayout Grid.Column="1">
+                        <Label Text="{Binding PageHeader}" FontSize="11" FontAttributes="Bold" TextColor="#818CF8" CharacterSpacing="1.2"/>
+                        <Label Text="{Binding PageSubtitle}" FontSize="18" FontAttributes="Bold" TextColor="#F8FAFC" LineBreakMode="WordWrap"/>
+                        <Label Text="Скрытый режим редактирования полиморфных вопросов (Listening, Match, Essay)" FontSize="12" TextColor="#A5B4FC"/>
+                    </VerticalStackLayout>
+                </Grid>
+            </Border>
+
+            <!-- Основные параметры теста -->
+            <Border StrokeShape="RoundRectangle 16" Stroke="#334155" Background="#1E293B" Padding="16">
+                <VerticalStackLayout Spacing="12">
+                    <Label Text="Параметры экзаменационного теста" FontSize="15" FontAttributes="Bold" TextColor="#F8FAFC"/>
+
+                    <Label Text="Название теста:" FontSize="12" TextColor="#94A3B8"/>
+                    <Border StrokeShape="RoundRectangle 8" Background="#0F172A" Stroke="#475569" Padding="10,0">
+                        <Entry Text="{Binding TestTitle, Mode=TwoWay}" TextColor="#F8FAFC" FontSize="13" HeightRequest="38"/>
+                    </Border>
+
+                    <Label Text="Описание:" FontSize="12" TextColor="#94A3B8"/>
+                    <Border StrokeShape="RoundRectangle 8" Background="#0F172A" Stroke="#475569" Padding="10,0">
+                        <Entry Text="{Binding TestDescription, Mode=TwoWay}" TextColor="#F8FAFC" FontSize="13" HeightRequest="38"/>
+                    </Border>
+
+                    <Grid ColumnDefinitions="*, *" ColumnSpacing="12">
+                        <VerticalStackLayout Grid.Column="0" Spacing="4">
+                            <Label Text="Уровень CEFR:" FontSize="12" TextColor="#94A3B8"/>
+                            <Border StrokeShape="RoundRectangle 8" Background="#0F172A" Stroke="#475569" Padding="10,0">
+                                <Picker ItemsSource="{Binding Levels}" SelectedItem="{Binding SelectedLevel, Mode=TwoWay}" TextColor="#F8FAFC" HeightRequest="38"/>
+                            </Border>
+                        </VerticalStackLayout>
+
+                        <VerticalStackLayout Grid.Column="1" Spacing="4">
+                            <Label Text="Лимит времени (мин):" FontSize="12" TextColor="#94A3B8"/>
+                            <Border StrokeShape="RoundRectangle 8" Background="#0F172A" Stroke="#475569" Padding="10,0">
+                                <Entry Text="{Binding TimeLimitMinutes, Mode=TwoWay}" Keyboard="Numeric" TextColor="#F8FAFC" HeightRequest="38"/>
+                            </Border>
+                        </VerticalStackLayout>
+                    </Grid>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Вопрос 1: Аудирование -->
+            <Border StrokeShape="RoundRectangle 16" Stroke="#334155" Background="#1E293B" Padding="16">
+                <VerticalStackLayout Spacing="10">
+                    <HorizontalStackLayout Spacing="8" VerticalOptions="Center">
+                        <Image Source="ic_listening.png" WidthRequest="20" HeightRequest="20" Aspect="AspectFit"/>
+                        <Label Text="Вопрос 1: Аудирование (Listening)" FontSize="15" FontAttributes="Bold" TextColor="#818CF8"/>
+                    </HorizontalStackLayout>
+
+                    <Label Text="Тема/Заголовок аудио:" FontSize="12" TextColor="#94A3B8"/>
+                    <Border StrokeShape="RoundRectangle 8" Background="#0F172A" Stroke="#475569" Padding="8,0">
+                        <Entry Text="{Binding ListeningTitle, Mode=TwoWay}" TextColor="#F8FAFC" FontSize="13" HeightRequest="36"/>
+                    </Border>
+
+                    <Label Text="Ссылка/Путь к аудиофайлу:" FontSize="12" TextColor="#94A3B8"/>
+                    <Border StrokeShape="RoundRectangle 8" Background="#0F172A" Stroke="#475569" Padding="8,0">
+                        <Entry Text="{Binding ListeningAudioUrl, Mode=TwoWay}" TextColor="#F8FAFC" FontSize="13" HeightRequest="36"/>
+                    </Border>
+
+                    <Label Text="Вариант A (Правильный):" FontSize="12" TextColor="#10B981"/>
+                    <Border StrokeShape="RoundRectangle 8" Background="#0F172A" Stroke="#10B981" Padding="8,0">
+                        <Entry Text="{Binding ListeningOption1, Mode=TwoWay}" TextColor="#F8FAFC" FontSize="13" HeightRequest="36"/>
+                    </Border>
+
+                    <Label Text="Вариант B:" FontSize="12" TextColor="#94A3B8"/>
+                    <Border StrokeShape="RoundRectangle 8" Background="#0F172A" Stroke="#475569" Padding="8,0">
+                        <Entry Text="{Binding ListeningOption2, Mode=TwoWay}" TextColor="#F8FAFC" FontSize="13" HeightRequest="36"/>
+                    </Border>
+
+                    <Label Text="Вариант C:" FontSize="12" TextColor="#94A3B8"/>
+                    <Border StrokeShape="RoundRectangle 8" Background="#0F172A" Stroke="#475569" Padding="8,0">
+                        <Entry Text="{Binding ListeningOption3, Mode=TwoWay}" TextColor="#F8FAFC" FontSize="13" HeightRequest="36"/>
+                    </Border>
+
+                    <Label Text="Вариант D:" FontSize="12" TextColor="#94A3B8"/>
+                    <Border StrokeShape="RoundRectangle 8" Background="#0F172A" Stroke="#475569" Padding="8,0">
+                        <Entry Text="{Binding ListeningOption4, Mode=TwoWay}" TextColor="#F8FAFC" FontSize="13" HeightRequest="36"/>
+                    </Border>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Вопрос 2: Match Pairs -->
+            <Border StrokeShape="RoundRectangle 16" Stroke="#334155" Background="#1E293B" Padding="16">
+                <VerticalStackLayout Spacing="10">
+                    <HorizontalStackLayout Spacing="8" VerticalOptions="Center">
+                        <Image Source="ic_matching.png" WidthRequest="20" HeightRequest="20" Aspect="AspectFit"/>
+                        <Label Text="Вопрос 2: Соответствия со штрафами (Match Pairs)" FontSize="15" FontAttributes="Bold" TextColor="#2DD4BF"/>
+                    </HorizontalStackLayout>
+
+                    <Grid ColumnDefinitions="*, Auto" ColumnSpacing="10" VerticalOptions="Center">
+                        <Label Grid.Column="0" Text="Размер штрафа за каждую ошибку (баллы):" FontSize="12" TextColor="#FCA5A5" VerticalOptions="Center"/>
+                        <Border Grid.Column="1" StrokeShape="RoundRectangle 8" Background="#0F172A" Stroke="#EF4444" Padding="8,0" WidthRequest="70">
+                            <Entry Text="{Binding Penalty, Mode=TwoWay}" Keyboard="Numeric" TextColor="#FCA5A5" FontSize="13" HeightRequest="36"/>
+                        </Border>
+                    </Grid>
+
+                    <!-- Пара 1 -->
+                    <Grid ColumnDefinitions="*, *" ColumnSpacing="8">
+                        <Border Grid.Column="0" StrokeShape="RoundRectangle 8" Background="#0F172A" Stroke="#475569" Padding="8,0">
+                            <Entry Text="{Binding Pair1Left, Mode=TwoWay}" Placeholder="Термин 1" TextColor="#F8FAFC" FontSize="12" HeightRequest="36"/>
+                        </Border>
+                        <Border Grid.Column="1" StrokeShape="RoundRectangle 8" Background="#0F172A" Stroke="#475569" Padding="8,0">
+                            <Entry Text="{Binding Pair1Right, Mode=TwoWay}" Placeholder="Значение 1" TextColor="#F8FAFC" FontSize="12" HeightRequest="36"/>
+                        </Border>
+                    </Grid>
+
+                    <!-- Пара 2 -->
+                    <Grid ColumnDefinitions="*, *" ColumnSpacing="8">
+                        <Border Grid.Column="0" StrokeShape="RoundRectangle 8" Background="#0F172A" Stroke="#475569" Padding="8,0">
+                            <Entry Text="{Binding Pair2Left, Mode=TwoWay}" Placeholder="Термин 2" TextColor="#F8FAFC" FontSize="12" HeightRequest="36"/>
+                        </Border>
+                        <Border Grid.Column="1" StrokeShape="RoundRectangle 8" Background="#0F172A" Stroke="#475569" Padding="8,0">
+                            <Entry Text="{Binding Pair2Right, Mode=TwoWay}" Placeholder="Значение 2" TextColor="#F8FAFC" FontSize="12" HeightRequest="36"/>
+                        </Border>
+                    </Grid>
+
+                    <!-- Пара 3 -->
+                    <Grid ColumnDefinitions="*, *" ColumnSpacing="8">
+                        <Border Grid.Column="0" StrokeShape="RoundRectangle 8" Background="#0F172A" Stroke="#475569" Padding="8,0">
+                            <Entry Text="{Binding Pair3Left, Mode=TwoWay}" Placeholder="Термин 3" TextColor="#F8FAFC" FontSize="12" HeightRequest="36"/>
+                        </Border>
+                        <Border Grid.Column="1" StrokeShape="RoundRectangle 8" Background="#0F172A" Stroke="#475569" Padding="8,0">
+                            <Entry Text="{Binding Pair3Right, Mode=TwoWay}" Placeholder="Значение 3" TextColor="#F8FAFC" FontSize="12" HeightRequest="36"/>
+                        </Border>
+                    </Grid>
+
+                    <!-- Пара 4 -->
+                    <Grid ColumnDefinitions="*, *" ColumnSpacing="8">
+                        <Border Grid.Column="0" StrokeShape="RoundRectangle 8" Background="#0F172A" Stroke="#475569" Padding="8,0">
+                            <Entry Text="{Binding Pair4Left, Mode=TwoWay}" Placeholder="Термин 4" TextColor="#F8FAFC" FontSize="12" HeightRequest="36"/>
+                        </Border>
+                        <Border Grid.Column="1" StrokeShape="RoundRectangle 8" Background="#0F172A" Stroke="#475569" Padding="8,0">
+                            <Entry Text="{Binding Pair4Right, Mode=TwoWay}" Placeholder="Значение 4" TextColor="#F8FAFC" FontSize="12" HeightRequest="36"/>
+                        </Border>
+                    </Grid>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Вопрос 3: Эссе -->
+            <Border StrokeShape="RoundRectangle 16" Stroke="#334155" Background="#1E293B" Padding="16">
+                <VerticalStackLayout Spacing="10">
+                    <HorizontalStackLayout Spacing="8" VerticalOptions="Center">
+                        <Image Source="ic_essay.png" WidthRequest="20" HeightRequest="20" Aspect="AspectFit"/>
+                        <Label Text="Вопрос 3: Эссе с лимитом слов (Writing)" FontSize="15" FontAttributes="Bold" TextColor="#FB923C"/>
+                    </HorizontalStackLayout>
+
+                    <Label Text="Тема эссе (Prompt):" FontSize="12" TextColor="#94A3B8"/>
+                    <Border StrokeShape="RoundRectangle 8" Background="#0F172A" Stroke="#475569" Padding="8,0">
+                        <Entry Text="{Binding EssayPrompt, Mode=TwoWay}" TextColor="#F8FAFC" FontSize="13" HeightRequest="36"/>
+                    </Border>
+
+                    <Grid ColumnDefinitions="*, Auto" ColumnSpacing="10" VerticalOptions="Center">
+                        <Label Grid.Column="0" Text="Минимальное количество слов:" FontSize="12" TextColor="#94A3B8" VerticalOptions="Center"/>
+                        <Border Grid.Column="1" StrokeShape="RoundRectangle 8" Background="#0F172A" Stroke="#475569" Padding="8,0" WidthRequest="70">
+                            <Entry Text="{Binding EssayMinWords, Mode=TwoWay}" Keyboard="Numeric" TextColor="#F8FAFC" FontSize="13" HeightRequest="36"/>
+                        </Border>
+                    </Grid>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Кнопки сохранения и отмены -->
+            <Grid ColumnDefinitions="*, *" ColumnSpacing="12" Margin="0,8,0,20">
+                <Button Grid.Column="0"
+                        Text="Отмена"
+                        Command="{Binding CancelCommand}"
+                        BackgroundColor="#334155"
+                        TextColor="#CBD5E1"
+                        CornerRadius="10"
+                        HeightRequest="46"/>
+
+                <Button Grid.Column="1"
+                        Text="{Binding SaveButtonText}"
+                        Command="{Binding SaveNewTestCommand}"
+                        BackgroundColor="#10B981"
+                        TextColor="White"
+                        FontAttributes="Bold"
+                        CornerRadius="10"
+                        HeightRequest="46"/>
+            </Grid>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

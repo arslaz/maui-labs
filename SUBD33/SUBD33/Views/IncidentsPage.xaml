@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:models="clr-namespace:SUBD33.Models"
+             x:Class="SUBD33.Views.IncidentsPage"
+             Title="Просмотр записей">
+
+    <Grid RowDefinitions="Auto, Auto, Auto, *" Padding="16" RowSpacing="12">
+        
+        <!-- Заголовок и кнопки действий -->
+        <Grid Grid.Row="0" ColumnDefinitions="Auto, *, Auto" ColumnSpacing="10">
+            <Button Grid.Column="0" Text="← Назад" Clicked="OnBackClicked" HeightRequest="40" />
+            <Label Grid.Column="1" Text="📋 Форма просмотра записей" FontSize="20" FontAttributes="Bold" VerticalOptions="Center" />
+            
+            <HorizontalStackLayout Grid.Column="2" Spacing="8">
+                <Button Text="➕ Добавить" Clicked="OnAddIncidentClicked" HeightRequest="40" />
+                <Button x:Name="BtnOpenCard" Text="👤 Карточка" Clicked="OnOpenCardClicked" HeightRequest="40" />
+                <Button x:Name="BtnDelete" Text="🗑️ Удалить" Clicked="OnDeleteClicked" HeightRequest="40" BackgroundColor="#DC2626" TextColor="White" />
+            </HorizontalStackLayout>
+        </Grid>
+
+        <!-- Задание 3: Поиск и сортировка -->
+        <Grid Grid.Row="1" ColumnDefinitions="*, Auto, 170, 160, Auto" ColumnSpacing="8">
+            <!-- Поиск -->
+            <Entry Grid.Column="0" x:Name="TxtSearch" Placeholder="Поиск по ФИО, группе, триггеру..." Completed="OnSearchClicked" HeightRequest="40" />
+            <Button Grid.Column="1" Text="Найти" Clicked="OnSearchClicked" HeightRequest="40" />
+
+            <!-- Сортировка -->
+            <Picker Grid.Column="2" x:Name="PickerSortField" Title="Поле" SelectedIndexChanged="OnSortParameterChanged" HeightRequest="40" />
+            <Picker Grid.Column="3" x:Name="PickerSortDirection" SelectedIndexChanged="OnSortParameterChanged" HeightRequest="40">
+                <Picker.ItemsSource>
+                    <x:Array Type="{x:Type x:String}">
+                        <x:String>По убыванию</x:String>
+                        <x:String>По возрастанию</x:String>
+                    </x:Array>
+                </Picker.ItemsSource>
+            </Picker>
+
+            <!-- Сбросить -->
+            <Button Grid.Column="4" Text="Сбросить" Clicked="OnResetClicked" HeightRequest="40" />
+        </Grid>
+
+        <!-- Подсказка -->
+        <Label Grid.Row="2" x:Name="LblRecordsCount" Text="Всего записей: 0 (двойной клик по строке открывает карточку студента)" FontSize="12" TextColor="Gray" />
+
+        <!-- Таблица записей (Аналог DataGridView) -->
+        <Border Grid.Row="3" Stroke="LightGray" StrokeThickness="1" Padding="0">
+            <Grid RowDefinitions="38, *">
+                
+                <!-- Шапка таблицы -->
+                <Grid Grid.Row="0" BackgroundColor="#E2E8F0" ColumnDefinitions="40, 190, 80, 130, 150, 70, *, 80" ColumnSpacing="6" Padding="8,0">
+                    <Label Grid.Column="0" Text="ID" FontAttributes="Bold" VerticalOptions="Center" />
+                    <Label Grid.Column="1" Text="Студент" FontAttributes="Bold" VerticalOptions="Center" />
+                    <Label Grid.Column="2" Text="Группа" FontAttributes="Bold" VerticalOptions="Center" />
+                    <Label Grid.Column="3" Text="Дата" FontAttributes="Bold" VerticalOptions="Center" />
+                    <Label Grid.Column="4" Text="Триггер" FontAttributes="Bold" VerticalOptions="Center" />
+                    <Label Grid.Column="5" Text="Паника" FontAttributes="Bold" VerticalOptions="Center" />
+                    <Label Grid.Column="6" Text="Способ успокоения" FontAttributes="Bold" VerticalOptions="Center" />
+                    <Label Grid.Column="7" Text="Помогло" FontAttributes="Bold" VerticalOptions="Center" />
+                </Grid>
+
+                <!-- Данные таблицы -->
+                <CollectionView Grid.Row="1" 
+                                x:Name="IncidentsCollection"
+                                SelectionMode="Single"
+                                SelectionChanged="OnSelectionChanged">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="models:Incident">
+                            <Border Stroke="LightGray" StrokeThickness="0.5" Padding="8,8">
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer NumberOfTapsRequired="2" 
+                                                          CommandParameter="{Binding .}" 
+                                                          Tapped="OnRowDoubleTapped" />
+                                </Border.GestureRecognizers>
+
+                                <Grid ColumnDefinitions="40, 190, 80, 130, 150, 70, *, 80" ColumnSpacing="6" VerticalOptions="Center">
+                                    <Label Grid.Column="0" Text="{Binding Id}" TextColor="Gray" VerticalOptions="Center" />
+                                    <Label Grid.Column="1" Text="{Binding StudentName}" FontAttributes="Bold" LineBreakMode="TailTruncation" VerticalOptions="Center" />
+                                    <Label Grid.Column="2" Text="{Binding GroupName}" VerticalOptions="Center" />
+                                    <Label Grid.Column="3" Text="{Binding DateDisplay}" VerticalOptions="Center" />
+                                    <Label Grid.Column="4" Text="{Binding TriggerName}" LineBreakMode="TailTruncation" VerticalOptions="Center" />
+                                    <Label Grid.Column="5" Text="{Binding PanicLevel, StringFormat='{0} / 10'}" FontAttributes="Bold" VerticalOptions="Center" />
+                                    <Label Grid.Column="6" Text="{Binding CalmingMethod}" LineBreakMode="TailTruncation" VerticalOptions="Center" />
+                                    <Label Grid.Column="7" Text="{Binding HelpedDisplay}" FontAttributes="Bold" VerticalOptions="Center" />
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+
+            </Grid>
+        </Border>
+
+    </Grid>
+</ContentPage>

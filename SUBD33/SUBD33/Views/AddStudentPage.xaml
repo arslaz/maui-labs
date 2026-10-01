@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="SUBD33.Views.AddStudentPage"
+             Title="Добавление студента">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="24" Spacing="14" MaximumWidthRequest="500" HorizontalOptions="Center">
+            
+            <HorizontalStackLayout Spacing="10">
+                <Button Text="← Назад" Clicked="OnBackClicked" HeightRequest="40" />
+                <Label Text="👤 Добавить студента" FontSize="20" FontAttributes="Bold" VerticalOptions="Center" />
+            </HorizontalStackLayout>
+
+            <!-- ФИО -->
+            <Label Text="ФИО студента:" FontAttributes="Bold" />
+            <Entry x:Name="TxtFullName" Placeholder="Введите ФИО" />
+
+            <!-- Группа -->
+            <Label Text="Группа:" FontAttributes="Bold" />
+            <Entry x:Name="TxtGroup" Text="ПО2311" />
+
+            <!-- Курс -->
+            <Label Text="Курс (1-6):" FontAttributes="Bold" />
+            <Entry x:Name="TxtCourse" Text="4" Keyboard="Numeric" />
+
+            <!-- Фотография (OpenFileDialog) -->
+            <Label Text="Фотография студента:" FontAttributes="Bold" />
+            <HorizontalStackLayout Spacing="10">
+                <Button Text="📁 Выбрать файл..." Clicked="OnPickPhotoClicked" HeightRequest="40" />
+                <Label x:Name="LblPhotoPath" Text="Файл не выбран" VerticalOptions="Center" TextColor="Gray" FontSize="12" />
+            </HorizontalStackLayout>
+
+            <!-- Отображение изображения в PictureBox (Image с Zoom / AspectFit) -->
+            <Border Stroke="LightGray" HeightRequest="150" WidthRequest="150" HorizontalOptions="Start">
+                <Image x:Name="ImgPreview" Source="avatar_default.png" Aspect="AspectFit" />
+            </Border>
+
+            <!-- Сохранить -->
+            <Button Text="💾 Сохранить студента" 
+                    Clicked="OnSaveClicked" 
+                    HeightRequest="48" 
+                    FontSize="16" 
+                    Margin="0,10,0,0" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

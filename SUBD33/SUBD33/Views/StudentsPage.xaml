@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:models="clr-namespace:SUBD33.Models"
+             x:Class="SUBD33.Views.StudentsPage"
+             Title="Справочник студентов">
+
+    <Grid RowDefinitions="Auto, *" Padding="16" RowSpacing="12">
+        
+        <!-- Верхняя панель -->
+        <Grid Grid.Row="0" ColumnDefinitions="Auto, *, Auto" ColumnSpacing="10">
+            <Button Grid.Column="0" Text="← Назад" Clicked="OnBackClicked" HeightRequest="40" />
+            <Label Grid.Column="1" Text="👤 Студенты (Группа ПО2311)" FontSize="20" FontAttributes="Bold" VerticalOptions="Center" />
+            <Button Grid.Column="2" Text="➕ Добавить студента" Clicked="OnAddStudentClicked" HeightRequest="40" />
+        </Grid>
+
+        <!-- Список студентов -->
+        <CollectionView Grid.Row="1" x:Name="StudentsCollection" SelectionMode="None">
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:Student">
+                    <Border Stroke="LightGray" StrokeThickness="1" Margin="0,4" Padding="10">
+                        <Grid ColumnDefinitions="60, *, Auto" ColumnSpacing="12" VerticalOptions="Center">
+                            
+                            <!-- Фото (Zoom / AspectFit) -->
+                            <Border Grid.Column="0" Stroke="Gray" HeightRequest="55" WidthRequest="55">
+                                <Image Source="{Binding PhotoSource}" Aspect="AspectFit" />
+                            </Border>
+
+                            <!-- Данные -->
+                            <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
+                                <Label Text="{Binding FullName}" FontAttributes="Bold" FontSize="15" />
+                                <Label Text="{Binding DisplayInfo}" TextColor="Gray" FontSize="13" />
+                            </VerticalStackLayout>
+
+                            <!-- Кнопка перехода в карточку -->
+                            <Button Grid.Column="2" 
+                                    Text="Карточка ➜" 
+                                    CommandParameter="{Binding Id}"
+                                    Clicked="OnOpenStudentCardClicked"
+                                    HeightRequest="36" 
+                                    VerticalOptions="Center" />
+
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+    </Grid>
+</ContentPage>

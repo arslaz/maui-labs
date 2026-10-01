@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="SUBD33.MainPage"
+             Title="Главная форма">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="30" Spacing="20" MaximumWidthRequest="650" HorizontalOptions="Center">
+            
+            <!-- Заголовок лабораторной -->
+            <Label Text="Лабораторная работа №33" 
+                   FontSize="24" 
+                   FontAttributes="Bold" 
+                   HorizontalOptions="Center" />
+            
+            <Label Text="Вариант 9: Нервные срывы в сессию&#10;Группа: ПО2311 (4 курс)" 
+                   FontSize="16" 
+                   TextColor="Gray" 
+                   HorizontalTextAlignment="Center" 
+                   HorizontalOptions="Center" />
+
+            <BoxView HeightRequest="1" Color="LightGray" Margin="0,5" />
+
+            <!-- Навигация между формами приложения (Задание 2) -->
+            <Label Text="Навигация по приложению:" 
+                   FontSize="18" 
+                   FontAttributes="Bold" />
+
+            <Button Text="📋 Просмотр записей (Инциденты)" 
+                    Clicked="OnNavIncidentsClicked" 
+                    HeightRequest="50" 
+                    FontSize="16" />
+
+            <Button Text="➕ Добавить инцидент" 
+                    Clicked="OnNavAddIncidentClicked" 
+                    HeightRequest="50" 
+                    FontSize="16" />
+
+            <Button Text="👤 Студенты и карточки" 
+                    Clicked="OnNavStudentsClicked" 
+                    HeightRequest="50" 
+                    FontSize="16" />
+
+            <Button Text="📊 Форма «Запросы»" 
+                    Clicked="OnNavQueriesClicked" 
+                    HeightRequest="50" 
+                    FontSize="16" />
+
+            <BoxView HeightRequest="1" Color="LightGray" Margin="0,10" />
+
+            <!-- Статус БД -->
+            <Label x:Name="LblDbLocation" 
+                   Text="База данных: panic_db.db (подключено через ADO.NET)" 
+                   FontSize="12" 
+                   TextColor="Gray" 
+                   HorizontalOptions="Center" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

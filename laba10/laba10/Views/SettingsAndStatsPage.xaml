@@ -1,0 +1,293 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:laba10.ViewModels"
+             xmlns:models="clr-namespace:laba10.Models"
+             xmlns:converters="clr-namespace:laba10.Converters"
+             x:Class="laba10.Views.SettingsAndStatsPage"
+             x:DataType="vm:SettingsAndStatsViewModel"
+             BackgroundColor="#0F172A"
+             Title="Статистика">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <converters:ScoreToColorConverter x:Key="ScoreToColorConverter" />
+            <converters:LevelToColorConverter x:Key="LevelToColorConverter" />
+            <converters:InverseBooleanConverter x:Key="InverseBoolConverter" />
+            <converters:BooleanToStringConverter x:Key="TeacherModeStatusConverter"
+                                                TrueText="Авторизован (SecureStorage)"
+                                                FalseText="Не авторизован" />
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+    <ScrollView>
+        <VerticalStackLayout Spacing="18" Padding="20">
+
+            <!-- Заголовок страницы -->
+            <Border StrokeShape="RoundRectangle 20" StrokeThickness="0" Background="#1E293B" Padding="20">
+                <Border.Shadow>
+                    <Shadow Brush="#4F46E5" Offset="0,4" Radius="12" Opacity="0.2"/>
+                </Border.Shadow>
+                <Grid ColumnDefinitions="*, Auto" RowDefinitions="Auto, Auto">
+                    <Label Grid.Row="0" Grid.Column="0" Text="ПАНЕЛЬ УПРАВЛЕНИЯ" FontSize="11" FontAttributes="Bold" TextColor="#818CF8" CharacterSpacing="1.2"/>
+                    <Label Grid.Row="1" Grid.Column="0" Text="Статистика и Настройки" FontSize="22" FontAttributes="Bold" TextColor="#F8FAFC"/>
+                    <Image Grid.Row="0" Grid.RowSpan="2" Grid.Column="1" Source="ic_stats.png" WidthRequest="44" HeightRequest="44" Aspect="AspectFit"/>
+                </Grid>
+            </Border>
+
+            <!-- Блок настроек пользователя (Preferences) -->
+            <Border StrokeShape="RoundRectangle 16" Stroke="#334155" Background="#1E293B" Padding="18">
+                <VerticalStackLayout Spacing="14">
+                    <Label Text="Глобальные параметры (Preferences)" FontSize="15" FontAttributes="Bold" TextColor="#F8FAFC"/>
+
+                    <!-- Имя студента -->
+                    <Grid ColumnDefinitions="*, 2*" ColumnSpacing="12" VerticalOptions="Center">
+                        <Label Grid.Column="0" Text="ФИО Кандидата:" FontSize="13" TextColor="#94A3B8" VerticalOptions="Center"/>
+                        <Border Grid.Column="1" StrokeShape="RoundRectangle 8" Background="#0F172A" Stroke="#475569" Padding="10,0">
+                            <Entry Text="{Binding StudentName, Mode=TwoWay}" TextColor="#F8FAFC" FontSize="13" HeightRequest="38"/>
+                        </Border>
+                    </Grid>
+
+                    <!-- Целевой уровень языка -->
+                    <Grid ColumnDefinitions="*, 2*" ColumnSpacing="12" VerticalOptions="Center">
+                        <Label Grid.Column="0" Text="Целевой уровень:" FontSize="13" TextColor="#94A3B8" VerticalOptions="Center"/>
+                        <Border Grid.Column="1" StrokeShape="RoundRectangle 8" Background="#0F172A" Stroke="#475569" Padding="10,0">
+                            <Picker ItemsSource="{Binding AvailableLevels}"
+                                    SelectedItem="{Binding TargetLevel, Mode=TwoWay}"
+                                    TextColor="#F8FAFC"
+                                    FontSize="13"
+                                    HeightRequest="38"/>
+                        </Border>
+                    </Grid>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Карточки статистики -->
+            <Grid ColumnDefinitions="*, *" RowDefinitions="Auto, Auto" ColumnSpacing="12" RowSpacing="12">
+                <!-- Всего тестов -->
+                <Border Grid.Row="0" Grid.Column="0" StrokeShape="RoundRectangle 14" Stroke="#334155" Background="#1E293B" Padding="14">
+                    <VerticalStackLayout Spacing="4">
+                        <Image Source="ic_book.png" WidthRequest="22" HeightRequest="22" Aspect="AspectFit" HorizontalOptions="Start"/>
+                        <Label Text="{Binding TotalExamsTaken}" FontSize="24" FontAttributes="Bold" TextColor="#F8FAFC"/>
+                        <Label Text="Сдано экзаменов" FontSize="12" TextColor="#94A3B8"/>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Средний балл -->
+                <Border Grid.Row="0" Grid.Column="1" StrokeShape="RoundRectangle 14" Stroke="#334155" Background="#1E293B" Padding="14">
+                    <VerticalStackLayout Spacing="4">
+                        <Image Source="ic_trophy.png" WidthRequest="22" HeightRequest="22" Aspect="AspectFit" HorizontalOptions="Start"/>
+                        <Label Text="{Binding AverageScore, StringFormat='{0:F1}%'}" FontSize="24" FontAttributes="Bold" TextColor="#38BDF8"/>
+                        <Label Text="Средний балл" FontSize="12" TextColor="#94A3B8"/>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Лучший CEFR уровень -->
+                <Border Grid.Row="1" Grid.Column="0" StrokeShape="RoundRectangle 14" Stroke="#334155" Background="#1E293B" Padding="14">
+                    <VerticalStackLayout Spacing="4">
+                        <Image Source="ic_badge_cefr.png" WidthRequest="22" HeightRequest="22" Aspect="AspectFit" HorizontalOptions="Start"/>
+                        <Label Text="{Binding BestCefrLevel}" FontSize="20" FontAttributes="Bold" TextColor="#F59E0B" LineBreakMode="TailTruncation"/>
+                        <Label Text="Лучший уровень CEFR" FontSize="12" TextColor="#94A3B8"/>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Подано апелляций -->
+                <Border Grid.Row="1" Grid.Column="1" StrokeShape="RoundRectangle 14" Stroke="#334155" Background="#1E293B" Padding="14">
+                    <VerticalStackLayout Spacing="4">
+                        <Image Source="ic_appeal.png" WidthRequest="22" HeightRequest="22" Aspect="AspectFit" HorizontalOptions="Start"/>
+                        <Label Text="{Binding TotalAppealsCount}" FontSize="24" FontAttributes="Bold" TextColor="#F43F5E"/>
+                        <Label Text="Подано апелляций" FontSize="12" TextColor="#94A3B8"/>
+                    </VerticalStackLayout>
+                </Border>
+            </Grid>
+
+            <!-- Секция SecureStorage: Авторизация преподавателя -->
+            <Border StrokeShape="RoundRectangle 16" Stroke="#4338CA" Background="#1E1B4B" Padding="18">
+                <VerticalStackLayout Spacing="12">
+                    <Grid ColumnDefinitions="Auto, *" ColumnSpacing="10" VerticalOptions="Center">
+                        <Image Grid.Column="0" Source="ic_security.png" WidthRequest="28" HeightRequest="28" Aspect="AspectFit"/>
+                        <VerticalStackLayout Grid.Column="1">
+                            <Label Text="Безопасное хранилище (SecureStorage)" FontSize="15" FontAttributes="Bold" TextColor="#E0E7FF"/>
+                            <Label Text="Криптографическая защита токена преподавателя" FontSize="11" TextColor="#A5B4FC"/>
+                        </VerticalStackLayout>
+                    </Grid>
+
+                    <Label Text="{Binding TeacherStatusText}" FontSize="12" TextColor="#C7D2FE"/>
+
+                    <!-- Поле ввода токена -->
+                    <Grid ColumnDefinitions="*, Auto" ColumnSpacing="10" IsVisible="{Binding IsTeacherUnlocked, Converter={StaticResource InverseBoolConverter}}">
+                        <Border Grid.Column="0" StrokeShape="RoundRectangle 8" Background="#0F172A" Stroke="#6366F1" Padding="10,0">
+                            <Entry Text="{Binding TeacherTokenInput, Mode=TwoWay}"
+                                   Placeholder="Секретный токен (TEACHER2026)"
+                                   PlaceholderColor="#64748B"
+                                   TextColor="#F8FAFC"
+                                   FontSize="13"
+                                   IsPassword="True"
+                                   HeightRequest="38"/>
+                        </Border>
+                        <Button Grid.Column="1"
+                                Text="Войти"
+                                Command="{Binding VerifyTeacherTokenCommand}"
+                                BackgroundColor="#4F46E5"
+                                TextColor="White"
+                                FontAttributes="Bold"
+                                FontSize="12"
+                                CornerRadius="8"
+                                HeightRequest="38"/>
+                    </Grid>
+
+                    <Button Text="Выйти из режима преподавателя"
+                            IsVisible="{Binding IsTeacherUnlocked}"
+                            Command="{Binding LockTeacherModeCommand}"
+                            BackgroundColor="#334155"
+                            TextColor="#CBD5E1"
+                            FontSize="12"
+                            CornerRadius="8"
+                            HeightRequest="36"/>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Список прошлых результатов с контекстным меню -->
+            <Grid ColumnDefinitions="Auto, *, Auto" ColumnSpacing="10" VerticalOptions="Center" Margin="0,10,0,0">
+                <Image Grid.Column="0" Source="ic_stats.png" WidthRequest="22" HeightRequest="22" Aspect="AspectFit" VerticalOptions="Center"/>
+                <Label Grid.Column="1" 
+                       Text="История сессий" 
+                       FontSize="18" 
+                       FontAttributes="Bold" 
+                       TextColor="#F8FAFC"
+                       LineBreakMode="TailTruncation"
+                       VerticalOptions="Center"/>
+
+                <Button Grid.Column="2"
+                        Text="Очистить всё"
+                        Command="{Binding ClearHistoryCommand}"
+                        BackgroundColor="#2D1215"
+                        TextColor="#F87171"
+                        BorderColor="#991B1B"
+                        BorderWidth="1"
+                        CornerRadius="8"
+                        Padding="12,4"
+                        HeightRequest="32"
+                        FontSize="12"
+                        FontAttributes="Bold"
+                        VerticalOptions="Center"/>
+            </Grid>
+
+            <CollectionView ItemsSource="{Binding ResultsHistory}" SelectionMode="None">
+                <CollectionView.EmptyView>
+                    <VerticalStackLayout Spacing="8" Padding="30" HorizontalOptions="Center">
+                        <Label Text="Вы еще не прошли ни одного экзамена" FontSize="14" TextColor="#64748B" HorizontalOptions="Center"/>
+                        <Label Text="Пройдите тест во вкладке «Экзамены», чтобы увидеть результаты" FontSize="12" TextColor="#475569" HorizontalOptions="Center"/>
+                    </VerticalStackLayout>
+                </CollectionView.EmptyView>
+
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:ExamResult">
+                        <Border StrokeShape="RoundRectangle 16"
+                                Stroke="#334155"
+                                Background="#1E293B"
+                                Padding="16"
+                                Margin="0,0,0,12">
+                            <!-- Нативное контекстное меню для карточки результата (MenuFlyout): апелляция, экспорт, удаление -->
+                            <FlyoutBase.ContextFlyout>
+                                <MenuFlyout>
+                                    <MenuFlyoutItem Text="Подать апелляцию (Генерация отчета об ошибках)"
+                                                    IconImageSource="ic_appeal.png"
+                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type vm:SettingsAndStatsViewModel}}, Path=AppealResultCommand}"
+                                                    CommandParameter="{Binding .}"/>
+                                    <MenuFlyoutItem Text="Имитация экспорта для отправки результата"
+                                                    IconImageSource="ic_export.png"
+                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type vm:SettingsAndStatsViewModel}}, Path=ExportResultCommand}"
+                                                    CommandParameter="{Binding .}"/>
+                                    <MenuFlyoutSeparator />
+                                    <MenuFlyoutItem Text="Удалить запись из истории"
+                                                    IconImageSource="ic_trash.png"
+                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type vm:SettingsAndStatsViewModel}}, Path=DeleteResultCommand}"
+                                                    CommandParameter="{Binding .}"/>
+                                </MenuFlyout>
+                            </FlyoutBase.ContextFlyout>
+
+                            <VerticalStackLayout Spacing="10">
+                                <!-- Верхняя плашка с оценкой и кнопкой вызова контекстного меню -->
+                                <Grid ColumnDefinitions="*, Auto, Auto" ColumnSpacing="10" VerticalOptions="Center">
+                                    <VerticalStackLayout Grid.Column="0" Spacing="2">
+                                        <Label Text="{Binding TestTitle}" FontSize="15" FontAttributes="Bold" TextColor="#F8FAFC" LineBreakMode="TailTruncation"/>
+                                        <Label Text="{Binding Date, StringFormat='{0:dd.MM.yyyy HH:mm}'}" FontSize="11" TextColor="#64748B"/>
+                                    </VerticalStackLayout>
+
+                                    <!-- Итоговый балл -->
+                                    <Border Grid.Column="1" StrokeShape="RoundRectangle 8"
+                                            Background="{Binding TotalScore, Converter={StaticResource ScoreToColorConverter}}"
+                                            Padding="10,4"
+                                            VerticalOptions="Center">
+                                        <Label Text="{Binding TotalScore, StringFormat='{0:F1}%'}" FontSize="13" FontAttributes="Bold" TextColor="White"/>
+                                    </Border>
+
+                                    <!-- Кнопка вызова контекстного меню: апелляция, экспорт, удаление -->
+                                    <Button Grid.Column="2"
+                                            Text="⋮ Меню"
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type vm:SettingsAndStatsViewModel}}, Path=ShowResultContextMenuCommand}"
+                                            CommandParameter="{Binding .}"
+                                            BackgroundColor="#334155"
+                                            TextColor="#CBD5E1"
+                                            FontSize="12"
+                                            FontAttributes="Bold"
+                                            Padding="10,0"
+                                            HeightRequest="34"
+                                            CornerRadius="8"
+                                            VerticalOptions="Center"
+                                            ToolTipProperties.Text="Контекстное меню результата"/>
+                                </Grid>
+
+                                <!-- Разбивка по секциям -->
+                                <Grid ColumnDefinitions="*, *, *" ColumnSpacing="8">
+                                    <Border Grid.Column="0" StrokeShape="RoundRectangle 8" Background="#0F172A" Padding="8,6">
+                                        <VerticalStackLayout Spacing="2" HorizontalOptions="Center">
+                                            <Label Text="Аудио" FontSize="10" TextColor="#94A3B8"/>
+                                            <Label Text="{Binding ListeningScore, StringFormat='{0:F1} б.'}" FontSize="12" FontAttributes="Bold" TextColor="#818CF8"/>
+                                        </VerticalStackLayout>
+                                    </Border>
+
+                                    <Border Grid.Column="1" StrokeShape="RoundRectangle 8" Background="#0F172A" Padding="8,6">
+                                        <VerticalStackLayout Spacing="2" HorizontalOptions="Center">
+                                            <Label Text="Пары (штрафы)" FontSize="10" TextColor="#94A3B8"/>
+                                            <Label Text="{Binding MatchPairsScore, StringFormat='{0:F1} б.'}" FontSize="12" FontAttributes="Bold" TextColor="#2DD4BF"/>
+                                        </VerticalStackLayout>
+                                    </Border>
+
+                                    <Border Grid.Column="2" StrokeShape="RoundRectangle 8" Background="#0F172A" Padding="8,6">
+                                        <VerticalStackLayout Spacing="2" HorizontalOptions="Center">
+                                            <Label Text="Эссе (слова)" FontSize="10" TextColor="#94A3B8"/>
+                                            <Label Text="{Binding EssayScore, StringFormat='{0:F1} б.'}" FontSize="12" FontAttributes="Bold" TextColor="#FB923C"/>
+                                        </VerticalStackLayout>
+                                    </Border>
+                                </Grid>
+
+                                <!-- Статус апелляции и крипто-подпись -->
+                                <Grid ColumnDefinitions="*, Auto" VerticalOptions="Center">
+                                    <HorizontalStackLayout Grid.Column="0" Spacing="6" VerticalOptions="Center">
+                                        <Image Source="ic_security.png" WidthRequest="14" HeightRequest="14" Aspect="AspectFit"/>
+                                        <Label Text="{Binding SecureTokenKey, StringFormat='SecureStorage: {0}'}" FontSize="11" TextColor="#64748B"/>
+                                    </HorizontalStackLayout>
+
+                                    <Border Grid.Column="1" StrokeShape="RoundRectangle 6" Background="#334155" Padding="6,2">
+                                        <Label Text="{Binding AppealStatus, StringFormat='Апелляция: {0}'}" FontSize="10" TextColor="#CBD5E1"/>
+                                    </Border>
+                                </Grid>
+
+                                <!-- Подсказка о контекстном меню (вместо статических кнопок) -->
+                                <Border StrokeShape="RoundRectangle 6" Background="#0F172A" Stroke="#334155" StrokeThickness="0.5" Padding="8,4" Margin="0,2,0,0">
+                                    <HorizontalStackLayout Spacing="6" HorizontalOptions="Center" VerticalOptions="Center">
+                                        <Image Source="ic_security.png" WidthRequest="12" HeightRequest="12" Aspect="AspectFit"/>
+                                        <Label Text="💡 Контекстное меню: нажмите «⋮ Меню» или правой кнопкой мыши" FontSize="11" TextColor="#94A3B8"/>
+                                    </HorizontalStackLayout>
+                                </Border>
+                            </VerticalStackLayout>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>
