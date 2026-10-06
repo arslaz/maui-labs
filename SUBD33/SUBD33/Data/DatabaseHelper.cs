@@ -1,101 +1,105 @@
-using Microsoft.Data.Sqlite;
+using MySqlConnector;
 using SUBD33.Models;
 
 namespace SUBD33.Data;
 
 public class DatabaseHelper
 {
-    private static readonly string DbPath = Path.Combine(FileSystem.AppDataDirectory, "panic_db.db");
-    private static readonly string ConnectionString = $"Data Source={DbPath};";
+    private const string ConnectionString = "Server=localhost;Port=3306;Database=panic_db;User ID=root;Password=;AllowPublicKeyRetrieval=True;SSL Mode=None;";
 
     private static DatabaseHelper? _instance;
     public static DatabaseHelper Instance => _instance ??= new DatabaseHelper();
 
-    public string DatabaseLocation => DbPath;
+    public string DatabaseLocation => "MySQL (localhost:3306 / panic_db)";
 
     public DatabaseHelper()
     {
         InitializeDatabase();
     }
 
-    private SqliteConnection CreateConnection()
+    private MySqlConnection CreateConnection()
     {
-        var conn = new SqliteConnection(ConnectionString);
+        var conn = new MySqlConnection(ConnectionString);
         conn.Open();
-        
-        using var cmd = new SqliteCommand("PRAGMA foreign_keys = ON;", conn);
-        cmd.ExecuteNonQuery();
-        
         return conn;
     }
 
     public void InitializeDatabase()
     {
-        using var conn = CreateConnection();
-
-        // 1. Таблица Студенты
-        string createStudentsSql = @"
-            CREATE TABLE IF NOT EXISTS Students (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                full_name TEXT NOT NULL,
-                group_name TEXT NOT NULL,
-                course INTEGER NOT NULL,
-                photo TEXT
-            );";
-        using (var cmd = new SqliteCommand(createStudentsSql, conn))
+        try
         {
-            cmd.ExecuteNonQuery();
-        }
-
-        // 2. Таблица Триггеры
-        string createTriggersSql = @"
-            CREATE TABLE IF NOT EXISTS Triggers (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name TEXT NOT NULL
-            );";
-        using (var cmd = new SqliteCommand(createTriggersSql, conn))
-        {
-            cmd.ExecuteNonQuery();
-        }
-
-        // 3. Таблица Инциденты с внешними ключами
-        string createIncidentsSql = @"
-            CREATE TABLE IF NOT EXISTS Incidents (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                student_id INTEGER NOT NULL,
-                incident_date TEXT NOT NULL,
-                trigger_id INTEGER NOT NULL,
-                panic_level INTEGER NOT NULL CHECK (panic_level BETWEEN 1 AND 10),
-                calming_method TEXT NOT NULL,
-                helped INTEGER NOT NULL,
-                FOREIGN KEY (student_id) REFERENCES Students(id) ON DELETE CASCADE,
-                FOREIGN KEY (trigger_id) REFERENCES Triggers(id) ON DELETE CASCADE
-            );";
-        using (var cmd = new SqliteCommand(createIncidentsSql, conn))
-        {
-            cmd.ExecuteNonQuery();
-        }
-
-        // Проверяем наличие студентов из группы ПО2311
-        string checkZubrSql = "SELECT COUNT(*) FROM Students WHERE full_name LIKE '%Зубрицкий%';";
-        using (var checkCmd = new SqliteCommand(checkZubrSql, conn))
-        {
-            long count = (long)(checkCmd.ExecuteScalar() ?? 0L);
-            if (count == 0)
+            using (var serverConn = new MySqlConnection("Server=localhost;Port=3306;User ID=root;Password=;AllowPublicKeyRetrieval=True;SSL Mode=None;"))
             {
-                using var delCmd = new SqliteCommand("DELETE FROM Incidents; DELETE FROM Students; DELETE FROM Triggers;", conn);
-                delCmd.ExecuteNonQuery();
-                SeedData(conn);
+                serverConn.Open();
+                using var createDbCmd = new MySqlCommand("CREATE DATABASE IF NOT EXISTS panic_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;", serverConn);
+                createDbCmd.ExecuteNonQuery();
             }
+
+            using var conn = CreateConnection();
+
+            string createStudentsSql = @"
+                CREATE TABLE IF NOT EXISTS Students (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    full_name VARCHAR(100) NOT NULL,
+                    group_name VARCHAR(50) NOT NULL,
+                    course INT NOT NULL,
+                    photo VARCHAR(255) NULL
+                );";
+            using (var cmd = new MySqlCommand(createStudentsSql, conn))
+            {
+                cmd.ExecuteNonQuery();
+            }
+
+            string createTriggersSql = @"
+                CREATE TABLE IF NOT EXISTS Triggers (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    name VARCHAR(150) NOT NULL
+                );";
+            using (var cmd = new MySqlCommand(createTriggersSql, conn))
+            {
+                cmd.ExecuteNonQuery();
+            }
+
+            string createIncidentsSql = @"
+                CREATE TABLE IF NOT EXISTS Incidents (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    student_id INT NOT NULL,
+                    incident_date DATETIME NOT NULL,
+                    trigger_id INT NOT NULL,
+                    panic_level INT NOT NULL,
+                    calming_method VARCHAR(200) NOT NULL,
+                    helped TINYINT(1) NOT NULL,
+                    CONSTRAINT FK_Incidents_Students FOREIGN KEY (student_id) REFERENCES Students(id) ON DELETE CASCADE,
+                    CONSTRAINT FK_Incidents_Triggers FOREIGN KEY (trigger_id) REFERENCES Triggers(id) ON DELETE CASCADE
+                );";
+            using (var cmd = new MySqlCommand(createIncidentsSql, conn))
+            {
+                cmd.ExecuteNonQuery();
+            }
+
+            string checkSql = "SELECT COUNT(*) FROM Students WHERE full_name LIKE '%Зубрицкий%';";
+            using (var checkCmd = new MySqlCommand(checkSql, conn))
+            {
+                long count = Convert.ToInt64(checkCmd.ExecuteScalar() ?? 0L);
+                if (count == 0)
+                {
+                    using var delCmd = new MySqlCommand("DELETE FROM Incidents; DELETE FROM Students; DELETE FROM Triggers;", conn);
+                    delCmd.ExecuteNonQuery();
+                    SeedData(conn);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[DatabaseHelper Init Error]: {ex.Message}");
         }
     }
 
-    private void SeedData(SqliteConnection conn)
+    private void SeedData(MySqlConnection conn)
     {
         using var transaction = conn.BeginTransaction();
         try
         {
-            // Триггеры (по варианту 9)
             string insertTriggers = @"
                 INSERT INTO Triggers (name) VALUES 
                 ('Увидел расписание'),
@@ -103,12 +107,11 @@ public class DatabaseHelper
                 ('Интернет пропал'),
                 ('Не работает IDE'),
                 ('Кончился кофе');";
-            using (var cmd = new SqliteCommand(insertTriggers, conn, transaction))
+            using (var cmd = new MySqlCommand(insertTriggers, conn, transaction))
             {
                 cmd.ExecuteNonQuery();
             }
 
-            // Студенты (группа ПО2311, 4 курс)
             string insertStudents = @"
                 INSERT INTO Students (full_name, group_name, course, photo) VALUES 
                 ('Зубрицкий Игорь Николаевич', 'ПО2311', 4, 'student1.png'),
@@ -116,12 +119,11 @@ public class DatabaseHelper
                 ('Шаповалов Анатолий Сергеевич', 'ПО2311', 4, 'student3.png'),
                 ('Малащицкий Алексей Николаевич', 'ПО2311', 4, 'student4.png'),
                 ('Ковалёв Никита Сергеевич', 'ПО2311', 4, 'student5.png');";
-            using (var cmd = new SqliteCommand(insertStudents, conn, transaction))
+            using (var cmd = new MySqlCommand(insertStudents, conn, transaction))
             {
                 cmd.ExecuteNonQuery();
             }
 
-            // Инциденты (12 записей, минимум 10 по условию)
             string insertIncidents = @"
                 INSERT INTO Incidents (student_id, incident_date, trigger_id, panic_level, calming_method, helped) VALUES 
                 (1, '2026-06-10 23:58:00', 1, 10, 'Выпил валерьянку', 1),
@@ -136,7 +138,7 @@ public class DatabaseHelper
                 (5, '2026-06-12 11:00:00', 2, 8, 'Пошёл на пересдачу', 1),
                 (2, '2026-06-18 21:00:00', 3, 7, 'Раздал мобильный интернет', 1),
                 (1, '2026-06-20 23:58:00', 1, 10, 'Выпил валерьянку', 1);";
-            using (var cmd = new SqliteCommand(insertIncidents, conn, transaction))
+            using (var cmd = new MySqlCommand(insertIncidents, conn, transaction))
             {
                 cmd.ExecuteNonQuery();
             }
@@ -150,7 +152,6 @@ public class DatabaseHelper
         }
     }
 
-    // Задание 2 & 3: Просмотр записей с поиском и сортировкой
     public List<Incident> GetIncidents(string? searchQuery = null, string sortBy = "Дата", bool ascending = true)
     {
         var list = new List<Incident>();
@@ -192,7 +193,7 @@ public class DatabaseHelper
 
         sql += $" ORDER BY {orderColumn} {(ascending ? "ASC" : "DESC")};";
 
-        using var cmd = new SqliteCommand(sql, conn);
+        using var cmd = new MySqlCommand(sql, conn);
         if (!string.IsNullOrWhiteSpace(searchQuery))
         {
             cmd.Parameters.AddWithValue("@search", $"%{searchQuery.Trim()}%");
@@ -209,12 +210,12 @@ public class DatabaseHelper
                 GroupName = reader.GetString(3),
                 Course = reader.GetInt32(4),
                 StudentPhoto = reader.IsDBNull(5) ? "" : reader.GetString(5),
-                IncidentDate = DateTime.TryParse(reader.GetString(6), out var d) ? d : DateTime.Now,
+                IncidentDate = reader.GetDateTime(6),
                 TriggerId = reader.GetInt32(7),
                 TriggerName = reader.GetString(8),
                 PanicLevel = reader.GetInt32(9),
                 CalmingMethod = reader.GetString(10),
-                Helped = reader.GetInt32(11) == 1
+                Helped = reader.GetBoolean(11)
             };
             list.Add(incident);
         }
@@ -222,7 +223,6 @@ public class DatabaseHelper
         return list;
     }
 
-    // Задание 2: Добавление инцидента (параметризованный запрос)
     public bool AddIncident(int studentId, DateTime date, int triggerId, int panicLevel, string calmingMethod, bool helped)
     {
         using var conn = CreateConnection();
@@ -230,9 +230,9 @@ public class DatabaseHelper
             INSERT INTO Incidents (student_id, incident_date, trigger_id, panic_level, calming_method, helped)
             VALUES (@studentId, @date, @triggerId, @panicLevel, @calmingMethod, @helped);";
 
-        using var cmd = new SqliteCommand(sql, conn);
+        using var cmd = new MySqlCommand(sql, conn);
         cmd.Parameters.AddWithValue("@studentId", studentId);
-        cmd.Parameters.AddWithValue("@date", date.ToString("yyyy-MM-dd HH:mm:ss"));
+        cmd.Parameters.AddWithValue("@date", date);
         cmd.Parameters.AddWithValue("@triggerId", triggerId);
         cmd.Parameters.AddWithValue("@panicLevel", panicLevel);
         cmd.Parameters.AddWithValue("@calmingMethod", calmingMethod);
@@ -241,23 +241,21 @@ public class DatabaseHelper
         return cmd.ExecuteNonQuery() > 0;
     }
 
-    // Задание 2: Удаление записи
     public bool DeleteIncident(int id)
     {
         using var conn = CreateConnection();
         string sql = "DELETE FROM Incidents WHERE id = @id;";
-        using var cmd = new SqliteCommand(sql, conn);
+        using var cmd = new MySqlCommand(sql, conn);
         cmd.Parameters.AddWithValue("@id", id);
         return cmd.ExecuteNonQuery() > 0;
     }
 
-    // Справочник студентов
     public List<Student> GetStudents()
     {
         var list = new List<Student>();
         using var conn = CreateConnection();
         string sql = "SELECT id, full_name, group_name, course, photo FROM Students ORDER BY id;";
-        using var cmd = new SqliteCommand(sql, conn);
+        using var cmd = new MySqlCommand(sql, conn);
         using var reader = cmd.ExecuteReader();
         while (reader.Read())
         {
@@ -273,14 +271,13 @@ public class DatabaseHelper
         return list;
     }
 
-    // Добавление студента
     public bool AddStudent(string fullName, string group, int course, string photoPath)
     {
         using var conn = CreateConnection();
         string sql = @"
             INSERT INTO Students (full_name, group_name, course, photo)
             VALUES (@name, @group, @course, @photo);";
-        using var cmd = new SqliteCommand(sql, conn);
+        using var cmd = new MySqlCommand(sql, conn);
         cmd.Parameters.AddWithValue("@name", fullName);
         cmd.Parameters.AddWithValue("@group", group);
         cmd.Parameters.AddWithValue("@course", course);
@@ -288,13 +285,12 @@ public class DatabaseHelper
         return cmd.ExecuteNonQuery() > 0;
     }
 
-    // Справочник триггеров
     public List<TriggerItem> GetTriggers()
     {
         var list = new List<TriggerItem>();
         using var conn = CreateConnection();
         string sql = "SELECT id, name FROM Triggers ORDER BY id;";
-        using var cmd = new SqliteCommand(sql, conn);
+        using var cmd = new MySqlCommand(sql, conn);
         using var reader = cmd.ExecuteReader();
         while (reader.Read())
         {
@@ -307,15 +303,13 @@ public class DatabaseHelper
         return list;
     }
 
-    // Задание 4: Карточка студента
-    // Карточка отображает: фото, ФИО, группу, курс, количество инцидентов, средний уровень паники и самый частый триггер.
     public StudentCard? GetStudentCard(int studentId)
     {
         using var conn = CreateConnection();
 
         string studentSql = "SELECT id, full_name, group_name, course, photo FROM Students WHERE id = @id;";
         Student? student = null;
-        using (var cmd = new SqliteCommand(studentSql, conn))
+        using (var cmd = new MySqlCommand(studentSql, conn))
         {
             cmd.Parameters.AddWithValue("@id", studentId);
             using var reader = cmd.ExecuteReader();
@@ -343,12 +337,11 @@ public class DatabaseHelper
             Photo = student.Photo
         };
 
-        // Статистика: количество инцидентов и средний уровень паники
         string statsSql = @"
-            SELECT COUNT(id), IFNULL(AVG(CAST(panic_level AS REAL)), 0.0) 
+            SELECT COUNT(id), IFNULL(AVG(panic_level), 0.0) 
             FROM Incidents 
             WHERE student_id = @id;";
-        using (var cmd = new SqliteCommand(statsSql, conn))
+        using (var cmd = new MySqlCommand(statsSql, conn))
         {
             cmd.Parameters.AddWithValue("@id", studentId);
             using var reader = cmd.ExecuteReader();
@@ -359,7 +352,6 @@ public class DatabaseHelper
             }
         }
 
-        // Самый частый триггер
         string topTriggerSql = @"
             SELECT t.name, COUNT(i.id) AS cnt
             FROM Incidents i
@@ -368,7 +360,7 @@ public class DatabaseHelper
             GROUP BY t.id, t.name
             ORDER BY cnt DESC
             LIMIT 1;";
-        using (var cmd = new SqliteCommand(topTriggerSql, conn))
+        using (var cmd = new MySqlCommand(topTriggerSql, conn))
         {
             cmd.Parameters.AddWithValue("@id", studentId);
             using var reader = cmd.ExecuteReader();
@@ -390,7 +382,6 @@ public class DatabaseHelper
         return GetIncidents().Where(i => i.StudentId == studentId).ToList();
     }
 
-    // Задание 5: 7 SQL-запросов
     public QueryResult ExecuteLabQuery(int queryNumber)
     {
         string title;
@@ -402,12 +393,12 @@ public class DatabaseHelper
                 title = "1. Топ-3 триггера по количеству инцидентов";
                 sql = @"
                     SELECT 
-                        t.name AS [Триггер], 
-                        COUNT(i.id) AS [Количество инцидентов]
+                        t.name AS `Триггер`, 
+                        COUNT(i.id) AS `Количество инцидентов`
                     FROM Triggers t
                     JOIN Incidents i ON t.id = i.trigger_id
                     GROUP BY t.id, t.name
-                    ORDER BY [Количество инцидентов] DESC
+                    ORDER BY `Количество инцидентов` DESC
                     LIMIT 3;";
                 break;
 
@@ -415,13 +406,13 @@ public class DatabaseHelper
                 title = "2. Студент с наибольшим средним уровнем паники";
                 sql = @"
                     SELECT 
-                        s.full_name AS [Студент], 
-                        s.group_name AS [Группа], 
-                        ROUND(AVG(CAST(i.panic_level AS REAL)), 2) AS [Средний уровень паники]
+                        s.full_name AS `Студент`, 
+                        s.group_name AS `Группа`, 
+                        ROUND(AVG(i.panic_level), 2) AS `Средний уровень паники`
                     FROM Students s
                     JOIN Incidents i ON s.id = i.student_id
                     GROUP BY s.id, s.full_name, s.group_name
-                    ORDER BY [Средний уровень паники] DESC
+                    ORDER BY `Средний уровень паники` DESC
                     LIMIT 1;";
                 break;
 
@@ -429,12 +420,12 @@ public class DatabaseHelper
                 title = "3. Самый эффективный способ успокоения (помогло = да)";
                 sql = @"
                     SELECT 
-                        calming_method AS [Способ успокоения], 
-                        COUNT(*) AS [Успешных применений (помогло = да)]
+                        calming_method AS `Способ успокоения`, 
+                        COUNT(*) AS `Успешных применений (помогло = да)`
                     FROM Incidents
                     WHERE helped = 1
                     GROUP BY calming_method
-                    ORDER BY [Успешных применений (помогло = да)] DESC
+                    ORDER BY `Успешных применений (помогло = да)` DESC
                     LIMIT 1;";
                 break;
 
@@ -442,13 +433,13 @@ public class DatabaseHelper
                 title = "4. Инциденты с уровнем паники 9 или 10";
                 sql = @"
                     SELECT 
-                        i.id AS [№], 
-                        s.full_name AS [Студент], 
-                        i.incident_date AS [Дата инцидента], 
-                        t.name AS [Триггер], 
-                        i.panic_level AS [Уровень паники], 
-                        i.calming_method AS [Способ успокоения],
-                        CASE WHEN i.helped = 1 THEN 'Да' ELSE 'Нет' END AS [Помогло]
+                        i.id AS `№`, 
+                        s.full_name AS `Студент`, 
+                        DATE_FORMAT(i.incident_date, '%d.%m.%Y %H:%i') AS `Дата инцидента`, 
+                        t.name AS `Триггер`, 
+                        i.panic_level AS `Уровень паники`, 
+                        i.calming_method AS `Способ успокоения`,
+                        CASE WHEN i.helped = 1 THEN 'Да' ELSE 'Нет' END AS `Помогло`
                     FROM Incidents i
                     JOIN Students s ON i.student_id = s.id
                     JOIN Triggers t ON i.trigger_id = t.id
@@ -460,26 +451,26 @@ public class DatabaseHelper
                 title = "5. Количество инцидентов по каждому студенту";
                 sql = @"
                     SELECT 
-                        s.full_name AS [Студент], 
-                        s.group_name AS [Группа], 
-                        COUNT(i.id) AS [Количество инцидентов]
+                        s.full_name AS `Студент`, 
+                        s.group_name AS `Группа`, 
+                        COUNT(i.id) AS `Количество инцидентов`
                     FROM Students s
                     LEFT JOIN Incidents i ON s.id = i.student_id
                     GROUP BY s.id, s.full_name, s.group_name
-                    ORDER BY [Количество инцидентов] DESC, s.full_name ASC;";
+                    ORDER BY `Количество инцидентов` DESC, s.full_name ASC;";
                 break;
 
             case 6:
                 title = "6. Триггер с наибольшим средним уровнем паники";
                 sql = @"
                     SELECT 
-                        t.name AS [Триггер], 
-                        ROUND(AVG(CAST(i.panic_level AS REAL)), 2) AS [Средний уровень паники],
-                        COUNT(i.id) AS [Всего инцидентов]
+                        t.name AS `Триггер`, 
+                        ROUND(AVG(i.panic_level), 2) AS `Средний уровень паники`,
+                        COUNT(i.id) AS `Всего инцидентов`
                     FROM Triggers t
                     JOIN Incidents i ON t.id = i.trigger_id
                     GROUP BY t.id, t.name
-                    ORDER BY [Средний уровень паники] DESC
+                    ORDER BY `Средний уровень паники` DESC
                     LIMIT 1;";
                 break;
 
@@ -487,9 +478,9 @@ public class DatabaseHelper
                 title = "7. Процент случаев когда способ успокоения помог";
                 sql = @"
                     SELECT 
-                        COUNT(*) AS [Всего инцидентов],
-                        SUM(CASE WHEN helped = 1 THEN 1 ELSE 0 END) AS [Успешно помогло],
-                        ROUND(CAST(SUM(CASE WHEN helped = 1 THEN 1 ELSE 0 END) AS REAL) * 100.0 / COUNT(*), 2) || '%' AS [Процент успеха]
+                        COUNT(*) AS `Всего инцидентов`,
+                        SUM(CASE WHEN helped = 1 THEN 1 ELSE 0 END) AS `Успешно помогло`,
+                        CONCAT(ROUND(SUM(CASE WHEN helped = 1 THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 2), '%') AS `Процент успеха`
                     FROM Incidents;";
                 break;
 
@@ -504,7 +495,7 @@ public class DatabaseHelper
         };
 
         using var conn = CreateConnection();
-        using var cmd = new SqliteCommand(sql, conn);
+        using var cmd = new MySqlCommand(sql, conn);
         using var reader = cmd.ExecuteReader();
 
         for (int i = 0; i < reader.FieldCount; i++)

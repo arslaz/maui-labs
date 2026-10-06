@@ -30,8 +30,8 @@ public partial class IncidentsPage : ContentPage
             "Студент",
             "Триггер"
         };
-        PickerSortField.SelectedIndex = 0; // Дата
-        PickerSortDirection.SelectedIndex = 0; // По убыванию
+        PickerSortField.SelectedIndex = 0;
+        PickerSortDirection.SelectedIndex = 0;
         _isInitialized = true;
     }
 
@@ -39,7 +39,7 @@ public partial class IncidentsPage : ContentPage
     {
         string? searchQuery = TxtSearch.Text;
         string sortField = PickerSortField.SelectedItem as string ?? "Дата";
-        bool ascending = (PickerSortDirection.SelectedIndex == 1); // 1 = По возрастанию
+        bool ascending = (PickerSortDirection.SelectedIndex == 1);
 
         _incidents = DatabaseHelper.Instance.GetIncidents(searchQuery, sortField, ascending);
         IncidentsCollection.ItemsSource = null;
@@ -66,8 +66,8 @@ public partial class IncidentsPage : ContentPage
     private void OnResetClicked(object? sender, EventArgs e)
     {
         TxtSearch.Text = string.Empty;
-        PickerSortField.SelectedIndex = 0; // Дата
-        PickerSortDirection.SelectedIndex = 0; // По убыванию
+        PickerSortField.SelectedIndex = 0;
+        PickerSortDirection.SelectedIndex = 0;
         LoadData();
     }
 
@@ -114,7 +114,6 @@ public partial class IncidentsPage : ContentPage
         }
     }
 
-    // Задание 4: Открытие карточки студента по двойному клику
     private async void OnRowDoubleTapped(object? sender, TappedEventArgs e)
     {
         if (e.Parameter is Incident incident)

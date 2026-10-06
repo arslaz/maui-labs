@@ -39,10 +39,10 @@ public class Incident
     public string PanicBadge => $"{PanicLevel}/10 {GetPanicEmoji(PanicLevel)}";
     public Color PanicColor => PanicLevel switch
     {
-        >= 9 => Color.FromArgb("#EF4444"), // Red
-        >= 7 => Color.FromArgb("#F97316"), // Orange
-        >= 4 => Color.FromArgb("#F59E0B"), // Amber
-        _ => Color.FromArgb("#10B981")     // Green
+        >= 9 => Color.FromArgb("#EF4444"),
+        >= 7 => Color.FromArgb("#F97316"),
+        >= 4 => Color.FromArgb("#F59E0B"),
+        _ => Color.FromArgb("#10B981")
     };
 
     public string CalmingMethod { get; set; } = string.Empty;

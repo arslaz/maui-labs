@@ -1,3 +1,4 @@
+using Microsoft.Maui.Controls.Shapes;
 using SUBD33.Data;
 using SUBD33.Models;
 
@@ -34,10 +35,14 @@ public partial class QueriesPage : ContentPage
             if (i == queryNum - 1)
             {
                 _queryButtons[i].FontAttributes = FontAttributes.Bold;
+                _queryButtons[i].BackgroundColor = Color.FromArgb("#6366F1");
+                _queryButtons[i].TextColor = Colors.White;
             }
             else
             {
                 _queryButtons[i].FontAttributes = FontAttributes.None;
+                _queryButtons[i].BackgroundColor = Color.FromArgb("#334155");
+                _queryButtons[i].TextColor = Color.FromArgb("#F1F5F9");
             }
         }
 
@@ -56,31 +61,44 @@ public partial class QueriesPage : ContentPage
         }
     }
 
-    // Построение таблицы (аналог DataGridView)
     private void RenderTable(QueryResult result)
     {
         TableContainer.Children.Clear();
 
         if (result.Headers.Count == 0) return;
 
-        // Шапка таблицы
+        var colWidths = new double[result.Headers.Count];
+        for (int c = 0; c < result.Headers.Count; c++)
+        {
+            int maxLen = result.Headers[c].Length;
+            for (int r = 0; r < result.Rows.Count; r++)
+            {
+                if (c < result.Rows[r].Count && result.Rows[r][c] != null)
+                {
+                    maxLen = Math.Max(maxLen, result.Rows[r][c].Length);
+                }
+            }
+            colWidths[c] = Math.Clamp(maxLen * 9.5 + 32, 140.0, 380.0);
+        }
+
         var headerGrid = new Grid
         {
-            BackgroundColor = Color.FromArgb("#E2E8F0"),
-            Padding = new Thickness(10, 8),
-            ColumnSpacing = 12
+            BackgroundColor = Color.FromArgb("#1E293B"),
+            Padding = new Thickness(12, 10),
+            ColumnSpacing = 16
         };
 
         for (int c = 0; c < result.Headers.Count; c++)
         {
-            headerGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            headerGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(colWidths[c]) });
             var headerLabel = new Label
             {
                 Text = result.Headers[c],
+                TextColor = Color.FromArgb("#38BDF8"),
                 FontAttributes = FontAttributes.Bold,
                 FontSize = 13,
                 VerticalOptions = LayoutOptions.Center,
-                MinimumWidthRequest = 110
+                WidthRequest = colWidths[c]
             };
             Grid.SetColumn(headerLabel, c);
             headerGrid.Children.Add(headerLabel);
@@ -88,13 +106,13 @@ public partial class QueriesPage : ContentPage
 
         var headerBorder = new Border
         {
-            Stroke = Color.FromArgb("#CBD5E1"),
+            Stroke = Color.FromArgb("#475569"),
             StrokeThickness = 1,
+            StrokeShape = new RoundRectangle { CornerRadius = new CornerRadius(6, 6, 0, 0) },
             Content = headerGrid
         };
         TableContainer.Children.Add(headerBorder);
 
-        // Строки данных таблицы
         for (int r = 0; r < result.Rows.Count; r++)
         {
             var rowData = result.Rows[r];
@@ -102,20 +120,21 @@ public partial class QueriesPage : ContentPage
 
             var rowGrid = new Grid
             {
-                BackgroundColor = isEven ? Colors.White : Color.FromArgb("#F8FAFC"),
-                Padding = new Thickness(10, 8),
-                ColumnSpacing = 12
+                BackgroundColor = isEven ? Color.FromArgb("#0F172A") : Color.FromArgb("#1E293B"),
+                Padding = new Thickness(12, 10),
+                ColumnSpacing = 16
             };
 
             for (int c = 0; c < rowData.Count; c++)
             {
-                rowGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+                rowGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(colWidths[c]) });
                 var cellLabel = new Label
                 {
-                    Text = rowData[c],
+                    Text = rowData[c] ?? "",
+                    TextColor = Color.FromArgb("#F8FAFC"),
                     FontSize = 13,
                     VerticalOptions = LayoutOptions.Center,
-                    MinimumWidthRequest = 110
+                    WidthRequest = colWidths[c]
                 };
                 Grid.SetColumn(cellLabel, c);
                 rowGrid.Children.Add(cellLabel);
@@ -123,7 +142,7 @@ public partial class QueriesPage : ContentPage
 
             var rowBorder = new Border
             {
-                Stroke = Color.FromArgb("#E2E8F0"),
+                Stroke = Color.FromArgb("#334155"),
                 StrokeThickness = 0.5,
                 Content = rowGrid
             };

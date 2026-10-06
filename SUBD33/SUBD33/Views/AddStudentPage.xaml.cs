@@ -16,7 +16,6 @@ public partial class AddStudentPage : ContentPage
     {
         try
         {
-            // Аналог OpenFileDialog в .NET MAUI
             var customFileType = new FilePickerFileType(
                 new Dictionary<DevicePlatform, IEnumerable<string>>
                 {
@@ -28,13 +27,12 @@ public partial class AddStudentPage : ContentPage
 
             var result = await FilePicker.Default.PickAsync(new PickOptions
             {
-                PickerTitle = "Выберите фотографию студента (OpenFileDialog)",
+                PickerTitle = "Выберите фотографию студента",
                 FileTypes = customFileType
             });
 
             if (result != null)
             {
-                // Копируем файл в локальное хранилище приложения для надёжности
                 string targetDir = Path.Combine(FileSystem.AppDataDirectory, "Photos");
                 Directory.CreateDirectory(targetDir);
 
@@ -49,7 +47,6 @@ public partial class AddStudentPage : ContentPage
                 LblPhotoPath.Text = result.FileName;
                 LblPhotoPath.TextColor = Color.FromArgb("#38BDF8");
 
-                // Отображение в PictureBox (Image с Zoom / AspectFit)
                 ImgPreview.Source = ImageSource.FromFile(_selectedPhotoPath);
             }
         }

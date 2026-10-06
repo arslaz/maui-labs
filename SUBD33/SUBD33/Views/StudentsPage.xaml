@@ -3,41 +3,39 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:models="clr-namespace:SUBD33.Models"
              x:Class="SUBD33.Views.StudentsPage"
-             Title="Справочник студентов">
+             Title="Справочник студентов"
+             BackgroundColor="#0B0F19">
 
     <Grid RowDefinitions="Auto, *" Padding="16" RowSpacing="12">
         
-        <!-- Верхняя панель -->
         <Grid Grid.Row="0" ColumnDefinitions="Auto, *, Auto" ColumnSpacing="10">
-            <Button Grid.Column="0" Text="← Назад" Clicked="OnBackClicked" HeightRequest="40" />
-            <Label Grid.Column="1" Text="👤 Студенты (Группа ПО2311)" FontSize="20" FontAttributes="Bold" VerticalOptions="Center" />
-            <Button Grid.Column="2" Text="➕ Добавить студента" Clicked="OnAddStudentClicked" HeightRequest="40" />
+            <Button Grid.Column="0" Text="← Назад" Clicked="OnBackClicked" HeightRequest="40" BackgroundColor="#1E293B" TextColor="White" />
+            <Label Grid.Column="1" Text="👤 Студенты (Группа ПО2311)" FontSize="20" FontAttributes="Bold" TextColor="#F8FAFC" VerticalOptions="Center" />
+            <Button Grid.Column="2" Text="➕ Добавить студента" Clicked="OnAddStudentClicked" HeightRequest="40" BackgroundColor="#10B981" TextColor="White" />
         </Grid>
 
-        <!-- Список студентов -->
         <CollectionView Grid.Row="1" x:Name="StudentsCollection" SelectionMode="None">
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="models:Student">
-                    <Border Stroke="LightGray" StrokeThickness="1" Margin="0,4" Padding="10">
+                    <Border Stroke="#334155" StrokeThickness="1" StrokeShape="RoundRectangle 10" BackgroundColor="#1E293B" Margin="0,4" Padding="12">
                         <Grid ColumnDefinitions="60, *, Auto" ColumnSpacing="12" VerticalOptions="Center">
                             
-                            <!-- Фото (Zoom / AspectFit) -->
-                            <Border Grid.Column="0" Stroke="Gray" HeightRequest="55" WidthRequest="55">
+                            <Border Grid.Column="0" Stroke="#475569" StrokeShape="RoundRectangle 8" BackgroundColor="#0F172A" HeightRequest="55" WidthRequest="55">
                                 <Image Source="{Binding PhotoSource}" Aspect="AspectFit" />
                             </Border>
 
-                            <!-- Данные -->
                             <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
-                                <Label Text="{Binding FullName}" FontAttributes="Bold" FontSize="15" />
-                                <Label Text="{Binding DisplayInfo}" TextColor="Gray" FontSize="13" />
+                                <Label Text="{Binding FullName}" FontAttributes="Bold" FontSize="15" TextColor="#F8FAFC" />
+                                <Label Text="{Binding DisplayInfo}" TextColor="#94A3B8" FontSize="13" />
                             </VerticalStackLayout>
 
-                            <!-- Кнопка перехода в карточку -->
                             <Button Grid.Column="2" 
                                     Text="Карточка ➜" 
                                     CommandParameter="{Binding Id}"
                                     Clicked="OnOpenStudentCardClicked"
                                     HeightRequest="36" 
+                                    BackgroundColor="#6366F1"
+                                    TextColor="White"
                                     VerticalOptions="Center" />
 
                         </Grid>

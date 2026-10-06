@@ -40,10 +40,8 @@ public partial class StudentCardPage : ContentPage
         LblAvgPanic.Text = $"Средний уровень паники: {card.AveragePanicLevel:F1}";
         LblTopTrigger.Text = $"Самый частый триггер: {card.MostFrequentTrigger}";
 
-        // Загрузка фото студента (Zoom/AspectFit)
         ImgPhoto.Source = ImageHelper.GetImageSource(card.Photo);
 
-        // Список инцидентов студента
         var incidents = DatabaseHelper.Instance.GetStudentIncidents(studentId);
         StudentIncidentsList.ItemsSource = incidents;
     }
