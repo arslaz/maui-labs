@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <data name="AppTitle" xml:space="preserve"><value>Smart Museum Audio Guide</value></data>
+  <data name="AppSubtitle" xml:space="preserve"><value>World Heritage Interactive Tour</value></data>
+  <data name="Tab_Exhibits" xml:space="preserve"><value>Exhibits</value></data>
+  <data name="Tab_Wings" xml:space="preserve"><value>Museum Wings</value></data>
+  <data name="Tab_Settings" xml:space="preserve"><value>Settings &amp; Security</value></data>
+  <data name="Language_Title" xml:space="preserve"><value>Interface Language</value></data>
+  <data name="Status_Online" xml:space="preserve"><value>HD Audio Stream</value></data>
+
+  <data name="Exhibit_MonaLisa_Title" xml:space="preserve"><value>Mona Lisa (La Gioconda)</value></data>
+  <data name="Exhibit_MonaLisa_Desc" xml:space="preserve"><value>Masterpiece by Leonardo da Vinci, painted in the early 16th century. Famous for her enigmatic smile and sfumato technique.</value></data>
+  <data name="Exhibit_MonaLisa_Track" xml:space="preserve"><value>Track 1: The Secret of the Smile</value></data>
+  <data name="Exhibit_MonaLisa_Narrator" xml:space="preserve"><value>Narrator: Prof. Arthur Hastings</value></data>
+  <data name="Exhibit_MonaLisa_Hall" xml:space="preserve"><value>Hall 104 • Renaissance Wing</value></data>
+
+  <data name="Exhibit_Tutankhamun_Title" xml:space="preserve"><value>Golden Mask of Tutankhamun</value></data>
+  <data name="Exhibit_Tutankhamun_Desc" xml:space="preserve"><value>Death mask of the 18th-dynasty ancient Egyptian pharaoh, crafted from solid gold, lapis lazuli, and obsidian.</value></data>
+  <data name="Exhibit_Tutankhamun_Track" xml:space="preserve"><value>Track 2: Treasures of Eternity</value></data>
+  <data name="Exhibit_Tutankhamun_Narrator" xml:space="preserve"><value>Narrator: Dr. Evelyn Vance</value></data>
+  <data name="Exhibit_Tutankhamun_Hall" xml:space="preserve"><value>Hall 201 • Egyptian Wing</value></data>
+
+  <data name="Exhibit_Venus_Title" xml:space="preserve"><value>Venus de Milo (Aphrodite)</value></data>
+  <data name="Exhibit_Venus_Desc" xml:space="preserve"><value>Ancient Greek sculpture believed to depict Aphrodite, the goddess of love and beauty, sculpted in Parian marble.</value></data>
+  <data name="Exhibit_Venus_Track" xml:space="preserve"><value>Track 3: Hymn to Classical Harmony</value></data>
+  <data name="Exhibit_Venus_Narrator" xml:space="preserve"><value>Narrator: Julian Thorne</value></data>
+  <data name="Exhibit_Venus_Hall" xml:space="preserve"><value>Hall 112 • Classical Antiquity</value></data>
+
+  <data name="Exhibit_WingedVictory_Title" xml:space="preserve"><value>Winged Victory of Samothrace</value></data>
+  <data name="Exhibit_WingedVictory_Desc" xml:space="preserve"><value>Monumental Hellenistic sculpture honoring the goddess Nike and a naval triumph, dynamic movement in white marble.</value></data>
+  <data name="Exhibit_WingedVictory_Track" xml:space="preserve"><value>Track 4: Winds of Triumph</value></data>
+  <data name="Exhibit_WingedVictory_Narrator" xml:space="preserve"><value>Narrator: Claire Delacroix</value></data>
+  <data name="Exhibit_WingedVictory_Hall" xml:space="preserve"><value>Hall 115 • Daru Grand Escalier</value></data>
+
+  <data name="Exhibit_Hammurabi_Title" xml:space="preserve"><value>Code of Hammurabi Stele</value></data>
+  <data name="Exhibit_Hammurabi_Desc" xml:space="preserve"><value>Black diorite monument inscribed with one of the oldest deciphered legal codes in human history from Babylon.</value></data>
+  <data name="Exhibit_Hammurabi_Track" xml:space="preserve"><value>Track 5: The Lawgiver of Babylon</value></data>
+  <data name="Exhibit_Hammurabi_Narrator" xml:space="preserve"><value>Narrator: Prof. Tariq Al-Mansoor</value></data>
+  <data name="Exhibit_Hammurabi_Hall" xml:space="preserve"><value>Hall 305 • Near Eastern Wing</value></data>
+
+  <data name="Audio_NowPlaying" xml:space="preserve"><value>Now Playing</value></data>
+  <data name="Audio_Play" xml:space="preserve"><value>Play</value></data>
+  <data name="Audio_Pause" xml:space="preserve"><value>Pause</value></data>
+  <data name="Audio_Stop" xml:space="preserve"><value>Stop</value></data>
+  <data name="Audio_Volume" xml:space="preserve"><value>Audio Volume</value></data>
+  <data name="Audio_Remaining" xml:space="preserve"><value>Remaining:</value></data>
+  <data name="Audio_Progress" xml:space="preserve"><value>Tour Progress</value></data>
+  <data name="Audio_Speed" xml:space="preserve"><value>Speed 1.0x</value></data>
+
+  <data name="Plural_Minutes_Zero" xml:space="preserve"><value>{0} minutes left</value></data>
+  <data name="Plural_Minutes_One" xml:space="preserve"><value>{0} minute left</value></data>
+  <data name="Plural_Minutes_Two" xml:space="preserve"><value>{0} minutes left</value></data>
+  <data name="Plural_Minutes_Few" xml:space="preserve"><value>{0} minutes left</value></data>
+  <data name="Plural_Minutes_Many" xml:space="preserve"><value>{0} minutes left</value></data>
+  <data name="Plural_Minutes_Other" xml:space="preserve"><value>{0} minutes left</value></data>
+
+  <data name="Plural_Halls_Zero" xml:space="preserve"><value>0 accessible halls</value></data>
+  <data name="Plural_Halls_One" xml:space="preserve"><value>{0} accessible hall</value></data>
+  <data name="Plural_Halls_Two" xml:space="preserve"><value>{0} accessible halls</value></data>
+  <data name="Plural_Halls_Few" xml:space="preserve"><value>{0} accessible halls</value></data>
+  <data name="Plural_Halls_Many" xml:space="preserve"><value>{0} accessible halls</value></data>
+  <data name="Plural_Halls_Other" xml:space="preserve"><value>{0} accessible halls</value></data>
+
+  <data name="Wing_East_Title" xml:space="preserve"><value>Wing A: Oriental &amp; Egyptian Antiquities</value></data>
+  <data name="Wing_East_Desc" xml:space="preserve"><value>Dynasties, pyramids, and Mesopotamian steles</value></data>
+  <data name="Wing_East_Floor" xml:space="preserve"><value>Floor 1 • East Gallery</value></data>
+  <data name="Wing_Central_Title" xml:space="preserve"><value>Wing B: Renaissance Masters</value></data>
+  <data name="Wing_Central_Desc" xml:space="preserve"><value>Italian and French paintings of the 15th–18th centuries</value></data>
+  <data name="Wing_Central_Floor" xml:space="preserve"><value>Floor 2 • Central Atrium</value></data>
+  <data name="Wing_West_Title" xml:space="preserve"><value>Wing C: Classical Greek &amp; Roman Art</value></data>
+  <data name="Wing_West_Desc" xml:space="preserve"><value>Marble sculptures, amphorae, and imperial bronzes</value></data>
+  <data name="Wing_West_Floor" xml:space="preserve"><value>Ground Floor • West Colonnade</value></data>
+
+  <data name="Map_CurrentLocation" xml:space="preserve"><value>Your Location: Hallway Entrance</value></data>
+  <data name="Map_GuideMarker" xml:space="preserve"><value>Audio Beacon Signal: Strong (98%)</value></data>
+  <data name="Map_SelectWing" xml:space="preserve"><value>Select a wing to view floor plan and hall accessibility:</value></data>
+
+  <data name="Distance_Label" xml:space="preserve"><value>Distance:</value></data>
+  <data name="Distance_Mode_Auto" xml:space="preserve"><value>Auto</value></data>
+  <data name="Distance_Mode_Meters" xml:space="preserve"><value>Meters (m)</value></data>
+  <data name="Distance_Mode_Yards" xml:space="preserve"><value>Yards (yd)</value></data>
+  <data name="Distance_Mode_Steps" xml:space="preserve"><value>Steps</value></data>
+  <data name="Distance_Unit_Toggle" xml:space="preserve"><value>Navigation Units</value></data>
+
+  <data name="Regional_Header" xml:space="preserve"><value>Cultural &amp; Regional Formats</value></data>
+  <data name="Regional_Date" xml:space="preserve"><value>Museum Local Date &amp; Time:</value></data>
+  <data name="Regional_TicketPrice" xml:space="preserve"><value>Standard Admission Ticket:</value></data>
+  <data name="Regional_VIPPrice" xml:space="preserve"><value>VIP Audio Route Price:</value></data>
+  <data name="Regional_NumberFormat" xml:space="preserve"><value>Visitors Recorded Today:</value></data>
+  <data name="Regional_LocaleInfo" xml:space="preserve"><value>Active Locale:</value></data>
+
+  <data name="Security_Header" xml:space="preserve"><value>VIP Tour Activation (SecureStorage)</value></data>
+  <data name="Security_Status_Active" xml:space="preserve"><value>VIP Tour: ACTIVATED (Key verified in SecureStorage)</value></data>
+  <data name="Security_Status_Locked" xml:space="preserve"><value>VIP Tour: LOCKED (Requires Digital Key)</value></data>
+  <data name="Security_EnterKey" xml:space="preserve"><value>Enter Digital Route Key</value></data>
+  <data name="Security_KeyPlaceholder" xml:space="preserve"><value>Key code (e.g. VIP-MUSEUM-2026)</value></data>
+  <data name="Security_BtnActivate" xml:space="preserve"><value>Activate</value></data>
+  <data name="Security_BtnRevoke" xml:space="preserve"><value>Revoke Key</value></data>
+  <data name="Security_SuccessMsg" xml:space="preserve"><value>Key validated successfully! VIP routes unlocked.</value></data>
+  <data name="Security_ErrorMsg" xml:space="preserve"><value>Invalid key! Hint: Use VIP-MUSEUM-2026</value></data>
+  <data name="PaidRoute_Badge" xml:space="preserve"><value>VIP Premium Route</value></data>
+  <data name="PaidRoute_LockedDesc" xml:space="preserve"><value>This exhibit is part of the VIP Premium Tour. Activate the key in Settings.</value></data>
+
+  <data name="Pref_StoredLanguage" xml:space="preserve"><value>Saved Language in Preferences:</value></data>
+  <data name="Pref_StoredVolume" xml:space="preserve"><value>Saved Volume in Preferences:</value></data>
+  <data name="RTL_Status" xml:space="preserve"><value>Layout Direction: Left-to-Right (LTR)</value></data>
+  <data name="Simulate_Walk" xml:space="preserve"><value>Walk Closer (-15m)</value></data>
+  <data name="Simulate_ResetWalk" xml:space="preserve"><value>Reset Distance</value></data>
+</root>

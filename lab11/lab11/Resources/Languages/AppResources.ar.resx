@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <data name="AppTitle" xml:space="preserve"><value>الدليل الصوتي الذكي للمتحف</value></data>
+  <data name="AppSubtitle" xml:space="preserve"><value>جولة تفاعلية في التراث العالمي</value></data>
+  <data name="Tab_Exhibits" xml:space="preserve"><value>المعروضات</value></data>
+  <data name="Tab_Wings" xml:space="preserve"><value>أجنحة المتحف</value></data>
+  <data name="Tab_Settings" xml:space="preserve"><value>الإعدادات والأمان</value></data>
+  <data name="Language_Title" xml:space="preserve"><value>لغة الواجهة</value></data>
+  <data name="Status_Online" xml:space="preserve"><value>بث صوتي عالي النقاء</value></data>
+
+  <data name="Exhibit_MonaLisa_Title" xml:space="preserve"><value>الموناليزا (لا جيوكوندا)</value></data>
+  <data name="Exhibit_MonaLisa_Desc" xml:space="preserve"><value>تحفة ليوناردو دا فينشي، رسمت في أوائل القرن السادس عشر. تشتهر بابتسامتها الغامضة وتقنية التدرج الظلي المتقنة.</value></data>
+  <data name="Exhibit_MonaLisa_Track" xml:space="preserve"><value>المقطع ١: سر الابتسامة الغامضة</value></data>
+  <data name="Exhibit_MonaLisa_Narrator" xml:space="preserve"><value>الراوي: د. طارق المنصور</value></data>
+  <data name="Exhibit_MonaLisa_Hall" xml:space="preserve"><value>قاعة ١٠٤ • جناح عصر النهضة</value></data>
+
+  <data name="Exhibit_Tutankhamun_Title" xml:space="preserve"><value>قناع توت عنخ آمون الذهبي</value></data>
+  <data name="Exhibit_Tutankhamun_Desc" xml:space="preserve"><value>قناع الدفن للفرعون المصري من الأسرة الثامنة عشرة، مصنوع من الذهب الخالص واللازورد وحجر السج.</value></data>
+  <data name="Exhibit_Tutankhamun_Track" xml:space="preserve"><value>المقطع ٢: كنوز الأبدية الفرعونية</value></data>
+  <data name="Exhibit_Tutankhamun_Narrator" xml:space="preserve"><value>الراوية: د. سميرة الأحمد</value></data>
+  <data name="Exhibit_Tutankhamun_Hall" xml:space="preserve"><value>قاعة ٢٠١ • الجناح المصري</value></data>
+
+  <data name="Exhibit_Venus_Title" xml:space="preserve"><value>فينوس دي ميلو (أفروديت)</value></data>
+  <data name="Exhibit_Venus_Desc" xml:space="preserve"><value>تمثال إغريقي قديم يجسد أفروديت، إلهة الحب والجمال، منحوت من رخام جزيرة باروس الفاخر.</value></data>
+  <data name="Exhibit_Venus_Track" xml:space="preserve"><value>المقطع ٣: ترنيمة التناغم الكلاسيكي</value></data>
+  <data name="Exhibit_Venus_Narrator" xml:space="preserve"><value>الراوي: إبراهيم كمال</value></data>
+  <data name="Exhibit_Venus_Hall" xml:space="preserve"><value>قاعة ١١٢ • الآثار الكلاسيكية</value></data>
+
+  <data name="Exhibit_WingedVictory_Title" xml:space="preserve"><value>تمثال نصر ساموثريس المجنح</value></data>
+  <data name="Exhibit_WingedVictory_Desc" xml:space="preserve"><value>نحت هيلينستي أثري يخلد الإلهة نايكي وانتصاراً بحرياً، تجسيد مذهل لحركة الرياح في الرخام الأبيض.</value></data>
+  <data name="Exhibit_WingedVictory_Track" xml:space="preserve"><value>المقطع ٤: رياح النصر الخالدة</value></data>
+  <data name="Exhibit_WingedVictory_Narrator" xml:space="preserve"><value>الراوية: ليلى عثمان</value></data>
+  <data name="Exhibit_WingedVictory_Hall" xml:space="preserve"><value>قاعة ١١٥ • درج دارو العظيم</value></data>
+
+  <data name="Exhibit_Hammurabi_Title" xml:space="preserve"><value>مسلة شريعة حمورابي</value></data>
+  <data name="Exhibit_Hammurabi_Desc" xml:space="preserve"><value>نصب من حجر الديوريت الأسود نُقشت عليه إحدى أقدم الشرائع القانونية المفصلة في التاريخ من بلاد بابل.</value></data>
+  <data name="Exhibit_Hammurabi_Track" xml:space="preserve"><value>المقطع ٥: مشرع بابل العظيم</value></data>
+  <data name="Exhibit_Hammurabi_Narrator" xml:space="preserve"><value>الراوي: أ.د. فاروق الباز</value></data>
+  <data name="Exhibit_Hammurabi_Hall" xml:space="preserve"><value>قاعة ٣٠٥ • آثار الشرق الأدنى</value></data>
+
+  <data name="Audio_NowPlaying" xml:space="preserve"><value>قيد الاستماع الآن</value></data>
+  <data name="Audio_Play" xml:space="preserve"><value>تشغيل</value></data>
+  <data name="Audio_Pause" xml:space="preserve"><value>إيقاف مؤقت</value></data>
+  <data name="Audio_Stop" xml:space="preserve"><value>إيقاف</value></data>
+  <data name="Audio_Volume" xml:space="preserve"><value>مستوى الصوت</value></data>
+  <data name="Audio_Remaining" xml:space="preserve"><value>المتبقي:</value></data>
+  <data name="Audio_Progress" xml:space="preserve"><value>تقدم الجولة</value></data>
+  <data name="Audio_Speed" xml:space="preserve"><value>السرعة ١٫٠x</value></data>
+
+  <data name="Plural_Minutes_Zero" xml:space="preserve"><value>صفر دقيقة متبقية</value></data>
+  <data name="Plural_Minutes_One" xml:space="preserve"><value>دقيقة واحدة متبقية</value></data>
+  <data name="Plural_Minutes_Two" xml:space="preserve"><value>دقيقتان متبقيتان</value></data>
+  <data name="Plural_Minutes_Few" xml:space="preserve"><value>{0} دقائق متبقية</value></data>
+  <data name="Plural_Minutes_Many" xml:space="preserve"><value>{0} دقيقة متبقية</value></data>
+  <data name="Plural_Minutes_Other" xml:space="preserve"><value>{0} دقيقة متبقية</value></data>
+
+  <data name="Plural_Halls_Zero" xml:space="preserve"><value>لا توجد قاعات متاحة</value></data>
+  <data name="Plural_Halls_One" xml:space="preserve"><value>قاعة واحدة متاحة</value></data>
+  <data name="Plural_Halls_Two" xml:space="preserve"><value>قاعتان متاحتان</value></data>
+  <data name="Plural_Halls_Few" xml:space="preserve"><value>{0} قاعات متاحة</value></data>
+  <data name="Plural_Halls_Many" xml:space="preserve"><value>{0} قاعة متاحة</value></data>
+  <data name="Plural_Halls_Other" xml:space="preserve"><value>{0} قاعة متاحة</value></data>
+
+  <data name="Wing_East_Title" xml:space="preserve"><value>الجناح أ: آثار الشرق ومصر القديمة</value></data>
+  <data name="Wing_East_Desc" xml:space="preserve"><value>السلالات الفرعونية، الأهرامات، ومسلات بلاد الرافدين</value></data>
+  <data name="Wing_East_Floor" xml:space="preserve"><value>الطابق ١ • المعرض الشرقي</value></data>
+  <data name="Wing_Central_Title" xml:space="preserve"><value>الجناح ب: أساتذة عصر النهضة</value></data>
+  <data name="Wing_Central_Desc" xml:space="preserve"><value>روائع التصوير الإيطالي والفرنسي من القرن ١٥ إلى ١٨</value></data>
+  <data name="Wing_Central_Floor" xml:space="preserve"><value>الطابق ٢ • البهو الأوسط</value></data>
+  <data name="Wing_West_Title" xml:space="preserve"><value>الجناح ج: الفن الكلاسيكي اليوناني والروماني</value></data>
+  <data name="Wing_West_Desc" xml:space="preserve"><value>المنحوتات الرخامية، الفخار الإغريقي، وبرونزيات الأباطرة</value></data>
+  <data name="Wing_West_Floor" xml:space="preserve"><value>الطابق الأرضي • الرواق الغربي</value></data>
+
+  <data name="Map_CurrentLocation" xml:space="preserve"><value>موقعك الحالي: مدخل الممر الرئيسي</value></data>
+  <data name="Map_GuideMarker" xml:space="preserve"><value>إشارة منارة الصوت: ممتازة (٩٨٪)</value></data>
+  <data name="Map_SelectWing" xml:space="preserve"><value>اختر الجناح لعرض مخطط الطابق والقاعات المتاحة:</value></data>
+
+  <data name="Distance_Label" xml:space="preserve"><value>المسافة:</value></data>
+  <data name="Distance_Mode_Auto" xml:space="preserve"><value>تلقائي</value></data>
+  <data name="Distance_Mode_Meters" xml:space="preserve"><value>أمتار (م)</value></data>
+  <data name="Distance_Mode_Yards" xml:space="preserve"><value>ياردات (يارد)</value></data>
+  <data name="Distance_Mode_Steps" xml:space="preserve"><value>خطوات</value></data>
+  <data name="Distance_Unit_Toggle" xml:space="preserve"><value>وحدات الملاحة</value></data>
+
+  <data name="Regional_Header" xml:space="preserve"><value>التنسيقات الثقافية والإقليمية</value></data>
+  <data name="Regional_Date" xml:space="preserve"><value>التوقيت المحلي للمتحف:</value></data>
+  <data name="Regional_TicketPrice" xml:space="preserve"><value>تذكرة الدخول العامة:</value></data>
+  <data name="Regional_VIPPrice" xml:space="preserve"><value>سعر مسار كبار الشخصيات:</value></data>
+  <data name="Regional_NumberFormat" xml:space="preserve"><value>إجمالي الزوار اليوم:</value></data>
+  <data name="Regional_LocaleInfo" xml:space="preserve"><value>المنطقة المحددة:</value></data>
+
+  <data name="Security_Header" xml:space="preserve"><value>تفعيل مسار كبار الشخصيات (SecureStorage)</value></data>
+  <data name="Security_Status_Active" xml:space="preserve"><value>مسار VIP: مفعل (تم التحقق من المفتاح في SecureStorage)</value></data>
+  <data name="Security_Status_Locked" xml:space="preserve"><value>مسار VIP: مغلق (يتطلب مفتاحاً رقمياً)</value></data>
+  <data name="Security_EnterKey" xml:space="preserve"><value>أدخل مفتاح المسار الرقمي</value></data>
+  <data name="Security_KeyPlaceholder" xml:space="preserve"><value>رمز المفتاح (مثال: VIP-MUSEUM-2026)</value></data>
+  <data name="Security_BtnActivate" xml:space="preserve"><value>تفعيل</value></data>
+  <data name="Security_BtnRevoke" xml:space="preserve"><value>إلغاء التفعيل</value></data>
+  <data name="Security_SuccessMsg" xml:space="preserve"><value>تم تأكيد المفتاح بنجاح! تم فتح مسارات كبار الشخصيات.</value></data>
+  <data name="Security_ErrorMsg" xml:space="preserve"><value>المفتاح غير صالح! تلميح: اكتب VIP-MUSEUM-2026</value></data>
+  <data name="PaidRoute_Badge" xml:space="preserve"><value>مسار VIP خاص</value></data>
+  <data name="PaidRoute_LockedDesc" xml:space="preserve"><value>هذا المعروض جزء من مسار VIP المدفوع. يمكنك تفعيل المفتاح في الإعدادات.</value></data>
+
+  <data name="Pref_StoredLanguage" xml:space="preserve"><value>اللغة المحفوظة في Preferences:</value></data>
+  <data name="Pref_StoredVolume" xml:space="preserve"><value>مستوى الصوت المحفوظ في Preferences:</value></data>
+  <data name="RTL_Status" xml:space="preserve"><value>اتجاه الواجهة: من اليمين إلى اليسار (RTL)</value></data>
+  <data name="Simulate_Walk" xml:space="preserve"><value>الاقتراب أكثر (-١٥م)</value></data>
+  <data name="Simulate_ResetWalk" xml:space="preserve"><value>إعادة ضبط المسافة</value></data>
+</root>

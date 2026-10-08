@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <data name="AppTitle" xml:space="preserve"><value>Интеллектуальный Музейный Аудиогид</value></data>
+  <data name="AppSubtitle" xml:space="preserve"><value>Интерактивная экскурсия по мировым шедеврам</value></data>
+  <data name="Tab_Exhibits" xml:space="preserve"><value>Экспонаты</value></data>
+  <data name="Tab_Wings" xml:space="preserve"><value>Крылья музея</value></data>
+  <data name="Tab_Settings" xml:space="preserve"><value>Настройки и доступ</value></data>
+  <data name="Language_Title" xml:space="preserve"><value>Язык интерфейса</value></data>
+  <data name="Status_Online" xml:space="preserve"><value>HD Аудиопоток</value></data>
+
+  <data name="Exhibit_MonaLisa_Title" xml:space="preserve"><value>Мона Лиза (Джоконда)</value></data>
+  <data name="Exhibit_MonaLisa_Desc" xml:space="preserve"><value>Шедевр Леонардо да Винчи, написанный в начале XVI века. Известен своей загадочной улыбкой и непревзойденной техникой сфумато.</value></data>
+  <data name="Exhibit_MonaLisa_Track" xml:space="preserve"><value>Дорожка 1: Тайна загадочной улыбки</value></data>
+  <data name="Exhibit_MonaLisa_Narrator" xml:space="preserve"><value>Диктор: проф. Артур Гастингс</value></data>
+  <data name="Exhibit_MonaLisa_Hall" xml:space="preserve"><value>Зал 104 • Крыло мастеров Ренессанса</value></data>
+
+  <data name="Exhibit_Tutankhamun_Title" xml:space="preserve"><value>Золотая маска Тутанхамона</value></data>
+  <data name="Exhibit_Tutankhamun_Desc" xml:space="preserve"><value>Погребальная маска фараона XVIII династии Древнего Египта, выкованная из чистого золота, лазурита и обсидиана.</value></data>
+  <data name="Exhibit_Tutankhamun_Track" xml:space="preserve"><value>Дорожка 2: Сокровища вечности</value></data>
+  <data name="Exhibit_Tutankhamun_Narrator" xml:space="preserve"><value>Диктор: д-р Эвелин Вэнс</value></data>
+  <data name="Exhibit_Tutankhamun_Hall" xml:space="preserve"><value>Зал 201 • Египетское крыло</value></data>
+
+  <data name="Exhibit_Venus_Title" xml:space="preserve"><value>Венера Милосская (Афродита)</value></data>
+  <data name="Exhibit_Venus_Desc" xml:space="preserve"><value>Древнегреческая скульптура богини любви и красоты Афродиты, изваянная из драгоценного паросского мрамора.</value></data>
+  <data name="Exhibit_Venus_Track" xml:space="preserve"><value>Дорожка 3: Гимн классической гармонии</value></data>
+  <data name="Exhibit_Venus_Narrator" xml:space="preserve"><value>Диктор: Джулиан Торн</value></data>
+  <data name="Exhibit_Venus_Hall" xml:space="preserve"><value>Зал 112 • Галерея античности</value></data>
+
+  <data name="Exhibit_WingedVictory_Title" xml:space="preserve"><value>Ника Самофракийская</value></data>
+  <data name="Exhibit_WingedVictory_Desc" xml:space="preserve"><value>Монументальная эллинистическая скульптура крылатой богини победы Ники над морем, застывший триумф в мраморе.</value></data>
+  <data name="Exhibit_WingedVictory_Track" xml:space="preserve"><value>Дорожка 4: Ветры морского триумфа</value></data>
+  <data name="Exhibit_WingedVictory_Narrator" xml:space="preserve"><value>Диктор: Клэр Делакруа</value></data>
+  <data name="Exhibit_WingedVictory_Hall" xml:space="preserve"><value>Зал 115 • Парадная лестница Дарю</value></data>
+
+  <data name="Exhibit_Hammurabi_Title" xml:space="preserve"><value>Стела с законами Хаммурапи</value></data>
+  <data name="Exhibit_Hammurabi_Desc" xml:space="preserve"><value>Базальтовый кодекс из Месопотамии, содержащий один из древнейших сводов законов царя Вавилона.</value></data>
+  <data name="Exhibit_Hammurabi_Track" xml:space="preserve"><value>Дорожка 5: Законодатель древнего Вавилона</value></data>
+  <data name="Exhibit_Hammurabi_Narrator" xml:space="preserve"><value>Диктор: проф. Тарик аль-Мансур</value></data>
+  <data name="Exhibit_Hammurabi_Hall" xml:space="preserve"><value>Зал 305 • Зал древностей Востока</value></data>
+
+  <data name="Audio_NowPlaying" xml:space="preserve"><value>Сейчас звучит</value></data>
+  <data name="Audio_Play" xml:space="preserve"><value>Слушать</value></data>
+  <data name="Audio_Pause" xml:space="preserve"><value>Пауза</value></data>
+  <data name="Audio_Stop" xml:space="preserve"><value>Стоп</value></data>
+  <data name="Audio_Volume" xml:space="preserve"><value>Громкость аудио</value></data>
+  <data name="Audio_Remaining" xml:space="preserve"><value>Осталось:</value></data>
+  <data name="Audio_Progress" xml:space="preserve"><value>Прогресс экскурсии</value></data>
+  <data name="Audio_Speed" xml:space="preserve"><value>Скорость 1.0x</value></data>
+
+  <data name="Plural_Minutes_Zero" xml:space="preserve"><value>{0} минут осталось</value></data>
+  <data name="Plural_Minutes_One" xml:space="preserve"><value>{0} минута осталась</value></data>
+  <data name="Plural_Minutes_Two" xml:space="preserve"><value>{0} минуты осталось</value></data>
+  <data name="Plural_Minutes_Few" xml:space="preserve"><value>{0} минуты осталось</value></data>
+  <data name="Plural_Minutes_Many" xml:space="preserve"><value>{0} минут осталось</value></data>
+  <data name="Plural_Minutes_Other" xml:space="preserve"><value>{0} минут осталось</value></data>
+
+  <data name="Plural_Halls_Zero" xml:space="preserve"><value>0 доступных залов</value></data>
+  <data name="Plural_Halls_One" xml:space="preserve"><value>{0} доступный зал</value></data>
+  <data name="Plural_Halls_Two" xml:space="preserve"><value>{0} доступных зала</value></data>
+  <data name="Plural_Halls_Few" xml:space="preserve"><value>{0} доступных зала</value></data>
+  <data name="Plural_Halls_Many" xml:space="preserve"><value>{0} доступных залов</value></data>
+  <data name="Plural_Halls_Other" xml:space="preserve"><value>{0} доступных залов</value></data>
+
+  <data name="Wing_East_Title" xml:space="preserve"><value>Крыло А: Древности Востока и Египта</value></data>
+  <data name="Wing_East_Desc" xml:space="preserve"><value>Династии, пирамиды и стелы Месопотамии</value></data>
+  <data name="Wing_East_Floor" xml:space="preserve"><value>Этаж 1 • Восточная галерея</value></data>
+  <data name="Wing_Central_Title" xml:space="preserve"><value>Крыло Б: Шедевры Ренессанса</value></data>
+  <data name="Wing_Central_Desc" xml:space="preserve"><value>Итальянская и французская живопись XV–XVIII веков</value></data>
+  <data name="Wing_Central_Floor" xml:space="preserve"><value>Этаж 2 • Центральный атриум</value></data>
+  <data name="Wing_West_Title" xml:space="preserve"><value>Крыло В: Античная Греция и Рим</value></data>
+  <data name="Wing_West_Desc" xml:space="preserve"><value>Мраморные статуи, расписная керамика и бронзовые бюсты</value></data>
+  <data name="Wing_West_Floor" xml:space="preserve"><value>Цоколь • Западная колоннада</value></data>
+
+  <data name="Map_CurrentLocation" xml:space="preserve"><value>Ваше местоположение: Вход в галерею</value></data>
+  <data name="Map_GuideMarker" xml:space="preserve"><value>Сигнал аудио-маячка: Отличный (98%)</value></data>
+  <data name="Map_SelectWing" xml:space="preserve"><value>Выберите крыло для плана этажа и доступности залов:</value></data>
+
+  <data name="Distance_Label" xml:space="preserve"><value>Расстояние:</value></data>
+  <data name="Distance_Mode_Auto" xml:space="preserve"><value>Авто</value></data>
+  <data name="Distance_Mode_Meters" xml:space="preserve"><value>Метры (м)</value></data>
+  <data name="Distance_Mode_Yards" xml:space="preserve"><value>Ярды (ярд)</value></data>
+  <data name="Distance_Mode_Steps" xml:space="preserve"><value>Шаги</value></data>
+  <data name="Distance_Unit_Toggle" xml:space="preserve"><value>Единицы навигации</value></data>
+
+  <data name="Regional_Header" xml:space="preserve"><value>Региональные форматы данных</value></data>
+  <data name="Regional_Date" xml:space="preserve"><value>Местное время музея:</value></data>
+  <data name="Regional_TicketPrice" xml:space="preserve"><value>Стандартный входной билет:</value></data>
+  <data name="Regional_VIPPrice" xml:space="preserve"><value>Стоимость VIP-маршрута:</value></data>
+  <data name="Regional_NumberFormat" xml:space="preserve"><value>Посетителей за сегодня:</value></data>
+  <data name="Regional_LocaleInfo" xml:space="preserve"><value>Активная локаль:</value></data>
+
+  <data name="Security_Header" xml:space="preserve"><value>Активация VIP-маршрута (SecureStorage)</value></data>
+  <data name="Security_Status_Active" xml:space="preserve"><value>VIP-маршрут: АКТИВИРОВАН (Ключ сохранен в SecureStorage)</value></data>
+  <data name="Security_Status_Locked" xml:space="preserve"><value>VIP-маршрут: ЗАБЛОКИРОВАН (Требуется ключ)</value></data>
+  <data name="Security_EnterKey" xml:space="preserve"><value>Введите цифровой ключ маршрута</value></data>
+  <data name="Security_KeyPlaceholder" xml:space="preserve"><value>Код ключа (напр. VIP-MUSEUM-2026)</value></data>
+  <data name="Security_BtnActivate" xml:space="preserve"><value>Активировать</value></data>
+  <data name="Security_BtnRevoke" xml:space="preserve"><value>Отозвать ключ</value></data>
+  <data name="Security_SuccessMsg" xml:space="preserve"><value>Ключ успешно проверен! VIP-экспонаты разблокированы.</value></data>
+  <data name="Security_ErrorMsg" xml:space="preserve"><value>Неверный ключ! Подсказка: введите VIP-MUSEUM-2026</value></data>
+  <data name="PaidRoute_Badge" xml:space="preserve"><value>Платный VIP маршрут</value></data>
+  <data name="PaidRoute_LockedDesc" xml:space="preserve"><value>Этот экспонат входит в платный VIP-тур. Активируйте ключ в настройках.</value></data>
+
+  <data name="Pref_StoredLanguage" xml:space="preserve"><value>Сохраненный язык в Preferences:</value></data>
+  <data name="Pref_StoredVolume" xml:space="preserve"><value>Сохраненная громкость в Preferences:</value></data>
+  <data name="RTL_Status" xml:space="preserve"><value>Режим компоновки: Слева направо (LTR)</value></data>
+  <data name="Simulate_Walk" xml:space="preserve"><value>Подойти ближе (-15м)</value></data>
+  <data name="Simulate_ResetWalk" xml:space="preserve"><value>Сбросить дистанцию</value></data>
+</root>

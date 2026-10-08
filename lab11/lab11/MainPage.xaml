@@ -1,0 +1,856 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:loc="clr-namespace:lab11.Services"
+             xmlns:vm="clr-namespace:lab11.ViewModels"
+             xmlns:models="clr-namespace:lab11.Models"
+             xmlns:converters="clr-namespace:lab11.Converters"
+             x:Class="lab11.MainPage"
+             x:DataType="vm:MainViewModel"
+             FlowDirection="{Binding CurrentFlowDirection}"
+             BackgroundColor="#0B0F17">
+
+    <ContentPage.Resources>
+        <converters:TabVisibilityConverter x:Key="TabVisibilityConverter" />
+
+        <Style x:Key="TabButtonStyle" TargetType="Button">
+            <Setter Property="CornerRadius" Value="10" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontAttributes" Value="Bold" />
+            <Setter Property="HeightRequest" Value="42" />
+            <Setter Property="Padding" Value="4,0" />
+            <Setter Property="BorderWidth" Value="1" />
+            <Setter Property="BackgroundColor" Value="#151D2A" />
+            <Setter Property="TextColor" Value="#94A3B8" />
+            <Setter Property="BorderColor" Value="#223049" />
+        </Style>
+
+        <Style x:Key="CardBorderStyle" TargetType="Border">
+            <Setter Property="Stroke" Value="#223049" />
+            <Setter Property="StrokeThickness" Value="1" />
+            <Setter Property="StrokeShape" Value="RoundRectangle 14" />
+            <Setter Property="BackgroundColor" Value="#151D2A" />
+            <Setter Property="Padding" Value="16" />
+        </Style>
+
+        <Style x:Key="HeaderLabelStyle" TargetType="Label">
+            <Setter Property="TextColor" Value="#F8FAFC" />
+            <Setter Property="FontAttributes" Value="Bold" />
+            <Setter Property="FontSize" Value="18" />
+        </Style>
+    </ContentPage.Resources>
+
+    <Grid RowDefinitions="Auto,Auto,*,Auto">
+
+        <!-- ================= 1. TOP HEADER & LANGUAGE SELECTOR ================= -->
+        <Border Grid.Row="0"
+                BackgroundColor="#0F172A"
+                Stroke="#1E293B"
+                StrokeThickness="1"
+                Padding="16,12">
+            <VerticalStackLayout Spacing="10">
+                
+                <!-- App Title & Subtitle (Flips side in RTL) -->
+                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10" VerticalOptions="Center">
+                    <Label Grid.Column="0"
+                           Text="🏛️"
+                           FontSize="22"
+                           VerticalOptions="Center" />
+                    <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                        <Label Text="{loc:Localize AppTitle}"
+                               TextColor="#F59E0B"
+                               FontAttributes="Bold"
+                               FontSize="17"
+                               LineBreakMode="WordWrap" />
+                        <Label Text="{loc:Localize AppSubtitle}"
+                               TextColor="#94A3B8"
+                               FontSize="12"
+                               LineBreakMode="WordWrap" />
+                    </VerticalStackLayout>
+                </Grid>
+
+                <!-- Language Switching & RTL Badge (Flips side in RTL) -->
+                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8" VerticalOptions="Center">
+                    <!-- RTL / Current Language Indicator Pill -->
+                    <Border Grid.Column="0"
+                            Stroke="#059669"
+                            BackgroundColor="#064E3B"
+                            StrokeShape="RoundRectangle 12"
+                            Padding="8,4"
+                            VerticalOptions="Center">
+                        <Label Text="{Binding CurrentLanguageCode, StringFormat='🌐 {0}'}"
+                               TextColor="#34D399"
+                               FontSize="11"
+                               FontAttributes="Bold" />
+                    </Border>
+
+                    <!-- Language Buttons -->
+                    <Grid Grid.Column="1" ColumnDefinitions="*,*,*" ColumnSpacing="6" VerticalOptions="Center">
+                        <Button Grid.Column="0"
+                                Text="🇷🇺 RU"
+                                Command="{Binding ChangeLanguageCommand}"
+                                CommandParameter="ru"
+                                FontSize="12"
+                                HeightRequest="34"
+                                CornerRadius="8"
+                                BackgroundColor="#1E293B"
+                                TextColor="White"
+                                BorderColor="#334155"
+                                BorderWidth="1"
+                                Padding="2,0">
+                            <Button.Triggers>
+                                <DataTrigger TargetType="Button" Binding="{Binding CurrentLanguageCode}" Value="ru">
+                                    <Setter Property="BackgroundColor" Value="#F59E0B" />
+                                    <Setter Property="TextColor" Value="#0F172A" />
+                                    <Setter Property="BorderColor" Value="#F59E0B" />
+                                </DataTrigger>
+                            </Button.Triggers>
+                        </Button>
+                        <Button Grid.Column="1"
+                                Text="🇬🇧 EN"
+                                Command="{Binding ChangeLanguageCommand}"
+                                CommandParameter="en"
+                                FontSize="12"
+                                HeightRequest="34"
+                                CornerRadius="8"
+                                BackgroundColor="#1E293B"
+                                TextColor="White"
+                                BorderColor="#334155"
+                                BorderWidth="1"
+                                Padding="2,0">
+                            <Button.Triggers>
+                                <DataTrigger TargetType="Button" Binding="{Binding CurrentLanguageCode}" Value="en">
+                                    <Setter Property="BackgroundColor" Value="#F59E0B" />
+                                    <Setter Property="TextColor" Value="#0F172A" />
+                                    <Setter Property="BorderColor" Value="#F59E0B" />
+                                </DataTrigger>
+                            </Button.Triggers>
+                        </Button>
+                        <Button Grid.Column="2"
+                                Text="🇸🇦 AR"
+                                Command="{Binding ChangeLanguageCommand}"
+                                CommandParameter="ar"
+                                FontSize="12"
+                                HeightRequest="34"
+                                CornerRadius="8"
+                                BackgroundColor="#1E293B"
+                                TextColor="White"
+                                BorderColor="#334155"
+                                BorderWidth="1"
+                                Padding="2,0">
+                            <Button.Triggers>
+                                <DataTrigger TargetType="Button" Binding="{Binding CurrentLanguageCode}" Value="ar">
+                                    <Setter Property="BackgroundColor" Value="#F59E0B" />
+                                    <Setter Property="TextColor" Value="#0F172A" />
+                                    <Setter Property="BorderColor" Value="#F59E0B" />
+                                </DataTrigger>
+                            </Button.Triggers>
+                        </Button>
+                    </Grid>
+                </Grid>
+
+            </VerticalStackLayout>
+        </Border>
+
+        <!-- ================= 2. NAVIGATION TABS ================= -->
+        <Border Grid.Row="1"
+                BackgroundColor="#111827"
+                Stroke="#1F2937"
+                StrokeThickness="1"
+                Padding="12,8">
+            <Grid ColumnDefinitions="*,*,*" ColumnSpacing="8">
+                <Button Grid.Column="0"
+                        Text="{loc:Localize Tab_Exhibits}"
+                        Command="{Binding SelectTabCommand}"
+                        CommandParameter="0"
+                        Style="{StaticResource TabButtonStyle}">
+                    <Button.Triggers>
+                        <DataTrigger TargetType="Button" Binding="{Binding SelectedTabIndex}" Value="0">
+                            <Setter Property="BackgroundColor" Value="#F59E0B" />
+                            <Setter Property="TextColor" Value="#0F172A" />
+                            <Setter Property="BorderColor" Value="#F59E0B" />
+                        </DataTrigger>
+                    </Button.Triggers>
+                </Button>
+                <Button Grid.Column="1"
+                        Text="{loc:Localize Tab_Wings}"
+                        Command="{Binding SelectTabCommand}"
+                        CommandParameter="1"
+                        Style="{StaticResource TabButtonStyle}">
+                    <Button.Triggers>
+                        <DataTrigger TargetType="Button" Binding="{Binding SelectedTabIndex}" Value="1">
+                            <Setter Property="BackgroundColor" Value="#F59E0B" />
+                            <Setter Property="TextColor" Value="#0F172A" />
+                            <Setter Property="BorderColor" Value="#F59E0B" />
+                        </DataTrigger>
+                    </Button.Triggers>
+                </Button>
+                <Button Grid.Column="2"
+                        Text="{loc:Localize Tab_Settings}"
+                        Command="{Binding SelectTabCommand}"
+                        CommandParameter="2"
+                        Style="{StaticResource TabButtonStyle}">
+                    <Button.Triggers>
+                        <DataTrigger TargetType="Button" Binding="{Binding SelectedTabIndex}" Value="2">
+                            <Setter Property="BackgroundColor" Value="#F59E0B" />
+                            <Setter Property="TextColor" Value="#0F172A" />
+                            <Setter Property="BorderColor" Value="#F59E0B" />
+                        </DataTrigger>
+                    </Button.Triggers>
+                </Button>
+            </Grid>
+        </Border>
+
+        <!-- ================= 3. MAIN CONTENT AREA (3 TABS) ================= -->
+        <ScrollView Grid.Row="2" Padding="14,10">
+            <VerticalStackLayout Spacing="16">
+
+                <!-- ========== TAB 0: EXHIBITS & AUDIO TOUR ========== -->
+                <VerticalStackLayout Spacing="14"
+                                     IsVisible="{Binding SelectedTabIndex, Converter={StaticResource TabVisibilityConverter}, ConverterParameter=0}">
+
+                    <!-- Distance Navigation & Unit Controls -->
+                    <Border Style="{StaticResource CardBorderStyle}">
+                        <VerticalStackLayout Spacing="10">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <Label Grid.Column="0"
+                                       Text="{loc:Localize Distance_Unit_Toggle}"
+                                       TextColor="#F59E0B"
+                                       FontAttributes="Bold"
+                                       FontSize="14"
+                                       VerticalOptions="Center" />
+                                <Label Grid.Column="1"
+                                       Text="{loc:Localize Status_Online}"
+                                       TextColor="#10B981"
+                                       FontSize="12"
+                                       VerticalOptions="Center" />
+                            </Grid>
+
+                            <!-- Unit selection buttons -->
+                            <Grid ColumnDefinitions="*,*,*,*" ColumnSpacing="6">
+                                <Button Grid.Column="0"
+                                        Text="{loc:Localize Distance_Mode_Auto}"
+                                        Command="{Binding ChangeDistanceModeCommand}"
+                                        CommandParameter="{x:Static loc:DistanceUnitMode.Auto}"
+                                        FontSize="11"
+                                        HeightRequest="36"
+                                        CornerRadius="8"
+                                        BackgroundColor="#1E293B"
+                                        TextColor="#E2E8F0"
+                                        Padding="2,0">
+                                    <Button.Triggers>
+                                        <DataTrigger TargetType="Button" Binding="{Binding CurrentDistanceMode}" Value="{x:Static loc:DistanceUnitMode.Auto}">
+                                            <Setter Property="BackgroundColor" Value="#2563EB" />
+                                            <Setter Property="TextColor" Value="White" />
+                                        </DataTrigger>
+                                    </Button.Triggers>
+                                </Button>
+                                <Button Grid.Column="1"
+                                        Text="{loc:Localize Distance_Mode_Meters}"
+                                        Command="{Binding ChangeDistanceModeCommand}"
+                                        CommandParameter="{x:Static loc:DistanceUnitMode.Meters}"
+                                        FontSize="11"
+                                        HeightRequest="36"
+                                        CornerRadius="8"
+                                        BackgroundColor="#1E293B"
+                                        TextColor="#E2E8F0"
+                                        Padding="2,0">
+                                    <Button.Triggers>
+                                        <DataTrigger TargetType="Button" Binding="{Binding CurrentDistanceMode}" Value="{x:Static loc:DistanceUnitMode.Meters}">
+                                            <Setter Property="BackgroundColor" Value="#2563EB" />
+                                            <Setter Property="TextColor" Value="White" />
+                                        </DataTrigger>
+                                    </Button.Triggers>
+                                </Button>
+                                <Button Grid.Column="2"
+                                        Text="{loc:Localize Distance_Mode_Yards}"
+                                        Command="{Binding ChangeDistanceModeCommand}"
+                                        CommandParameter="{x:Static loc:DistanceUnitMode.Yards}"
+                                        FontSize="11"
+                                        HeightRequest="36"
+                                        CornerRadius="8"
+                                        BackgroundColor="#1E293B"
+                                        TextColor="#E2E8F0"
+                                        Padding="2,0">
+                                    <Button.Triggers>
+                                        <DataTrigger TargetType="Button" Binding="{Binding CurrentDistanceMode}" Value="{x:Static loc:DistanceUnitMode.Yards}">
+                                            <Setter Property="BackgroundColor" Value="#2563EB" />
+                                            <Setter Property="TextColor" Value="White" />
+                                        </DataTrigger>
+                                    </Button.Triggers>
+                                </Button>
+                                <Button Grid.Column="3"
+                                        Text="{loc:Localize Distance_Mode_Steps}"
+                                        Command="{Binding ChangeDistanceModeCommand}"
+                                        CommandParameter="{x:Static loc:DistanceUnitMode.Steps}"
+                                        FontSize="11"
+                                        HeightRequest="36"
+                                        CornerRadius="8"
+                                        BackgroundColor="#1E293B"
+                                        TextColor="#E2E8F0"
+                                        Padding="2,0">
+                                    <Button.Triggers>
+                                        <DataTrigger TargetType="Button" Binding="{Binding CurrentDistanceMode}" Value="{x:Static loc:DistanceUnitMode.Steps}">
+                                            <Setter Property="BackgroundColor" Value="#2563EB" />
+                                            <Setter Property="TextColor" Value="White" />
+                                        </DataTrigger>
+                                    </Button.Triggers>
+                                </Button>
+                            </Grid>
+
+                            <!-- Walk closer simulation buttons -->
+                            <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+                                <Button Grid.Column="0"
+                                        Text="{loc:Localize Simulate_Walk}"
+                                        Command="{Binding SimulateWalkCloserCommand}"
+                                        FontSize="12"
+                                        HeightRequest="36"
+                                        CornerRadius="8"
+                                        BackgroundColor="#2563EB"
+                                        TextColor="White" />
+                                <Button Grid.Column="1"
+                                        Text="{loc:Localize Simulate_ResetWalk}"
+                                        Command="{Binding ResetDistanceCommand}"
+                                        FontSize="12"
+                                        HeightRequest="36"
+                                        CornerRadius="8"
+                                        BackgroundColor="#334155"
+                                        TextColor="#CBD5E1" />
+                            </Grid>
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <!-- Exhibits Collection -->
+                    <VerticalStackLayout BindableLayout.ItemsSource="{Binding Exhibits}" Spacing="12">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="models:ExhibitItem">
+                                <Border Style="{StaticResource CardBorderStyle}">
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer 
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type vm:MainViewModel}}, Path=SelectExhibitCommand}"
+                                            CommandParameter="{Binding .}" />
+                                    </Border.GestureRecognizers>
+
+                                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+                                        <!-- Artwork Avatar & Badge (Inverted in RTL) -->
+                                        <Border Grid.Column="0"
+                                                WidthRequest="54"
+                                                HeightRequest="54"
+                                                StrokeShape="RoundRectangle 12"
+                                                BackgroundColor="#1E293B"
+                                                Stroke="#334155"
+                                                Padding="0"
+                                                VerticalOptions="Start">
+                                            <Grid>
+                                                <Label Text="{Binding IconGlyph}"
+                                                       FontSize="28"
+                                                       HorizontalOptions="Center"
+                                                       VerticalOptions="Center" />
+                                                <Image Source="{Binding ImageSource}"
+                                                       Aspect="AspectFill"
+                                                       WidthRequest="54"
+                                                       HeightRequest="54" />
+                                            </Grid>
+                                        </Border>
+
+                                        <!-- Details: Title, Hall, Description -->
+                                        <VerticalStackLayout Grid.Column="1" Spacing="4" VerticalOptions="Center">
+                                            <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                                                <Label Text="{Binding LocalizedTitle}"
+                                                       TextColor="#FFFFFF"
+                                                       FontAttributes="Bold"
+                                                       FontSize="15" />
+                                                <!-- VIP Badge if Paid Route -->
+                                                <Border IsVisible="{Binding IsPaidRoute}"
+                                                        BackgroundColor="#78350F"
+                                                        Stroke="#F59E0B"
+                                                        StrokeThickness="1"
+                                                        StrokeShape="RoundRectangle 6"
+                                                        Padding="6,2"
+                                                        VerticalOptions="Center">
+                                                    <Label Text="VIP"
+                                                           TextColor="#FDE68A"
+                                                           FontSize="9"
+                                                           FontAttributes="Bold" />
+                                                </Border>
+                                            </HorizontalStackLayout>
+
+                                            <Label Text="{Binding LocalizedHall}"
+                                                   TextColor="#F59E0B"
+                                                   FontSize="12" />
+
+                                            <Label Text="{Binding LocalizedDescription}"
+                                                   TextColor="#94A3B8"
+                                                   FontSize="12"
+                                                   LineBreakMode="TailTruncation"
+                                                   MaxLines="2" />
+                                        </VerticalStackLayout>
+
+                                        <!-- Distance Badge & Play/Lock Action (Inverted in RTL) -->
+                                        <VerticalStackLayout Grid.Column="2" Spacing="6" VerticalOptions="Center" HorizontalOptions="End">
+                                            <Border BackgroundColor="#0F172A"
+                                                    Stroke="#334155"
+                                                    StrokeShape="RoundRectangle 8"
+                                                    Padding="8,4"
+                                                    HorizontalOptions="End">
+                                                <Label Text="{Binding FormattedDistance}"
+                                                       TextColor="#38BDF8"
+                                                       FontSize="12"
+                                                       FontAttributes="Bold" />
+                                            </Border>
+
+                                            <!-- Play Button / Locked Indicator -->
+                                            <Border WidthRequest="36"
+                                                    HeightRequest="36"
+                                                    StrokeShape="RoundRectangle 18"
+                                                    BackgroundColor="{Binding StatusBackgroundColor}"
+                                                    HorizontalOptions="End">
+                                                <Label Text="{Binding StatusIcon}"
+                                                       TextColor="White"
+                                                       FontSize="14"
+                                                       HorizontalOptions="Center"
+                                                       VerticalOptions="Center" />
+                                            </Border>
+                                        </VerticalStackLayout>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </VerticalStackLayout>
+
+                </VerticalStackLayout>
+
+
+                <!-- ========== TAB 1: MUSEUM WINGS & HALL MAPS ========== -->
+                <VerticalStackLayout Spacing="14"
+                                     IsVisible="{Binding SelectedTabIndex, Converter={StaticResource TabVisibilityConverter}, ConverterParameter=1}">
+
+                    <!-- Wings Section Header -->
+                    <Border Style="{StaticResource CardBorderStyle}">
+                        <VerticalStackLayout Spacing="8">
+                            <Label Text="{loc:Localize Map_SelectWing}"
+                                   TextColor="#CBD5E1"
+                                   FontSize="14" />
+
+                            <!-- Dynamic Pluralization Banner for Accessible Halls -->
+                            <Border BackgroundColor="#0F172A"
+                                    Stroke="#F59E0B"
+                                    StrokeThickness="1"
+                                    StrokeShape="RoundRectangle 12"
+                                    Padding="14,10">
+                                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12" VerticalOptions="Center">
+                                    <Label Grid.Column="0" Text="🏛️" FontSize="26" VerticalOptions="Center" />
+                                    <VerticalStackLayout Grid.Column="1" Spacing="2">
+                                        <Label Text="{Binding SelectedWing.LocalizedTitle}"
+                                               TextColor="#FFFFFF"
+                                               FontAttributes="Bold"
+                                               FontSize="15" />
+                                        <!-- Pluralized halls count (e.g. 5 залов, 2 зала, 1 зал) -->
+                                        <Label Text="{Binding SelectedWingHallsFormatted}"
+                                               TextColor="#34D399"
+                                               FontAttributes="Bold"
+                                               FontSize="14" />
+                                    </VerticalStackLayout>
+                                </Grid>
+                            </Border>
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <!-- Wing Selection Cards -->
+                    <VerticalStackLayout BindableLayout.ItemsSource="{Binding Wings}" Spacing="10">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="models:MuseumWing">
+                                <Border Style="{StaticResource CardBorderStyle}">
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer 
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type vm:MainViewModel}}, Path=SelectWingCommand}"
+                                            CommandParameter="{Binding .}" />
+                                    </Border.GestureRecognizers>
+
+                                    <Grid ColumnDefinitions="*,Auto" VerticalOptions="Center">
+                                        <VerticalStackLayout Grid.Column="0" Spacing="4">
+                                            <Label Text="{Binding LocalizedTitle}"
+                                                   TextColor="#F8FAFC"
+                                                   FontAttributes="Bold"
+                                                   FontSize="15" />
+                                            <Label Text="{Binding LocalizedFloor}"
+                                                   TextColor="#F59E0B"
+                                                   FontSize="12" />
+                                            <Label Text="{Binding LocalizedDescription}"
+                                                   TextColor="#94A3B8"
+                                                   FontSize="12" />
+                                        </VerticalStackLayout>
+
+                                        <!-- Formatted Plural Halls Count Badge -->
+                                        <Border Grid.Column="1"
+                                                BackgroundColor="#1E293B"
+                                                Stroke="#334155"
+                                                StrokeShape="RoundRectangle 8"
+                                                Padding="10,6"
+                                                VerticalOptions="Center">
+                                            <Label Text="{Binding FormattedHallsCount}"
+                                                   TextColor="#38BDF8"
+                                                   FontSize="12"
+                                                   FontAttributes="Bold" />
+                                        </Border>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </VerticalStackLayout>
+
+                    <!-- Floor Plan Graphic & Rooms -->
+                    <Border Style="{StaticResource CardBorderStyle}">
+                        <VerticalStackLayout Spacing="10">
+                            <Label Text="🗺️ Map &amp; Active Exhibition Halls"
+                                   TextColor="#F59E0B"
+                                   FontAttributes="Bold"
+                                   FontSize="15" />
+
+                            <Border BackgroundColor="#0F172A"
+                                    Stroke="#26354A"
+                                    StrokeShape="RoundRectangle 10"
+                                    Padding="14">
+                                <VerticalStackLayout Spacing="8">
+                                    <Label Text="{loc:Localize Map_CurrentLocation}"
+                                           TextColor="#94A3B8"
+                                           FontSize="13" />
+                                    <Label Text="{loc:Localize Map_GuideMarker}"
+                                           TextColor="#10B981"
+                                           FontSize="13"
+                                           FontAttributes="Bold" />
+
+                                    <BoxView HeightRequest="1" Color="#1E293B" Margin="0,4" />
+
+                                    <Label Text="Current Wing Accessible Rooms:"
+                                           TextColor="#E2E8F0"
+                                           FontSize="12"
+                                           FontAttributes="Bold" />
+                                    <Label Text="{Binding SelectedWing.VisualRooms}"
+                                           TextColor="#60A5FA"
+                                           FontSize="12" />
+                                </VerticalStackLayout>
+                            </Border>
+                        </VerticalStackLayout>
+                    </Border>
+
+                </VerticalStackLayout>
+
+
+                <!-- ========== TAB 2: SETTINGS, REGIONAL DATA & SECURITY ========== -->
+                <VerticalStackLayout Spacing="14"
+                                     IsVisible="{Binding SelectedTabIndex, Converter={StaticResource TabVisibilityConverter}, ConverterParameter=2}">
+
+                    <!-- 1. Regional & Cultural Formats Card -->
+                    <Border Style="{StaticResource CardBorderStyle}">
+                        <VerticalStackLayout Spacing="10">
+                            <Label Text="{loc:Localize Regional_Header}"
+                                   Style="{StaticResource HeaderLabelStyle}" />
+
+                            <!-- Active Locale -->
+                            <Grid ColumnDefinitions="*,Auto">
+                                <Label Grid.Column="0" Text="{loc:Localize Regional_LocaleInfo}" TextColor="#94A3B8" FontSize="13" />
+                                <Label Grid.Column="1" Text="{Binding CurrentLocaleInfo}" TextColor="#38BDF8" FontAttributes="Bold" FontSize="13" />
+                            </Grid>
+
+                            <!-- Date / Time -->
+                            <Grid ColumnDefinitions="*,Auto">
+                                <Label Grid.Column="0" Text="{loc:Localize Regional_Date}" TextColor="#94A3B8" FontSize="13" />
+                                <Label Grid.Column="1" Text="{Binding CurrentMuseumTimeFormatted}" TextColor="#FDE68A" FontAttributes="Bold" FontSize="13" />
+                            </Grid>
+
+                            <!-- Standard Admission Ticket -->
+                            <Grid ColumnDefinitions="*,Auto">
+                                <Label Grid.Column="0" Text="{loc:Localize Regional_TicketPrice}" TextColor="#94A3B8" FontSize="13" />
+                                <Label Grid.Column="1" Text="{Binding StandardTicketPriceFormatted}" TextColor="#34D399" FontAttributes="Bold" FontSize="13" />
+                            </Grid>
+
+                            <!-- VIP Route Ticket -->
+                            <Grid ColumnDefinitions="*,Auto">
+                                <Label Grid.Column="0" Text="{loc:Localize Regional_VIPPrice}" TextColor="#94A3B8" FontSize="13" />
+                                <Label Grid.Column="1" Text="{Binding VipTicketPriceFormatted}" TextColor="#F59E0B" FontAttributes="Bold" FontSize="13" />
+                            </Grid>
+
+                            <!-- Formatted Number (Visitors Today) -->
+                            <Grid ColumnDefinitions="*,Auto">
+                                <Label Grid.Column="0" Text="{loc:Localize Regional_NumberFormat}" TextColor="#94A3B8" FontSize="13" />
+                                <Label Grid.Column="1" Text="{Binding VisitorsTodayFormatted}" TextColor="#E2E8F0" FontAttributes="Bold" FontSize="13" />
+                            </Grid>
+
+                            <!-- RTL Status -->
+                            <Grid ColumnDefinitions="*,Auto">
+                                <Label Grid.Column="0" Text="Layout Direction:" TextColor="#94A3B8" FontSize="13" />
+                                <Label Grid.Column="1" Text="{Binding RtlStatusText}" TextColor="#A78BFA" FontAttributes="Bold" FontSize="13" />
+                            </Grid>
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <!-- 2. Preferences Storage Card -->
+                    <Border Style="{StaticResource CardBorderStyle}">
+                        <VerticalStackLayout Spacing="10">
+                            <Label Text="💾 Stored User Preferences (Preferences)"
+                                   TextColor="#F59E0B"
+                                   FontAttributes="Bold"
+                                   FontSize="15" />
+
+                            <Grid ColumnDefinitions="*,Auto">
+                                <Label Grid.Column="0" Text="{loc:Localize Pref_StoredLanguage}" TextColor="#94A3B8" FontSize="13" />
+                                <Label Grid.Column="1" Text="{Binding SavedLanguageDisplay}" TextColor="#38BDF8" FontAttributes="Bold" FontSize="13" />
+                            </Grid>
+
+                            <Grid ColumnDefinitions="*,Auto">
+                                <Label Grid.Column="0" Text="{loc:Localize Pref_StoredVolume}" TextColor="#94A3B8" FontSize="13" />
+                                <Label Grid.Column="1" Text="{Binding SavedVolumeDisplay}" TextColor="#34D399" FontAttributes="Bold" FontSize="13" />
+                            </Grid>
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <!-- 3. SecureStorage VIP Activation Key Card -->
+                    <Border Style="{StaticResource CardBorderStyle}">
+                        <VerticalStackLayout Spacing="12">
+                            <Label Text="{loc:Localize Security_Header}"
+                                   Style="{StaticResource HeaderLabelStyle}" />
+
+                            <!-- Status Banner -->
+                            <Border BackgroundColor="#0F172A"
+                                    Stroke="{Binding VipStatusColor}"
+                                    StrokeThickness="1"
+                                    StrokeShape="RoundRectangle 8"
+                                    Padding="12,8">
+                                <Label Text="{Binding VipStatusBadgeText}"
+                                       TextColor="{Binding VipStatusColor}"
+                                       FontAttributes="Bold"
+                                       FontSize="13"
+                                       HorizontalOptions="Center" />
+                            </Border>
+
+                            <!-- Key Entry Form -->
+                            <VerticalStackLayout Spacing="6">
+                                <Label Text="{loc:Localize Security_EnterKey}"
+                                       TextColor="#CBD5E1"
+                                       FontSize="13" />
+                                <Entry Text="{Binding ActivationKeyInput}"
+                                       Placeholder="{loc:Localize Security_KeyPlaceholder}"
+                                       PlaceholderColor="#64748B"
+                                       TextColor="White"
+                                       BackgroundColor="#0F172A"
+                                       HeightRequest="42" />
+                            </VerticalStackLayout>
+
+                            <!-- Action Buttons -->
+                            <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                                <Button Grid.Column="0"
+                                        Text="{loc:Localize Security_BtnActivate}"
+                                        Command="{Binding ActivateKeyCommand}"
+                                        BackgroundColor="#059669"
+                                        TextColor="White"
+                                        HeightRequest="40"
+                                        CornerRadius="8"
+                                        FontAttributes="Bold" />
+                                <Button Grid.Column="1"
+                                        Text="{loc:Localize Security_BtnRevoke}"
+                                        Command="{Binding RevokeKeyCommand}"
+                                        BackgroundColor="#DC2626"
+                                        TextColor="White"
+                                        HeightRequest="40"
+                                        CornerRadius="8"
+                                        FontAttributes="Bold" />
+                            </Grid>
+
+                            <!-- Feedback Message -->
+                            <Label Text="{Binding SecurityFeedbackMessage}"
+                                   TextColor="{Binding SecurityFeedbackColor}"
+                                   FontSize="13"
+                                   HorizontalOptions="Center" />
+                        </VerticalStackLayout>
+                    </Border>
+
+                </VerticalStackLayout>
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- ================= 4. PERSISTENT AUDIO PLAYER CARD ================= -->
+        <Border Grid.Row="3"
+                BackgroundColor="#0D131F"
+                Stroke="#1F293D"
+                StrokeThickness="1"
+                StrokeShape="RoundRectangle 16,16,0,0"
+                Padding="16,12">
+            <VerticalStackLayout Spacing="8">
+
+                <!-- Header: Localized Track Info + Pluralized Remaining Minutes -->
+                <Grid ColumnDefinitions="*,Auto" VerticalOptions="Center">
+                    <Grid Grid.Column="0" ColumnDefinitions="Auto,*" ColumnSpacing="10" VerticalOptions="Center">
+                        <!-- Mini Album Artwork -->
+                        <Border Grid.Column="0"
+                                WidthRequest="42"
+                                HeightRequest="42"
+                                StrokeShape="RoundRectangle 8"
+                                BackgroundColor="#1E293B"
+                                Stroke="#334155"
+                                Padding="0"
+                                VerticalOptions="Center">
+                            <Grid>
+                                <Label Text="{Binding CurrentExhibit.IconGlyph}"
+                                       FontSize="22"
+                                       HorizontalOptions="Center"
+                                       VerticalOptions="Center" />
+                                <Image Source="{Binding CurrentExhibit.ImageSource}"
+                                       Aspect="AspectFill"
+                                       WidthRequest="42"
+                                       HeightRequest="42" />
+                            </Grid>
+                        </Border>
+
+                        <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                            <HorizontalStackLayout Spacing="6">
+                                <Label Text="{loc:Localize Audio_NowPlaying}"
+                                       TextColor="#F59E0B"
+                                       FontSize="11"
+                                       FontAttributes="Bold" />
+                                <Label Text="•" TextColor="#64748B" />
+                                <Label Text="{Binding CurrentExhibit.LocalizedTitle}"
+                                       TextColor="#FFFFFF"
+                                       FontSize="12"
+                                       FontAttributes="Bold" />
+                            </HorizontalStackLayout>
+                            <Label Text="{Binding CurrentExhibit.LocalizedTrack}"
+                                   TextColor="#94A3B8"
+                                   FontSize="12" />
+                            <Label Text="{Binding CurrentExhibit.LocalizedNarrator}"
+                                   TextColor="#64748B"
+                                   FontSize="11" />
+                        </VerticalStackLayout>
+                    </Grid>
+
+                    <!-- Dynamic Pluralization Badge with testing +/- controls -->
+                    <Border Grid.Column="1"
+                            BackgroundColor="#1E293B"
+                            Stroke="#334155"
+                            StrokeShape="RoundRectangle 8"
+                            Padding="8,4"
+                            VerticalOptions="Center">
+                        <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                            <!-- Minus 1 minute button to test plural forms -->
+                            <Button Text="−"
+                                    Command="{Binding AdjustTourMinutesCommand}"
+                                    CommandParameter="-1"
+                                    WidthRequest="24"
+                                    HeightRequest="24"
+                                    Padding="0"
+                                    CornerRadius="12"
+                                    BackgroundColor="#334155"
+                                    TextColor="White"
+                                    FontSize="12" />
+
+                            <!-- Pluralized remaining minutes text -->
+                            <Label Text="{Binding RemainingMinutesFormatted}"
+                                   TextColor="#38BDF8"
+                                   FontSize="12"
+                                   FontAttributes="Bold"
+                                   VerticalOptions="Center" />
+
+                            <!-- Plus 1 minute button to test plural forms -->
+                            <Button Text="+"
+                                    Command="{Binding AdjustTourMinutesCommand}"
+                                    CommandParameter="1"
+                                    WidthRequest="24"
+                                    HeightRequest="24"
+                                    Padding="0"
+                                    CornerRadius="12"
+                                    BackgroundColor="#334155"
+                                    TextColor="White"
+                                    FontSize="12" />
+                        </HorizontalStackLayout>
+                    </Border>
+                </Grid>
+
+                <!-- Audio Progress Bar & Timestamp -->
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10" VerticalOptions="Center">
+                    <ProgressBar Grid.Column="0"
+                                 Progress="{Binding PlaybackProgress}"
+                                 ProgressColor="#F59E0B"
+                                 HeightRequest="4"
+                                 VerticalOptions="Center" />
+                    <Label Grid.Column="1"
+                           Text="{Binding CurrentPlaybackFormatted}"
+                           TextColor="#94A3B8"
+                           FontSize="11"
+                           VerticalOptions="Center" />
+                </Grid>
+
+                <!-- Controls & Volume Slider (Inverts order in RTL!) -->
+                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="16" VerticalOptions="Center">
+                    <!-- Playback Action Buttons -->
+                    <HorizontalStackLayout Grid.Column="0" Spacing="10" VerticalOptions="Center">
+                        <!-- Rewind 15s -->
+                        <Button Text="⏪"
+                                Command="{Binding SeekRelativeCommand}"
+                                CommandParameter="-15"
+                                WidthRequest="36"
+                                HeightRequest="36"
+                                CornerRadius="18"
+                                BackgroundColor="#1E293B"
+                                TextColor="White"
+                                Padding="0" />
+
+                        <!-- Play / Pause -->
+                        <Button Text="{Binding PlayPauseButtonGlyph}"
+                                Command="{Binding TogglePlayCommand}"
+                                WidthRequest="44"
+                                HeightRequest="44"
+                                CornerRadius="22"
+                                BackgroundColor="#F59E0B"
+                                TextColor="#0B0F17"
+                                FontAttributes="Bold"
+                                FontSize="18"
+                                Padding="0" />
+
+                        <!-- Fast Forward 15s -->
+                        <Button Text="⏩"
+                                Command="{Binding SeekRelativeCommand}"
+                                CommandParameter="15"
+                                WidthRequest="36"
+                                HeightRequest="36"
+                                CornerRadius="18"
+                                BackgroundColor="#1E293B"
+                                TextColor="White"
+                                Padding="0" />
+
+                        <!-- Stop -->
+                        <Button Text="⏹"
+                                Command="{Binding StopAudioCommand}"
+                                WidthRequest="36"
+                                HeightRequest="36"
+                                CornerRadius="18"
+                                BackgroundColor="#1E293B"
+                                TextColor="White"
+                                Padding="0" />
+                    </HorizontalStackLayout>
+
+                    <!-- Volume Slider (Persisted in Preferences) -->
+                    <Grid Grid.Column="1" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="6" VerticalOptions="Center">
+                        <Label Grid.Column="0" Text="🔊" TextColor="#94A3B8" FontSize="14" VerticalOptions="Center" />
+                        <Slider Grid.Column="1"
+                                Value="{Binding AudioVolume}"
+                                Minimum="0.0"
+                                Maximum="1.0"
+                                MinimumTrackColor="#F59E0B"
+                                MaximumTrackColor="#334155"
+                                ThumbColor="#F59E0B"
+                                VerticalOptions="Center" />
+                        <Label Grid.Column="2"
+                               Text="{Binding SavedVolumeDisplay}"
+                               TextColor="#94A3B8"
+                               FontSize="11"
+                               VerticalOptions="Center" />
+                    </Grid>
+                </Grid>
+
+            </VerticalStackLayout>
+        </Border>
+
+    </Grid>
+
+</ContentPage>
