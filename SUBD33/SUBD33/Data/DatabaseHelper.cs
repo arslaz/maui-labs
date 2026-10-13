@@ -231,7 +231,6 @@ public class DatabaseHelper
             VALUES (@studentId, @date, @triggerId, @panicLevel, @calmingMethod, @helped);";
 
         using var cmd = new MySqlCommand(sql, conn);
-        cmd.Parameters.AddWithValue("@studentId", studentId);
         cmd.Parameters.AddWithValue("@date", date);
         cmd.Parameters.AddWithValue("@triggerId", triggerId);
         cmd.Parameters.AddWithValue("@panicLevel", panicLevel);
@@ -473,7 +472,6 @@ public class DatabaseHelper
                     ORDER BY `Средний уровень паники` DESC
                     LIMIT 1;";
                 break;
-
             case 7:
                 title = "7. Процент случаев когда способ успокоения помог";
                 sql = @"

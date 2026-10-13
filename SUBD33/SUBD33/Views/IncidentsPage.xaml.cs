@@ -71,17 +71,64 @@ public partial class IncidentsPage : ContentPage
         LoadData();
     }
 
+    private DateTime _lastTapTime = DateTime.MinValue;
+    private int _lastTappedId = -1;
+
+    private void SelectIncident(Incident? incident)
+    {
+        _selectedIncident = incident;
+        foreach (var item in _incidents)
+        {
+            item.IsSelected = (incident != null && item.Id == incident.Id);
+        }
+        UpdateButtonsState();
+    }
+
     private void OnSelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
-        _selectedIncident = e.CurrentSelection.FirstOrDefault() as Incident;
-        UpdateButtonsState();
+        var item = e.CurrentSelection.FirstOrDefault() as Incident;
+        if (item != null)
+        {
+            SelectIncident(item);
+        }
+    }
+
+    private async void OnRowTapped(object? sender, TappedEventArgs e)
+    {
+        if (e.Parameter is Incident incident)
+        {
+            var now = DateTime.Now;
+            bool isDoubleTap = (_lastTappedId == incident.Id && (now - _lastTapTime).TotalMilliseconds < 500);
+            _lastTapTime = now;
+            _lastTappedId = incident.Id;
+
+            SelectIncident(incident);
+
+            if (isDoubleTap)
+            {
+                await Navigation.PushAsync(new StudentCardPage(incident.StudentId));
+            }
+        }
     }
 
     private void UpdateButtonsState()
     {
         bool hasSelection = _selectedIncident != null;
-        BtnDelete.Opacity = hasSelection ? 1.0 : 0.6;
-        BtnOpenCard.Opacity = hasSelection ? 1.0 : 0.6;
+        BtnDelete.IsEnabled = hasSelection;
+        BtnDelete.Opacity = hasSelection ? 1.0 : 0.5;
+        BtnOpenCard.IsEnabled = hasSelection;
+        BtnOpenCard.Opacity = hasSelection ? 1.0 : 0.5;
+
+        if (hasSelection && _selectedIncident != null)
+        {
+            LblRecordsCount.Text = $"Выделен: {_selectedIncident.StudentName} (Инцидент №{_selectedIncident.Id}) • Нажмите «Карточка» или дважды кликните по строке";
+            LblRecordsCount.TextColor = Color.FromArgb("#38BDF8");
+        }
+        else
+        {
+            LblRecordsCount.Text = $"Всего записей: {_incidents.Count} (кликните по строке для выбора, двойной клик открывает карточку)";
+            LblRecordsCount.TextColor = Color.FromArgb("#94A3B8");
+        }
     }
 
     private async void OnDeleteClicked(object? sender, EventArgs e)
@@ -111,14 +158,6 @@ public partial class IncidentsPage : ContentPage
             {
                 await DisplayAlertAsync("Ошибка", "Не удалось удалить запись из базы данных.", "OK");
             }
-        }
-    }
-
-    private async void OnRowDoubleTapped(object? sender, TappedEventArgs e)
-    {
-        if (e.Parameter is Incident incident)
-        {
-            await Navigation.PushAsync(new StudentCardPage(incident.StudentId));
         }
     }
 

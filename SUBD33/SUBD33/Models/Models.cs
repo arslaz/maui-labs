@@ -20,14 +20,36 @@ public class TriggerItem
     public override string ToString() => Name;
 }
 
-public class Incident
+public class Incident : System.ComponentModel.INotifyPropertyChanged
 {
+    private bool _isSelected;
+    public bool IsSelected
+    {
+        get => _isSelected;
+        set
+        {
+            if (_isSelected != value)
+            {
+                _isSelected = value;
+                OnPropertyChanged(nameof(IsSelected));
+                OnPropertyChanged(nameof(RowBackgroundColor));
+                OnPropertyChanged(nameof(RowBorderColor));
+                OnPropertyChanged(nameof(RowBorderThickness));
+            }
+        }
+    }
+
+    public Color RowBackgroundColor => IsSelected ? Color.FromArgb("#1E3A8A") : Color.FromArgb("#0F172A");
+    public Color RowBorderColor => IsSelected ? Color.FromArgb("#38BDF8") : Color.FromArgb("#1E293B");
+    public double RowBorderThickness => IsSelected ? 2.0 : 0.5;
+
     public int Id { get; set; }
     public int StudentId { get; set; }
     public string StudentName { get; set; } = string.Empty;
     public string GroupName { get; set; } = string.Empty;
     public int Course { get; set; }
     public string StudentPhoto { get; set; } = string.Empty;
+    public ImageSource PhotoSource => Helpers.ImageHelper.GetImageSource(StudentPhoto);
     
     public DateTime IncidentDate { get; set; }
     public string DateDisplay => IncidentDate.ToString("dd.MM.yyyy HH:mm");
@@ -49,6 +71,12 @@ public class Incident
     public bool Helped { get; set; }
     public string HelpedDisplay => Helped ? "Да" : "Нет";
     public Color HelpedColor => Helped ? Color.FromArgb("#10B981") : Color.FromArgb("#EF4444");
+
+    public event System.ComponentModel.PropertyChangedEventHandler? PropertyChanged;
+    protected void OnPropertyChanged(string propertyName)
+    {
+        PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+    }
 
     private static string GetPanicEmoji(int level) => level switch
     {

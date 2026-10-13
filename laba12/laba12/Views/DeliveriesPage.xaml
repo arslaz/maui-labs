@@ -1,0 +1,509 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:laba12.ViewModels"
+             xmlns:models="clr-namespace:laba12.Models"
+             xmlns:conv="clr-namespace:laba12.Converters"
+             x:Class="laba12.Views.DeliveriesPage"
+             x:DataType="vm:DeliveriesViewModel"
+             Title="{Binding Title}"
+             BackgroundColor="#0B132B">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <conv:BoolToInvertedConverter x:Key="InvertedBoolConverter" />
+            <conv:StringNotEmptyToBoolConverter x:Key="StringNotEmptyConverter" />
+            <conv:StatusColorConverter x:Key="StatusColorConverter" />
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+    <Grid RowDefinitions="Auto,Auto,*,Auto">
+
+        <!-- Top Header & Driver Info -->
+        <Border Grid.Row="0"
+                BackgroundColor="#1C2541"
+                Stroke="#3A506B"
+                StrokeThickness="1"
+                Margin="12,12,12,6"
+                Padding="16,12"
+                StrokeShape="RoundRectangle 16">
+            <VerticalStackLayout Spacing="10">
+                <!-- Driver Info & Logout Row -->
+                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10" VerticalOptions="Center">
+                    <!-- Driver Avatar -->
+                    <Border Grid.Column="0"
+                            StrokeShape="RoundRectangle 20"
+                            BackgroundColor="#2563EB"
+                            WidthRequest="42" HeightRequest="42"
+                            HorizontalOptions="Center" VerticalOptions="Center">
+                        <Label Text="🚛" FontSize="22" HorizontalOptions="Center" VerticalOptions="Center"/>
+                    </Border>
+
+                    <!-- Driver Details -->
+                    <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
+                        <Label Text="{Binding DriverName}" 
+                               FontAttributes="Bold" 
+                               FontSize="15" 
+                               TextColor="#F8FAFC"
+                               LineBreakMode="TailTruncation"/>
+                        <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                            <Label Text="{Binding VehicleNumber}" FontSize="12" TextColor="#94A3B8"/>
+                            <Border StrokeShape="RoundRectangle 6" BackgroundColor="#0F172A" Padding="5,2">
+                                <Label Text="{Binding DriverId}" FontSize="10" TextColor="#38BDF8" FontAttributes="Bold"/>
+                            </Border>
+                        </HorizontalStackLayout>
+                    </VerticalStackLayout>
+
+                    <!-- Status Badge & Logout -->
+                    <HorizontalStackLayout Grid.Column="2" Spacing="8" VerticalOptions="Center">
+                        <Border StrokeShape="RoundRectangle 8" 
+                                BackgroundColor="{Binding NetworkBadgeBgColor}"
+                                Padding="8,4">
+                            <HorizontalStackLayout Spacing="5" VerticalOptions="Center">
+                                <BoxView WidthRequest="7" HeightRequest="7" CornerRadius="3" 
+                                         Color="{Binding NetworkStatusColor}"/>
+                                <Label Text="{Binding NetworkStatusBadgeText}" 
+                                       FontSize="10" 
+                                       FontAttributes="Bold" 
+                                       TextColor="{Binding NetworkStatusColor}"/>
+                            </HorizontalStackLayout>
+                        </Border>
+
+                        <Button Text="Выйти" 
+                                Command="{Binding LogoutCommand}" 
+                                BackgroundColor="#334155" 
+                                TextColor="#CBD5E1" 
+                                FontSize="11" 
+                                Padding="10,0" 
+                                HeightRequest="30"
+                                CornerRadius="8"/>
+                    </HorizontalStackLayout>
+                </Grid>
+
+                <!-- Thin separator line -->
+                <BoxView HeightRequest="1" Color="#283548"/>
+
+                <!-- Telemetry status text -->
+                <Grid ColumnDefinitions="*,Auto">
+                    <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                        <Label Text="📶" FontSize="13" VerticalOptions="Center"/>
+                        <Label Text="{Binding TelemetryStatusText}" 
+                               FontSize="11" 
+                               TextColor="#94A3B8" 
+                               LineBreakMode="TailTruncation"
+                               VerticalOptions="Center"/>
+                    </HorizontalStackLayout>
+                    <Label Grid.Column="1" Text="{Binding VehicleSpeedText}" FontSize="11" TextColor="#38BDF8" FontAttributes="Bold"/>
+                </Grid>
+
+                <!-- Action buttons Grid: 2 rows of 2 columns -->
+                <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="8" RowSpacing="6">
+                    <!-- Row 0: Fuel Report (Binary AES upload) & Offline Toggle -->
+                    <Button Grid.Row="0" Grid.Column="0"
+                            Text="📊 Отчет топлива (AES)" 
+                            Command="{Binding GenerateAndUploadFuelReportCommand}" 
+                            BackgroundColor="#047857" 
+                            TextColor="#A7F3D0" 
+                            FontSize="11" 
+                            FontAttributes="Bold"
+                            HeightRequest="34" 
+                            CornerRadius="8"
+                            Padding="4,0"/>
+
+                    <Button Grid.Row="0" Grid.Column="1"
+                            Text="{Binding SimulateOfflineButtonText}" 
+                            Command="{Binding ToggleSimulateOfflineCommand}" 
+                            BackgroundColor="{Binding SimulateOfflineButtonBgColor}"
+                            TextColor="{Binding SimulateOfflineTextColor}" 
+                            FontSize="11" 
+                            FontAttributes="Bold"
+                            HeightRequest="34" 
+                            CornerRadius="8"
+                            Padding="4,0"/>
+
+                    <!-- Row 1: DelegatingHandler 401 Refresh test & Telemetry Ping -->
+                    <Button Grid.Row="1" Grid.Column="0"
+                            Text="🔑 Тест 401 Refresh" 
+                            Command="{Binding SimulateTokenExpirationCommand}" 
+                            BackgroundColor="#4C1D95" 
+                            TextColor="#DDD6FE" 
+                            FontSize="11" 
+                            FontAttributes="Bold"
+                            HeightRequest="34" 
+                            CornerRadius="8"
+                            Padding="4,0"/>
+
+                    <Button Grid.Row="1" Grid.Column="1"
+                            Text="⚡ Отправить пинг" 
+                            Command="{Binding SendTelemetryNowCommand}" 
+                            BackgroundColor="#1E293B" 
+                            TextColor="#38BDF8" 
+                            FontSize="11" 
+                            FontAttributes="Bold"
+                            HeightRequest="34" 
+                            CornerRadius="8"
+                            Padding="4,0"/>
+                </Grid>
+            </VerticalStackLayout>
+        </Border>
+
+        <!-- Route Bar, Alerts and Notifications -->
+        <VerticalStackLayout Grid.Row="1" Margin="12,0,12,6" Spacing="6">
+            
+            <!-- Deferred Synchronization Banner (Offline JSON Queue) -->
+            <Border IsVisible="{Binding HasPendingSyncTransactions}"
+                    BackgroundColor="#451A03"
+                    Stroke="#F59E0B"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 12"
+                    Padding="12,8">
+                <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="6">
+                    <Label Text="📦" FontSize="18" VerticalOptions="Center" Margin="0,0,4,0"/>
+                    <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
+                        <Label Text="{Binding PendingSyncBadgeText}" FontAttributes="Bold" FontSize="12" TextColor="#FDE68A"/>
+                        <Label Text="Транзакции в локальном логе (offline)" FontSize="10" TextColor="#FEF3C7"/>
+                    </VerticalStackLayout>
+                    <Button Grid.Column="2" 
+                            Text="📄 JSON лог" 
+                            Command="{Binding ViewPendingQueueJsonCommand}" 
+                            BackgroundColor="#1E293B" 
+                            TextColor="#38BDF8" 
+                            FontSize="11" 
+                            FontAttributes="Bold"
+                            HeightRequest="32" 
+                            Padding="8,0"
+                            CornerRadius="8"/>
+                    <Button Grid.Column="3" 
+                            Text="Синхронизировать" 
+                            Command="{Binding ProcessSyncQueueCommand}" 
+                            BackgroundColor="#D97706" 
+                            TextColor="White" 
+                            FontSize="11" 
+                            FontAttributes="Bold"
+                            HeightRequest="32" 
+                            Padding="8,0"
+                            CornerRadius="8"/>
+                </Grid>
+            </Border>
+
+            <!-- Status Notice (Feedback from operations) -->
+            <Border IsVisible="{Binding StatusNotice, Converter={StaticResource StringNotEmptyConverter}}"
+                    BackgroundColor="#064E3B"
+                    Stroke="#10B981"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 10"
+                    Padding="10,6">
+                <Grid ColumnDefinitions="Auto,*">
+                    <Label Text="✨" FontSize="14" VerticalOptions="Center" Margin="0,0,6,0"/>
+                    <Label Grid.Column="1" Text="{Binding StatusNotice}" TextColor="#A7F3D0" FontSize="11" VerticalOptions="Center" LineBreakMode="WordWrap"/>
+                </Grid>
+            </Border>
+
+            <!-- Offline alert banner -->
+            <Border IsVisible="{Binding IsOffline}"
+                    BackgroundColor="#450A0A"
+                    Stroke="#DC2626"
+                    StrokeShape="RoundRectangle 12"
+                    Padding="12,8">
+                <Grid ColumnDefinitions="Auto,*,Auto">
+                    <Label Text="⚠️" FontSize="16" VerticalOptions="Center" Margin="0,0,8,0"/>
+                    <VerticalStackLayout Grid.Column="1">
+                        <Label Text="Автономный режим (Офлайн)" FontAttributes="Bold" FontSize="12" TextColor="#FCA5A5"/>
+                        <Label Text="{Binding CacheNotice}" FontSize="11" TextColor="#FECACA"/>
+                    </VerticalStackLayout>
+                    <Button Grid.Column="2" 
+                            Text="Повтор сети" 
+                            Command="{Binding RefreshCommand}" 
+                            BackgroundColor="#DC2626" 
+                            TextColor="White" 
+                            FontSize="11" 
+                            HeightRequest="32" 
+                            Padding="8,0"/>
+                </Grid>
+            </Border>
+
+            <!-- Fuel Report Info Pill (if available) -->
+            <Border IsVisible="{Binding FuelReportStatusText, Converter={StaticResource StringNotEmptyConverter}}"
+                    BackgroundColor="#0F172A"
+                    Stroke="#059669"
+                    StrokeShape="RoundRectangle 8"
+                    Padding="10,4">
+                <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                    <Label Text="⛽" FontSize="12"/>
+                    <Label Text="{Binding FuelReportStatusText}" FontSize="11" TextColor="#6EE7B7" LineBreakMode="TailTruncation"/>
+                </HorizontalStackLayout>
+            </Border>
+
+            <!-- Route Summary Card -->
+            <Border BackgroundColor="#1E293B"
+                    Stroke="#334155"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 14"
+                    Padding="14,10">
+                <VerticalStackLayout Spacing="8">
+                    <!-- Title and Status Text -->
+                    <VerticalStackLayout Spacing="2">
+                        <Label Text="Маршрутный план на сегодня" FontSize="11" TextColor="#94A3B8"/>
+                        <Label Text="{Binding RouteSummary, FallbackValue='Маршрут не рассчитан (нажмите для прокладки)'}" 
+                               FontSize="13" 
+                               FontAttributes="Bold" 
+                               TextColor="#38BDF8" 
+                               LineBreakMode="TailTruncation"/>
+                    </VerticalStackLayout>
+
+                    <!-- Route Buttons -->
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                        <Button Grid.Column="0"
+                                Text="🗺️ Проложить OSRM"
+                                Command="{Binding PlotRouteCommand}"
+                                IsEnabled="{Binding IsNotBusy}"
+                                BackgroundColor="#2563EB"
+                                TextColor="White"
+                                FontAttributes="Bold"
+                                FontSize="12"
+                                HeightRequest="36"
+                                CornerRadius="10"
+                                Padding="8,0"/>
+
+                        <Button Grid.Column="1"
+                                Text="📍 Открыть карту"
+                                Command="{Binding OpenMapCommand}"
+                                BackgroundColor="#059669"
+                                TextColor="White"
+                                FontAttributes="Bold"
+                                FontSize="12"
+                                HeightRequest="36"
+                                CornerRadius="10"
+                                Padding="8,0"/>
+                    </Grid>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Active request cancellation strip -->
+            <Border IsVisible="{Binding IsBusy}"
+                    BackgroundColor="#1E293B"
+                    Stroke="#EAB308"
+                    StrokeShape="RoundRectangle 10"
+                    Padding="12,6">
+                <Grid ColumnDefinitions="Auto,*,Auto">
+                    <ActivityIndicator IsRunning="True" Color="#EAB308" WidthRequest="24" HeightRequest="24" Margin="0,0,8,0"/>
+                    <Label Grid.Column="1" Text="Выполняется сетевой запрос..." TextColor="#FEF08A" FontSize="12" VerticalOptions="Center"/>
+                    <Button Grid.Column="2" 
+                            Text="Отмена (CTS)" 
+                            Command="{Binding CancelCurrentOperationCommand}" 
+                            BackgroundColor="#DC2626" 
+                            TextColor="White" 
+                            FontSize="11" 
+                            HeightRequest="30" 
+                            Padding="10,0"/>
+                </Grid>
+            </Border>
+        </VerticalStackLayout>
+
+        <!-- Main Delivery List with SwipeView Context Menu & Pull-to-Refresh -->
+        <RefreshView Grid.Row="2"
+                     IsRefreshing="{Binding IsRefreshing}"
+                     Command="{Binding RefreshCommand}"
+                     RefreshColor="#38BDF8">
+            <CollectionView ItemsSource="{Binding Deliveries}"
+                            RemainingItemsThreshold="2"
+                            RemainingItemsThresholdReachedCommand="{Binding LoadMoreCommand}"
+                            Margin="12,0">
+                
+                <CollectionView.EmptyView>
+                    <VerticalStackLayout Spacing="16" HorizontalOptions="Center" VerticalOptions="Center" Padding="32">
+                        <Label Text="📦" FontSize="50" HorizontalOptions="Center"/>
+                        <Label Text="Нет запланированных доставок" 
+                               FontSize="16" 
+                               FontAttributes="Bold" 
+                               TextColor="#94A3B8" 
+                               HorizontalOptions="Center"/>
+                        <Label Text="Потяните вниз для обновления списка по сети" 
+                               FontSize="12" 
+                               TextColor="#64748B" 
+                               HorizontalOptions="Center"/>
+                        <Button Text="Загрузить доставку" 
+                                Command="{Binding RefreshCommand}" 
+                                BackgroundColor="#2563EB" 
+                                TextColor="White" 
+                                CornerRadius="10"/>
+                    </VerticalStackLayout>
+                </CollectionView.EmptyView>
+
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:DeliveryPoint">
+                        <!-- Контекстное меню через SwipeView (свайп влево для команд) -->
+                        <SwipeView Margin="0,5">
+                            <SwipeView.RightItems>
+                                <SwipeItems Mode="Reveal">
+                                    <SwipeItem Text="Прибытие"
+                                               BackgroundColor="#06B6D4"
+                                               Command="{Binding Source={RelativeSource AncestorType={x:Type vm:DeliveriesViewModel}}, Path=MarkArrivalCommand}"
+                                               CommandParameter="{Binding .}"/>
+                                    <SwipeItem Text="Отказ"
+                                               BackgroundColor="#E11D48"
+                                               Command="{Binding Source={RelativeSource AncestorType={x:Type vm:DeliveriesViewModel}}, Path=RejectCargoCommand}"
+                                               CommandParameter="{Binding .}"/>
+                                    <SwipeItem Text="Удалить"
+                                               BackgroundColor="#DC2626"
+                                               Command="{Binding Source={RelativeSource AncestorType={x:Type vm:DeliveriesViewModel}}, Path=DeleteDeliveryCommand}"
+                                               CommandParameter="{Binding .}"/>
+                                </SwipeItems>
+                            </SwipeView.RightItems>
+
+                            <!-- Основная карточка точки доставки -->
+                            <Border StrokeShape="RoundRectangle 14"
+                                    BackgroundColor="#1E293B"
+                                    Stroke="#334155"
+                                    StrokeThickness="1"
+                                    Padding="14">
+                                
+                                <!-- Контекстное меню по правому клику (ПКМ / Long Press) -->
+                                <FlyoutBase.ContextFlyout>
+                                    <MenuFlyout>
+                                        <MenuFlyoutItem Text="📍 Отметить прибытие (PATCH)"
+                                                        Command="{Binding Source={RelativeSource AncestorType={x:Type vm:DeliveriesViewModel}}, Path=MarkArrivalCommand}"
+                                                        CommandParameter="{Binding .}"/>
+                                        <MenuFlyoutItem Text="❌ Зафиксировать отказ от груза (PUT)"
+                                                        Command="{Binding Source={RelativeSource AncestorType={x:Type vm:DeliveriesViewModel}}, Path=RejectCargoCommand}"
+                                                        CommandParameter="{Binding .}"/>
+                                        <MenuFlyoutSeparator />
+                                        <MenuFlyoutItem Text="🗑️ Удалить наряд (DELETE)"
+                                                        Command="{Binding Source={RelativeSource AncestorType={x:Type vm:DeliveriesViewModel}}, Path=DeleteDeliveryCommand}"
+                                                        CommandParameter="{Binding .}"/>
+                                    </MenuFlyout>
+                                </FlyoutBase.ContextFlyout>
+
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type vm:DeliveriesViewModel}}, Path=SelectDeliveryCommand}"
+                                                          CommandParameter="{Binding .}"/>
+                                </Border.GestureRecognizers>
+
+                                <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto" RowSpacing="6">
+                                    <!-- Row 0: Order Number, Priority, Status Chip, and ⋯ Context Menu Button -->
+                                    <Grid Grid.Row="0" ColumnDefinitions="Auto,Auto,*,Auto,Auto" ColumnSpacing="6" VerticalOptions="Center">
+                                        <Border Grid.Column="0" StrokeShape="RoundRectangle 6" BackgroundColor="#0F172A" Padding="8,3">
+                                            <Label Text="{Binding OrderNumber}" FontAttributes="Bold" FontSize="12" TextColor="#38BDF8"/>
+                                        </Border>
+                                        
+                                        <Border Grid.Column="1" StrokeShape="RoundRectangle 6" BackgroundColor="#374151" Padding="6,3">
+                                            <Label Text="{Binding Priority}" FontSize="10" TextColor="#F3F4F6"/>
+                                        </Border>
+
+                                        <!-- Status Chip -->
+                                        <Border Grid.Column="3" 
+                                                StrokeShape="RoundRectangle 12" 
+                                                BackgroundColor="{Binding Status, Converter={StaticResource StatusColorConverter}}" 
+                                                Padding="10,4">
+                                            <Label Text="{Binding Status}" 
+                                                   FontSize="11" 
+                                                   FontAttributes="Bold" 
+                                                   TextColor="White"/>
+                                        </Border>
+
+                                        <!-- Кнопка вызова контекстного меню (⋮) -->
+                                        <Button Grid.Column="4"
+                                                Text="⋮"
+                                                FontSize="16"
+                                                FontAttributes="Bold"
+                                                TextColor="#CBD5E1"
+                                                BackgroundColor="#0F172A"
+                                                WidthRequest="32"
+                                                HeightRequest="28"
+                                                Padding="0"
+                                                CornerRadius="6"
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type vm:DeliveriesViewModel}}, Path=ShowItemContextMenuCommand}"
+                                                CommandParameter="{Binding .}"/>
+                                    </Grid>
+
+                                    <!-- Row 1: Client Name -->
+                                    <Label Grid.Row="1" 
+                                           Text="{Binding ClientName}" 
+                                           FontSize="15" 
+                                           FontAttributes="Bold" 
+                                           TextColor="#F8FAFC"/>
+
+                                    <!-- Row 2: Address -->
+                                    <HorizontalStackLayout Grid.Row="2" Spacing="6">
+                                        <Label Text="📍" FontSize="13"/>
+                                        <Label Text="{Binding Address}" FontSize="13" TextColor="#CBD5E1"/>
+                                    </HorizontalStackLayout>
+
+                                    <!-- Row 3: Cargo info & Time -->
+                                    <Grid Grid.Row="3" ColumnDefinitions="*,Auto" Margin="0,2,0,0">
+                                        <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                                            <Label Text="📦" FontSize="12"/>
+                                            <Label Text="{Binding CargoDescription}" FontSize="12" TextColor="#94A3B8"/>
+                                            <Label Text="•" TextColor="#64748B" FontSize="12"/>
+                                            <Label Text="{Binding WeightKg, StringFormat='{0} кг'}" FontSize="12" TextColor="#94A3B8"/>
+                                        </HorizontalStackLayout>
+
+                                        <Border Grid.Column="1" StrokeShape="RoundRectangle 6" BackgroundColor="#0F172A" Padding="6,2">
+                                            <HorizontalStackLayout Spacing="4">
+                                                <Label Text="⏱️" FontSize="10"/>
+                                                <Label Text="{Binding EstimatedTime}" FontSize="11" TextColor="#E2E8F0"/>
+                                            </HorizontalStackLayout>
+                                        </Border>
+                                    </Grid>
+
+                                    <!-- Row 4: Notes / Rejection Reason / Arrival stamp (if present) -->
+                                    <Border Grid.Row="4" 
+                                            IsVisible="{Binding Notes, Converter={StaticResource StringNotEmptyConverter}}"
+                                            BackgroundColor="#0F172A"
+                                            Stroke="#334155"
+                                            StrokeShape="RoundRectangle 6"
+                                            Padding="8,4"
+                                            Margin="0,2,0,0">
+                                        <HorizontalStackLayout Spacing="6">
+                                            <Label Text="📝" FontSize="11" VerticalOptions="Center"/>
+                                            <Label Text="{Binding Notes}" FontSize="11" TextColor="#94A3B8" LineBreakMode="TailTruncation"/>
+                                        </HorizontalStackLayout>
+                                    </Border>
+                                </Grid>
+                            </Border>
+                        </SwipeView>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+
+                <!-- Footer for pagination loader -->
+                <CollectionView.Footer>
+                    <VerticalStackLayout Padding="12" HorizontalOptions="Center" IsVisible="{Binding IsLoadingMore}">
+                        <ActivityIndicator IsRunning="{Binding IsLoadingMore}" Color="#38BDF8" WidthRequest="28" HeightRequest="28"/>
+                        <Label Text="Загрузка следующей страницы..." FontSize="11" TextColor="#94A3B8" HorizontalOptions="Center" Margin="0,4,0,0"/>
+                    </VerticalStackLayout>
+                </CollectionView.Footer>
+            </CollectionView>
+        </RefreshView>
+
+        <!-- Bottom Status Bar -->
+        <Border Grid.Row="3"
+                BackgroundColor="#0F172A"
+                Stroke="#1E293B"
+                StrokeThickness="1"
+                Padding="16,6">
+            <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
+                <Label Text="{Binding LastUpdatedText, FallbackValue='Готово к работе'}" 
+                       FontSize="11" 
+                       TextColor="#64748B" 
+                       VerticalOptions="Center"/>
+
+                <Button Grid.Column="1"
+                        Text="📄 Кэш JSON"
+                        Command="{Binding ViewDeliveriesCacheJsonCommand}"
+                        BackgroundColor="#1E293B"
+                        TextColor="#94A3B8"
+                        FontSize="10"
+                        HeightRequest="28"
+                        Padding="6,0"
+                        CornerRadius="6"
+                        VerticalOptions="Center"/>
+
+                <HorizontalStackLayout Grid.Column="2" Spacing="6" VerticalOptions="Center">
+                    <Label Text="Всего заявок:" FontSize="11" TextColor="#94A3B8" VerticalOptions="Center"/>
+                    <Label Text="{Binding TotalCount}" FontSize="11" FontAttributes="Bold" TextColor="#F8FAFC" VerticalOptions="Center"/>
+                </HorizontalStackLayout>
+            </Grid>
+        </Border>
+
+    </Grid>
+</ContentPage>

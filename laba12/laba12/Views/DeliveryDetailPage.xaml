@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:laba12.ViewModels"
+             xmlns:conv="clr-namespace:laba12.Converters"
+             x:Class="laba12.Views.DeliveryDetailPage"
+             x:DataType="vm:DeliveryDetailViewModel"
+             Title="{Binding Title}"
+             BackgroundColor="#0B132B">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <conv:BoolToInvertedConverter x:Key="InvertedBoolConverter" />
+            <conv:StringNotEmptyToBoolConverter x:Key="StringNotEmptyConverter" />
+            <conv:StatusColorConverter x:Key="StatusColorConverter" />
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+    <Grid>
+        <ScrollView>
+            <VerticalStackLayout Spacing="16" Padding="16,20" MaximumWidthRequest="600" HorizontalOptions="Center">
+
+                <!-- Header Card -->
+                <Border StrokeShape="RoundRectangle 16"
+                        BackgroundColor="#1C2541"
+                        Stroke="#3A506B"
+                        StrokeThickness="1"
+                        Padding="16">
+                    <Grid RowDefinitions="Auto,Auto,Auto" RowSpacing="8">
+                        <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto">
+                            <Border Grid.Column="0" StrokeShape="RoundRectangle 8" BackgroundColor="#0F172A" Padding="8,4">
+                                <Label Text="{Binding Delivery.OrderNumber}" FontAttributes="Bold" FontSize="14" TextColor="#38BDF8"/>
+                            </Border>
+
+                            <Border Grid.Column="2" 
+                                    StrokeShape="RoundRectangle 12" 
+                                    BackgroundColor="{Binding Delivery.Status, Converter={StaticResource StatusColorConverter}}" 
+                                    Padding="12,4">
+                                <Label Text="{Binding Delivery.Status}" FontSize="12" FontAttributes="Bold" TextColor="White"/>
+                            </Border>
+                        </Grid>
+
+                        <Label Grid.Row="1" Text="{Binding Delivery.ClientName}" FontSize="18" FontAttributes="Bold" TextColor="#F8FAFC"/>
+
+                        <HorizontalStackLayout Grid.Row="2" Spacing="6">
+                            <Label Text="📍" FontSize="14"/>
+                            <Label Text="{Binding Delivery.Address}" FontSize="14" TextColor="#CBD5E1"/>
+                        </HorizontalStackLayout>
+                    </Grid>
+                </Border>
+
+                <!-- Client Contact & Actions Card -->
+                <Border StrokeShape="RoundRectangle 16"
+                        BackgroundColor="#1E293B"
+                        Stroke="#334155"
+                        Padding="16">
+                    <VerticalStackLayout Spacing="10">
+                        <Label Text="Контакты получателя" FontSize="14" FontAttributes="Bold" TextColor="#94A3B8"/>
+                        
+                        <VerticalStackLayout Spacing="2">
+                            <Label Text="Телефон для связи:" FontSize="11" TextColor="#64748B"/>
+                            <Label Text="{Binding Delivery.Phone}" FontSize="15" FontAttributes="Bold" TextColor="#F8FAFC"/>
+                        </VerticalStackLayout>
+
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="10" Margin="0,4,0,0">
+                            <Button Grid.Column="0" 
+                                    Text="📞 Позвонить" 
+                                    Command="{Binding CallClientCommand}"
+                                    BackgroundColor="#10B981" 
+                                    TextColor="White" 
+                                    FontAttributes="Bold"
+                                    FontSize="12" 
+                                    HeightRequest="38" 
+                                    CornerRadius="10"/>
+
+                            <Button Grid.Column="1" 
+                                    Text="🗺️ На карте" 
+                                    Command="{Binding OpenExternalMapCommand}"
+                                    BackgroundColor="#3B82F6" 
+                                    TextColor="White" 
+                                    FontAttributes="Bold"
+                                    FontSize="12" 
+                                    HeightRequest="38" 
+                                    CornerRadius="10"/>
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Cargo Specifications Card -->
+                <Border StrokeShape="RoundRectangle 16"
+                        BackgroundColor="#1E293B"
+                        Stroke="#334155"
+                        Padding="16">
+                    <VerticalStackLayout Spacing="10">
+                        <Label Text="Информация о грузе" FontSize="14" FontAttributes="Bold" TextColor="#94A3B8"/>
+
+                        <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" RowSpacing="10" ColumnSpacing="10">
+                            <!-- Cargo Description -->
+                            <VerticalStackLayout Grid.Row="0" Grid.Column="0">
+                                <Label Text="Содержимое" FontSize="11" TextColor="#64748B"/>
+                                <Label Text="{Binding Delivery.CargoDescription}" FontSize="13" TextColor="#F8FAFC" FontAttributes="Bold"/>
+                            </VerticalStackLayout>
+
+                            <!-- Priority -->
+                            <VerticalStackLayout Grid.Row="0" Grid.Column="1">
+                                <Label Text="Приоритет" FontSize="11" TextColor="#64748B"/>
+                                <Label Text="{Binding Delivery.Priority}" FontSize="13" TextColor="#F59E0B" FontAttributes="Bold"/>
+                            </VerticalStackLayout>
+
+                            <!-- Weight -->
+                            <VerticalStackLayout Grid.Row="1" Grid.Column="0">
+                                <Label Text="Масса нетто" FontSize="11" TextColor="#64748B"/>
+                                <Label Text="{Binding Delivery.WeightKg, StringFormat='{0} кг'}" FontSize="13" TextColor="#F8FAFC" FontAttributes="Bold"/>
+                            </VerticalStackLayout>
+
+                            <!-- Volume -->
+                            <VerticalStackLayout Grid.Row="1" Grid.Column="1">
+                                <Label Text="Объем" FontSize="11" TextColor="#64748B"/>
+                                <Label Text="{Binding Delivery.VolumeM3, StringFormat='{0} м³'}" FontSize="13" TextColor="#F8FAFC" FontAttributes="Bold"/>
+                            </VerticalStackLayout>
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Update Status and Notes Card -->
+                <Border StrokeShape="RoundRectangle 16"
+                        BackgroundColor="#1E293B"
+                        Stroke="#334155"
+                        Padding="16">
+                    <VerticalStackLayout Spacing="14">
+                        <Label Text="Изменение статуса заказа" FontSize="14" FontAttributes="Bold" TextColor="#38BDF8"/>
+
+                        <!-- Status Picker -->
+                        <VerticalStackLayout Spacing="6">
+                            <Label Text="Новый статус выполнения:" FontSize="12" TextColor="#94A3B8"/>
+                            <Border StrokeShape="RoundRectangle 10" BackgroundColor="#0F172A" Stroke="#334155" Padding="12,0">
+                                <Picker ItemsSource="{Binding AvailableStatuses}"
+                                        SelectedItem="{Binding SelectedStatus}"
+                                        TextColor="#F8FAFC"
+                                        Title="Выберите статус"/>
+                            </Border>
+                        </VerticalStackLayout>
+
+                        <!-- Driver Notes Editor -->
+                        <VerticalStackLayout Spacing="6">
+                            <Label Text="Заметка / Комментарий водителя:" FontSize="12" TextColor="#94A3B8"/>
+                            <Border StrokeShape="RoundRectangle 10" BackgroundColor="#0F172A" Stroke="#334155" Padding="12,8">
+                                <Editor Text="{Binding NotesText}"
+                                        Placeholder="Введите примечание (номер пропуска, передано охраннику, отказ клиента...)"
+                                        TextColor="#F8FAFC"
+                                        PlaceholderColor="#64748B"
+                                        HeightRequest="80"/>
+                            </Border>
+                        </VerticalStackLayout>
+
+                        <!-- Feedback alerts -->
+                        <Border IsVisible="{Binding StatusFeedback, Converter={StaticResource StringNotEmptyConverter}}"
+                                BackgroundColor="#064E3B"
+                                Stroke="#10B981"
+                                StrokeShape="RoundRectangle 8"
+                                Padding="12">
+                            <HorizontalStackLayout Spacing="8">
+                                <Label Text="✅" FontSize="16"/>
+                                <Label Text="{Binding StatusFeedback}" TextColor="#A7F3D0" FontSize="12" LineBreakMode="WordWrap"/>
+                            </HorizontalStackLayout>
+                        </Border>
+
+                        <Border IsVisible="{Binding ErrorMessage, Converter={StaticResource StringNotEmptyConverter}}"
+                                BackgroundColor="#450A0A"
+                                Stroke="#EF4444"
+                                StrokeShape="RoundRectangle 8"
+                                Padding="12">
+                            <HorizontalStackLayout Spacing="8">
+                                <Label Text="⚠️" FontSize="16"/>
+                                <Label Text="{Binding ErrorMessage}" TextColor="#FCA5A5" FontSize="12" LineBreakMode="WordWrap"/>
+                            </HorizontalStackLayout>
+                        </Border>
+
+                        <!-- Save button -->
+                        <Button Text="💾 Отправить изменения на сервер"
+                                Command="{Binding SaveChangesCommand}"
+                                IsEnabled="{Binding IsNotBusy}"
+                                BackgroundColor="#2563EB"
+                                TextColor="White"
+                                FontAttributes="Bold"
+                                HeightRequest="48"
+                                CornerRadius="12"/>
+
+                        <!-- Cancel request button (visible when busy) -->
+                        <Button Text="Отменить отправку (CTS)"
+                                Command="{Binding CancelCurrentOperationCommand}"
+                                IsVisible="{Binding IsBusy}"
+                                BackgroundColor="#DC2626"
+                                TextColor="White"
+                                FontAttributes="Bold"
+                                HeightRequest="40"
+                                CornerRadius="10"/>
+
+                        <!-- Back button -->
+                        <Button Text="← Вернуться к списку"
+                                Command="{Binding GoBackCommand}"
+                                BackgroundColor="Transparent"
+                                TextColor="#94A3B8"
+                                HeightRequest="36"/>
+
+                    </VerticalStackLayout>
+                </Border>
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- Loading overlay -->
+        <Grid BackgroundColor="#B3000000" IsVisible="{Binding IsBusy}">
+            <VerticalStackLayout Spacing="16" HorizontalOptions="Center" VerticalOptions="Center">
+                <ActivityIndicator IsRunning="{Binding IsBusy}" Color="#38BDF8" WidthRequest="44" HeightRequest="44"/>
+                <Label Text="Отправка обновления на REST сервер..." TextColor="#F8FAFC" FontSize="13"/>
+                <Button Text="Отмена" Command="{Binding CancelCurrentOperationCommand}" BackgroundColor="#EF4444" TextColor="White" CornerRadius="8"/>
+            </VerticalStackLayout>
+        </Grid>
+    </Grid>
+</ContentPage>

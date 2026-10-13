@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:laba12.ViewModels"
+             xmlns:conv="clr-namespace:laba12.Converters"
+             x:Class="laba12.Views.LoginPage"
+             x:DataType="vm:LoginViewModel"
+             Title="{Binding Title}"
+             BackgroundColor="#0F172A">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <conv:BoolToInvertedConverter x:Key="InvertedBoolConverter" />
+            <conv:StringNotEmptyToBoolConverter x:Key="StringNotEmptyConverter" />
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+    <Grid>
+        <ScrollView>
+            <VerticalStackLayout Spacing="24" Padding="24,36" MaximumWidthRequest="500" HorizontalOptions="Center">
+                
+                <!-- Header / Logo -->
+                <VerticalStackLayout Spacing="10" HorizontalOptions="Center">
+                    <Border StrokeShape="RoundRectangle 24" 
+                            BackgroundColor="#1E293B" 
+                            Stroke="#334155" 
+                            StrokeThickness="1" 
+                            WidthRequest="80" 
+                            HeightRequest="80" 
+                            HorizontalOptions="Center">
+                        <Label Text="🚛" FontSize="38" HorizontalOptions="Center" VerticalOptions="Center"/>
+                    </Border>
+                    
+                    <Label Text="LogiRoute Pro" 
+                           FontSize="26" 
+                           FontAttributes="Bold" 
+                           TextColor="#F8FAFC" 
+                           HorizontalOptions="Center"/>
+                    <Label Text="Навигатор грузоперевозок и доставок" 
+                           FontSize="14" 
+                           TextColor="#94A3B8" 
+                           HorizontalOptions="Center"/>
+                </VerticalStackLayout>
+
+                <!-- Login Card -->
+                <Border StrokeShape="RoundRectangle 16"
+                        BackgroundColor="#1E293B"
+                        Stroke="#334155"
+                        StrokeThickness="1"
+                        Padding="20">
+                    <VerticalStackLayout Spacing="16">
+                        <Label Text="Авторизация водителя" 
+                               FontSize="18" 
+                               FontAttributes="Bold" 
+                               TextColor="#F1F5F9" />
+
+                        <!-- Driver ID -->
+                        <VerticalStackLayout Spacing="6">
+                            <Label Text="Табельный номер (ID водителя)" FontSize="12" TextColor="#94A3B8" />
+                            <Border StrokeShape="RoundRectangle 10" BackgroundColor="#0F172A" Stroke="#334155" Padding="12,4">
+                                <Entry Text="{Binding DriverId}" 
+                                       Placeholder="Например: DRV-104" 
+                                       TextColor="#F8FAFC" 
+                                       PlaceholderColor="#64748B"/>
+                            </Border>
+                        </VerticalStackLayout>
+
+                        <!-- Password -->
+                        <VerticalStackLayout Spacing="6">
+                            <Label Text="Пароль / PIN доступа" FontSize="12" TextColor="#94A3B8" />
+                            <Border StrokeShape="RoundRectangle 10" BackgroundColor="#0F172A" Stroke="#334155" Padding="12,4">
+                                <Entry Text="{Binding Password}" 
+                                       IsPassword="True" 
+                                       Placeholder="Пароль учетной записи" 
+                                       TextColor="#F8FAFC" 
+                                       PlaceholderColor="#64748B"/>
+                            </Border>
+                        </VerticalStackLayout>
+
+                        <!-- Server Settings Expander/Section -->
+                        <BoxView HeightRequest="1" Color="#334155" Margin="0,4"/>
+
+                        <HorizontalStackLayout Spacing="10" VerticalOptions="Center">
+                            <Switch IsToggled="{Binding UseLocalMockServer}" />
+                            <VerticalStackLayout>
+                                <Label Text="Локальный тестовый сервер" FontSize="13" FontAttributes="Bold" TextColor="#E2E8F0" />
+                                <Label Text="Встроенный HttpListener (REST API)" FontSize="11" TextColor="#94A3B8" />
+                            </VerticalStackLayout>
+                        </HorizontalStackLayout>
+
+                        <!-- Server URL Input -->
+                        <VerticalStackLayout Spacing="6">
+                            <Label Text="Адрес REST API сервера" FontSize="12" TextColor="#94A3B8" />
+                            <Border StrokeShape="RoundRectangle 10" BackgroundColor="#0F172A" Stroke="#334155" Padding="12,4">
+                                <Entry Text="{Binding ServerUrl}" 
+                                       Placeholder="http://127.0.0.1:5055" 
+                                       TextColor="#38BDF8" 
+                                       PlaceholderColor="#64748B"/>
+                            </Border>
+                        </VerticalStackLayout>
+
+                        <!-- Test offline simulation toggle -->
+                        <HorizontalStackLayout Spacing="10" VerticalOptions="Center">
+                            <Switch IsToggled="{Binding SimulateOfflineServer}" />
+                            <VerticalStackLayout>
+                                <Label Text="Симулировать сбой связи (офлайн)" FontSize="13" TextColor="#F87171" />
+                                <Label Text="Проверка обработки ошибок и кэша" FontSize="11" TextColor="#94A3B8" />
+                            </VerticalStackLayout>
+                        </HorizontalStackLayout>
+
+                        <!-- Status and Error Messages -->
+                        <Border IsVisible="{Binding ErrorMessage, Converter={StaticResource StringNotEmptyConverter}}"
+                                BackgroundColor="#450A0A"
+                                Stroke="#EF4444"
+                                StrokeShape="RoundRectangle 8"
+                                Padding="12"
+                                Margin="0,4">
+                            <HorizontalStackLayout Spacing="10">
+                                <Label Text="⚠️" FontSize="16" VerticalOptions="Center"/>
+                                <Label Text="{Binding ErrorMessage}" TextColor="#FCA5A5" FontSize="12" LineBreakMode="WordWrap"/>
+                            </HorizontalStackLayout>
+                        </Border>
+
+                        <Border IsVisible="{Binding StatusMessage, Converter={StaticResource StringNotEmptyConverter}}"
+                                BackgroundColor="#064E3B"
+                                Stroke="#10B981"
+                                StrokeShape="RoundRectangle 8"
+                                Padding="12"
+                                Margin="0,4">
+                            <HorizontalStackLayout Spacing="10">
+                                <Label Text="ℹ️" FontSize="16" VerticalOptions="Center"/>
+                                <Label Text="{Binding StatusMessage}" TextColor="#A7F3D0" FontSize="12" LineBreakMode="WordWrap"/>
+                            </HorizontalStackLayout>
+                        </Border>
+
+                        <!-- Login Button -->
+                        <Button Text="Войти в систему" 
+                                Command="{Binding LoginCommand}" 
+                                IsEnabled="{Binding IsNotBusy}"
+                                BackgroundColor="#2563EB" 
+                                TextColor="#FFFFFF" 
+                                FontAttributes="Bold" 
+                                CornerRadius="12" 
+                                HeightRequest="48"
+                                Margin="0,6,0,0"/>
+
+                        <!-- Cancel Request Button (Visible when busy) -->
+                        <Button Text="Отменить запрос (CancellationToken)" 
+                                Command="{Binding CancelCurrentOperationCommand}" 
+                                IsVisible="{Binding IsBusy}"
+                                BackgroundColor="#DC2626" 
+                                TextColor="#FFFFFF" 
+                                FontAttributes="Bold" 
+                                CornerRadius="12" 
+                                HeightRequest="40"/>
+
+                        <!-- Token Preview in SecureStorage -->
+                        <Label Text="{Binding SavedTokenPreview}" 
+                               FontSize="11" 
+                               TextColor="#64748B" 
+                               HorizontalOptions="Center" 
+                               LineBreakMode="TailTruncation"
+                               IsVisible="{Binding SavedTokenPreview, Converter={StaticResource StringNotEmptyConverter}}"/>
+
+                        <Button Text="Очистить SecureStorage" 
+                                Command="{Binding ClearCredentialsCommand}" 
+                                BackgroundColor="Transparent" 
+                                TextColor="#94A3B8" 
+                                FontSize="12"
+                                HeightRequest="36"/>
+
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Footer info -->
+                <Label Text="Лабораторная работа №12 • Вариант 7&#10;MVVM • IHttpClientFactory • OSRM • Caching" 
+                       FontSize="11" 
+                       TextColor="#475569" 
+                       HorizontalTextAlignment="Center"/>
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- Loading Overlay -->
+        <Grid BackgroundColor="#CC000000" IsVisible="{Binding IsBusy}">
+            <VerticalStackLayout Spacing="16" HorizontalOptions="Center" VerticalOptions="Center">
+                <ActivityIndicator IsRunning="{Binding IsBusy}" Color="#38BDF8" WidthRequest="50" HeightRequest="50"/>
+                <Label Text="Сетевое взаимодействие..." TextColor="#F8FAFC" FontSize="14" HorizontalOptions="Center"/>
+                <Button Text="Отменить операцию" 
+                        Command="{Binding CancelCurrentOperationCommand}" 
+                        BackgroundColor="#EF4444" 
+                        TextColor="White" 
+                        CornerRadius="8" 
+                        HeightRequest="40" 
+                        Padding="16,0"/>
+            </VerticalStackLayout>
+        </Grid>
+    </Grid>
+</ContentPage>

@@ -16,20 +16,7 @@ public partial class AddStudentPage : ContentPage
     {
         try
         {
-            var customFileType = new FilePickerFileType(
-                new Dictionary<DevicePlatform, IEnumerable<string>>
-                {
-                    { DevicePlatform.MacCatalyst, new[] { "public.image", "png", "jpg", "jpeg", "bmp" } },
-                    { DevicePlatform.iOS, new[] { "public.image" } },
-                    { DevicePlatform.Android, new[] { "image/*" } },
-                    { DevicePlatform.WinUI, new[] { ".png", ".jpg", ".jpeg", ".bmp" } }
-                });
-
-            var result = await FilePicker.Default.PickAsync(new PickOptions
-            {
-                PickerTitle = "Выберите фотографию студента",
-                FileTypes = customFileType
-            });
+            var result = await FilePicker.Default.PickAsync(PickOptions.Images);
 
             if (result != null)
             {
@@ -52,7 +39,18 @@ public partial class AddStudentPage : ContentPage
         }
         catch (Exception ex)
         {
-            await DisplayAlertAsync("Ошибка", $"Не удалось выбрать файл: {ex.Message}", "OK");
+            await DisplayAlertAsync("Информация", $"Не удалось открыть системный проводник: {ex.Message}. Вы можете выбрать одно из готовых фото.", "OK");
+        }
+    }
+
+    private void OnSelectPresetPhoto(object? sender, EventArgs e)
+    {
+        if (sender is Button btn && btn.CommandParameter is string photoName)
+        {
+            _selectedPhotoPath = photoName;
+            LblPhotoPath.Text = photoName;
+            LblPhotoPath.TextColor = Color.FromArgb("#38BDF8");
+            ImgPreview.Source = ImageHelper.GetImageSource(_selectedPhotoPath);
         }
     }
 
@@ -80,9 +78,11 @@ public partial class AddStudentPage : ContentPage
             return;
         }
 
+        string photoToSave = string.IsNullOrWhiteSpace(_selectedPhotoPath) ? "avatar_default.png" : _selectedPhotoPath;
+
         try
         {
-            bool success = DatabaseHelper.Instance.AddStudent(fullName, group, course, _selectedPhotoPath);
+            bool success = DatabaseHelper.Instance.AddStudent(fullName, group, course, photoToSave);
             if (success)
             {
                 await DisplayAlertAsync("Успех", $"Студент {fullName} успешно добавлен в базу данных!", "OK");

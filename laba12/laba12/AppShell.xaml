@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Shell
+    x:Class="laba12.AppShell"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:views="clr-namespace:laba12.Views"
+    FlyoutBehavior="Disabled"
+    Shell.NavBarIsVisible="False">
+
+    <!-- Блокирующая навигация: вкладки скрыты, переход к контенту возможен исключительно после успешной JWT-авторизации на сервере -->
+    <TabBar Shell.TabBarIsVisible="False">
+        <Tab Route="LoginTab">
+            <ShellContent
+                Title="Вход"
+                Route="LoginPage"
+                ContentTemplate="{DataTemplate views:LoginPage}" />
+        </Tab>
+
+        <Tab Route="DeliveriesTab">
+            <ShellContent
+                Title="Доставки"
+                Route="DeliveriesPage"
+                ContentTemplate="{DataTemplate views:DeliveriesPage}" />
+        </Tab>
+    </TabBar>
+
+</Shell>

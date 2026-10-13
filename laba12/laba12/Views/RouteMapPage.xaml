@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:laba12.ViewModels"
+             xmlns:conv="clr-namespace:laba12.Converters"
+             x:Class="laba12.Views.RouteMapPage"
+             x:DataType="vm:RouteMapViewModel"
+             Title="{Binding Title}"
+             BackgroundColor="#0B132B">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <conv:BoolToInvertedConverter x:Key="InvertedBoolConverter" />
+            <conv:StringNotEmptyToBoolConverter x:Key="StringNotEmptyConverter" />
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+    <Grid RowDefinitions="Auto,*,Auto">
+
+        <!-- Top Route Stats Header -->
+        <Border Grid.Row="0"
+                BackgroundColor="#1C2541"
+                Stroke="#3A506B"
+                StrokeThickness="1"
+                Margin="12,10,12,6"
+                Padding="16,12"
+                StrokeShape="RoundRectangle 16">
+            <VerticalStackLayout Spacing="8">
+                <!-- Title & Stats text -->
+                <Label Text="НИТЬ МАРШРУТА OSRM (OpenStreetMap)" FontSize="11" TextColor="#38BDF8" FontAttributes="Bold"/>
+                <Label Text="{Binding RouteStatsText}" FontSize="15" FontAttributes="Bold" TextColor="#F8FAFC" LineBreakMode="TailTruncation"/>
+
+                <!-- Route metrics badges -->
+                <HorizontalStackLayout Spacing="14">
+                    <HorizontalStackLayout Spacing="4">
+                        <Label Text="📍 Точек:" FontSize="11" TextColor="#94A3B8"/>
+                        <Label Text="{Binding WaypointCount}" FontSize="11" FontAttributes="Bold" TextColor="#38BDF8"/>
+                    </HorizontalStackLayout>
+                    <HorizontalStackLayout Spacing="4">
+                        <Label Text="⏱️ Время:" FontSize="11" TextColor="#94A3B8"/>
+                        <Label Text="{Binding RouteDuration}" FontSize="11" FontAttributes="Bold" TextColor="#10B981"/>
+                    </HorizontalStackLayout>
+                    <HorizontalStackLayout Spacing="4">
+                        <Label Text="📏 Длина:" FontSize="11" TextColor="#94A3B8"/>
+                        <Label Text="{Binding RouteDistance}" FontSize="11" FontAttributes="Bold" TextColor="#F59E0B"/>
+                    </HorizontalStackLayout>
+                    <HorizontalStackLayout Spacing="4">
+                        <Label Text="📡" FontSize="11"/>
+                        <Label Text="{Binding GpsStatusText}" FontSize="11" FontAttributes="Bold" TextColor="#10B981"/>
+                    </HorizontalStackLayout>
+                </HorizontalStackLayout>
+
+                <!-- Navigation Action Buttons in dedicated 3-column grid -->
+                <Grid ColumnDefinitions="*,*,*" ColumnSpacing="8" Margin="0,4,0,0">
+                    <Button Grid.Column="0"
+                            Text="📍 Где я (GPS)" 
+                            Command="{Binding LocateMeCommand}" 
+                            IsEnabled="{Binding IsNotBusy}"
+                            BackgroundColor="#059669" 
+                            TextColor="White" 
+                            FontAttributes="Bold"
+                            FontSize="12" 
+                            HeightRequest="36" 
+                            CornerRadius="8"/>
+                    <Button Grid.Column="1"
+                            Text="🔄 Обновить" 
+                            Command="{Binding RecalculateRouteCommand}" 
+                            IsEnabled="{Binding IsNotBusy}"
+                            BackgroundColor="#2563EB" 
+                            TextColor="White" 
+                            FontAttributes="Bold"
+                            FontSize="12" 
+                            HeightRequest="36" 
+                            CornerRadius="8"/>
+                    <Button Grid.Column="2"
+                            Text="← Назад" 
+                            Command="{Binding GoBackCommand}" 
+                            BackgroundColor="#334155" 
+                            TextColor="White" 
+                            FontAttributes="Bold"
+                            FontSize="12" 
+                            HeightRequest="36" 
+                            CornerRadius="8"/>
+                </Grid>
+            </VerticalStackLayout>
+        </Border>
+
+        <!-- Map View (Leaflet + OpenStreetMap) -->
+        <Border Grid.Row="1"
+                StrokeShape="RoundRectangle 16"
+                Stroke="#334155"
+                StrokeThickness="1"
+                Margin="12,0,12,6"
+                BackgroundColor="#0F172A">
+            <WebView x:Name="MapWebView" HorizontalOptions="Fill" VerticalOptions="Fill">
+                <WebView.Source>
+                    <HtmlWebViewSource Html="{Binding MapHtml}"/>
+                </WebView.Source>
+            </WebView>
+        </Border>
+
+        <!-- Bottom Step-by-Step Leg instructions / Drawer -->
+        <Border Grid.Row="2"
+                BackgroundColor="#1E293B"
+                Stroke="#334155"
+                StrokeThickness="1"
+                Margin="12,0,12,10"
+                Padding="14,10"
+                StrokeShape="RoundRectangle 14">
+            <VerticalStackLayout Spacing="8">
+                <Label Text="Маршрутный лист этапов доставки:" FontSize="12" FontAttributes="Bold" TextColor="#94A3B8"/>
+
+                <ScrollView MaximumHeightRequest="110">
+                    <VerticalStackLayout BindableLayout.ItemsSource="{Binding RouteInstructions}" Spacing="4">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="x:String">
+                                <HorizontalStackLayout Spacing="6">
+                                    <Label Text="👉" FontSize="11" TextColor="#38BDF8"/>
+                                    <Label Text="{Binding .}" FontSize="11" TextColor="#E2E8F0" LineBreakMode="WordWrap"/>
+                                </HorizontalStackLayout>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </VerticalStackLayout>
+                </ScrollView>
+            </VerticalStackLayout>
+        </Border>
+
+        <!-- Loading Overlay -->
+        <Grid Grid.RowSpan="3" BackgroundColor="#CC000000" IsVisible="{Binding IsBusy}">
+            <VerticalStackLayout Spacing="16" HorizontalOptions="Center" VerticalOptions="Center">
+                <ActivityIndicator IsRunning="{Binding IsBusy}" Color="#38BDF8" WidthRequest="44" HeightRequest="44"/>
+                <Label Text="Расчет оптимального маршрута через OSRM..." TextColor="#F8FAFC" FontSize="14"/>
+                <Button Text="Отмена" Command="{Binding CancelCurrentOperationCommand}" BackgroundColor="#EF4444" TextColor="White" CornerRadius="8"/>
+            </VerticalStackLayout>
+        </Grid>
+    </Grid>
+</ContentPage>

@@ -34,6 +34,15 @@
                 <Label x:Name="LblPhotoPath" Text="Файл не выбран" VerticalOptions="Center" TextColor="#64748B" FontSize="12" />
             </HorizontalStackLayout>
 
+            <Label Text="Или выберите готовое фото из базы:" TextColor="#94A3B8" FontSize="12" />
+            <HorizontalStackLayout Spacing="8">
+                <Button Text="Фото 1" Clicked="OnSelectPresetPhoto" CommandParameter="student1.png" HeightRequest="32" Padding="8,0" BackgroundColor="#1E293B" TextColor="#38BDF8" FontSize="12" />
+                <Button Text="Фото 2" Clicked="OnSelectPresetPhoto" CommandParameter="student2.png" HeightRequest="32" Padding="8,0" BackgroundColor="#1E293B" TextColor="#38BDF8" FontSize="12" />
+                <Button Text="Фото 3" Clicked="OnSelectPresetPhoto" CommandParameter="student3.png" HeightRequest="32" Padding="8,0" BackgroundColor="#1E293B" TextColor="#38BDF8" FontSize="12" />
+                <Button Text="Фото 4" Clicked="OnSelectPresetPhoto" CommandParameter="student4.png" HeightRequest="32" Padding="8,0" BackgroundColor="#1E293B" TextColor="#38BDF8" FontSize="12" />
+                <Button Text="Фото 5" Clicked="OnSelectPresetPhoto" CommandParameter="student5.png" HeightRequest="32" Padding="8,0" BackgroundColor="#1E293B" TextColor="#38BDF8" FontSize="12" />
+            </HorizontalStackLayout>
+
             <Border Stroke="#334155" StrokeShape="RoundRectangle 8" BackgroundColor="#0F172A" HeightRequest="150" WidthRequest="150" HorizontalOptions="Start">
                 <Image x:Name="ImgPreview" Source="avatar_default.png" Aspect="AspectFit" />
             </Border>

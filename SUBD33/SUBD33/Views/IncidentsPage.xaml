@@ -49,15 +49,16 @@
         <Border Grid.Row="3" Stroke="#334155" StrokeThickness="1" StrokeShape="RoundRectangle 8" BackgroundColor="#0F172A" Padding="0">
             <Grid RowDefinitions="40, *">
                 
-                <Grid Grid.Row="0" BackgroundColor="#1E293B" ColumnDefinitions="45, 190, 80, 130, 150, 80, *, 80" ColumnSpacing="6" Padding="10,0">
+                <Grid Grid.Row="0" BackgroundColor="#1E293B" ColumnDefinitions="45, 50, 180, 75, 120, 140, 75, *, 70" ColumnSpacing="6" Padding="10,0">
                     <Label Grid.Column="0" Text="ID" TextColor="#38BDF8" FontAttributes="Bold" VerticalOptions="Center" />
-                    <Label Grid.Column="1" Text="Студент" TextColor="#38BDF8" FontAttributes="Bold" VerticalOptions="Center" />
-                    <Label Grid.Column="2" Text="Группа" TextColor="#38BDF8" FontAttributes="Bold" VerticalOptions="Center" />
-                    <Label Grid.Column="3" Text="Дата" TextColor="#38BDF8" FontAttributes="Bold" VerticalOptions="Center" />
-                    <Label Grid.Column="4" Text="Триггер" TextColor="#38BDF8" FontAttributes="Bold" VerticalOptions="Center" />
-                    <Label Grid.Column="5" Text="Паника" TextColor="#38BDF8" FontAttributes="Bold" VerticalOptions="Center" />
-                    <Label Grid.Column="6" Text="Способ успокоения" TextColor="#38BDF8" FontAttributes="Bold" VerticalOptions="Center" />
-                    <Label Grid.Column="7" Text="Помогло" TextColor="#38BDF8" FontAttributes="Bold" VerticalOptions="Center" />
+                    <Label Grid.Column="1" Text="Фото" TextColor="#38BDF8" FontAttributes="Bold" VerticalOptions="Center" HorizontalOptions="Center" />
+                    <Label Grid.Column="2" Text="Студент" TextColor="#38BDF8" FontAttributes="Bold" VerticalOptions="Center" />
+                    <Label Grid.Column="3" Text="Группа" TextColor="#38BDF8" FontAttributes="Bold" VerticalOptions="Center" />
+                    <Label Grid.Column="4" Text="Дата" TextColor="#38BDF8" FontAttributes="Bold" VerticalOptions="Center" />
+                    <Label Grid.Column="5" Text="Триггер" TextColor="#38BDF8" FontAttributes="Bold" VerticalOptions="Center" />
+                    <Label Grid.Column="6" Text="Паника" TextColor="#38BDF8" FontAttributes="Bold" VerticalOptions="Center" />
+                    <Label Grid.Column="7" Text="Способ успокоения" TextColor="#38BDF8" FontAttributes="Bold" VerticalOptions="Center" />
+                    <Label Grid.Column="8" Text="Помогло" TextColor="#38BDF8" FontAttributes="Bold" VerticalOptions="Center" />
                 </Grid>
 
                 <CollectionView Grid.Row="1" 
@@ -66,22 +67,40 @@
                                 SelectionChanged="OnSelectionChanged">
                     <CollectionView.ItemTemplate>
                         <DataTemplate x:DataType="models:Incident">
-                            <Border BackgroundColor="#0F172A" Stroke="#1E293B" StrokeThickness="0.5" Padding="10,8">
+                            <Border BackgroundColor="{Binding RowBackgroundColor}" 
+                                    Stroke="{Binding RowBorderColor}" 
+                                    StrokeThickness="{Binding RowBorderThickness}" 
+                                    StrokeShape="RoundRectangle 6" 
+                                    Padding="10,6" 
+                                    Margin="0,1">
                                 <Border.GestureRecognizers>
-                                    <TapGestureRecognizer NumberOfTapsRequired="2" 
+                                    <TapGestureRecognizer NumberOfTapsRequired="1" 
                                                           CommandParameter="{Binding .}" 
-                                                          Tapped="OnRowDoubleTapped" />
+                                                          Tapped="OnRowTapped" />
                                 </Border.GestureRecognizers>
 
-                                <Grid ColumnDefinitions="45, 190, 80, 130, 150, 80, *, 80" ColumnSpacing="6" VerticalOptions="Center">
+                                <Grid ColumnDefinitions="45, 50, 180, 75, 120, 140, 75, *, 70" ColumnSpacing="6" VerticalOptions="Center">
                                     <Label Grid.Column="0" Text="{Binding Id}" TextColor="#64748B" VerticalOptions="Center" />
-                                    <Label Grid.Column="1" Text="{Binding StudentName}" TextColor="#F8FAFC" FontAttributes="Bold" LineBreakMode="TailTruncation" VerticalOptions="Center" />
-                                    <Label Grid.Column="2" Text="{Binding GroupName}" TextColor="#94A3B8" VerticalOptions="Center" />
-                                    <Label Grid.Column="3" Text="{Binding DateDisplay}" TextColor="#CBD5E1" VerticalOptions="Center" />
-                                    <Label Grid.Column="4" Text="{Binding TriggerName}" TextColor="#E2E8F0" LineBreakMode="TailTruncation" VerticalOptions="Center" />
-                                    <Label Grid.Column="5" Text="{Binding PanicLevel, StringFormat='{0} / 10'}" TextColor="#F59E0B" FontAttributes="Bold" VerticalOptions="Center" />
-                                    <Label Grid.Column="6" Text="{Binding CalmingMethod}" TextColor="#CBD5E1" LineBreakMode="TailTruncation" VerticalOptions="Center" />
-                                    <Label Grid.Column="7" Text="{Binding HelpedDisplay}" TextColor="{Binding HelpedColor}" FontAttributes="Bold" VerticalOptions="Center" />
+                                    
+                                    <Border Grid.Column="1" 
+                                            HeightRequest="36" 
+                                            WidthRequest="36" 
+                                            StrokeShape="RoundRectangle 18" 
+                                            Stroke="#475569" 
+                                            StrokeThickness="1" 
+                                            BackgroundColor="#0F172A" 
+                                            HorizontalOptions="Center" 
+                                            VerticalOptions="Center">
+                                        <Image Source="{Binding PhotoSource}" Aspect="AspectFit" />
+                                    </Border>
+
+                                    <Label Grid.Column="2" Text="{Binding StudentName}" TextColor="#F8FAFC" FontAttributes="Bold" LineBreakMode="TailTruncation" VerticalOptions="Center" />
+                                    <Label Grid.Column="3" Text="{Binding GroupName}" TextColor="#94A3B8" VerticalOptions="Center" />
+                                    <Label Grid.Column="4" Text="{Binding DateDisplay}" TextColor="#CBD5E1" VerticalOptions="Center" />
+                                    <Label Grid.Column="5" Text="{Binding TriggerName}" TextColor="#E2E8F0" LineBreakMode="TailTruncation" VerticalOptions="Center" />
+                                    <Label Grid.Column="6" Text="{Binding PanicLevel, StringFormat='{0}/10'}" TextColor="#F59E0B" FontAttributes="Bold" VerticalOptions="Center" />
+                                    <Label Grid.Column="7" Text="{Binding CalmingMethod}" TextColor="#CBD5E1" LineBreakMode="TailTruncation" VerticalOptions="Center" />
+                                    <Label Grid.Column="8" Text="{Binding HelpedDisplay}" TextColor="{Binding HelpedColor}" FontAttributes="Bold" VerticalOptions="Center" />
                                 </Grid>
                             </Border>
                         </DataTemplate>
