@@ -10,6 +10,7 @@ public partial class LoginViewModel : BaseViewModel
     private readonly ISecureStorageService _secureStorageService;
     private readonly ITelemetryService _telemetryService;
     private readonly MockBackendServer _mockBackendServer;
+    private readonly ILocalDatabaseService _databaseService;
 
     [ObservableProperty]
     private string driverId = "DRV-104";
@@ -36,12 +37,14 @@ public partial class LoginViewModel : BaseViewModel
         ILogisticsApiService apiService,
         ISecureStorageService secureStorageService,
         ITelemetryService telemetryService,
-        MockBackendServer mockBackendServer)
+        MockBackendServer mockBackendServer,
+        ILocalDatabaseService databaseService)
     {
         _apiService = apiService;
         _secureStorageService = secureStorageService;
         _telemetryService = telemetryService;
         _mockBackendServer = mockBackendServer;
+        _databaseService = databaseService;
         Title = "Вход в систему доставки";
 
         _ = InitializeAsync();
@@ -135,6 +138,10 @@ public partial class LoginViewModel : BaseViewModel
                 
                 // Запуск службы телеметрии
                 _telemetryService.Start(result.DriverId);
+
+                // Автоматическая миграция legacy JSON-кэша в реляционные таблицы SQLite
+                await _databaseService.MigrateFromLegacyJsonAsync(result.DriverId);
+                await _databaseService.GetOrCreateWaybillAsync(result.DriverId, result.DriverName, result.VehicleNumber);
 
                 // Переход на экран путевого листа разрешен исключительно после валидного ответа API
                 await Shell.Current.GoToAsync("//DeliveriesPage");

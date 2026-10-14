@@ -19,6 +19,7 @@ public interface IFuelReportService
 public class FuelReportService : IFuelReportService
 {
     private readonly ISecureStorageService _secureStorageService;
+    private readonly ILocalDatabaseService _databaseService;
     private readonly JsonSerializerOptions _jsonOptions = new()
     {
         PropertyNameCaseInsensitive = true,
@@ -27,9 +28,12 @@ public class FuelReportService : IFuelReportService
 
     private string CacheJsonPath => Path.Combine(FileSystem.AppDataDirectory, "fuel_reports_cache.json");
 
-    public FuelReportService(ISecureStorageService secureStorageService)
+    public FuelReportService(
+        ISecureStorageService secureStorageService,
+        ILocalDatabaseService databaseService)
     {
         _secureStorageService = secureStorageService;
+        _databaseService = databaseService;
     }
 
     public async Task<(FuelReport Report, string EncryptedFilePath)> GenerateAndEncryptReportAsync(
@@ -39,14 +43,17 @@ public class FuelReportService : IFuelReportService
         IEnumerable<DeliveryPoint> deliveries)
     {
         var points = deliveries.ToList();
-        var deliveredCount = points.Count(p => p.Status == "Доставлен");
+        var deliveredCount = points.Count(p => p.Status == "Доставлен" || p.Status == "Прибыл");
         var activeCount = points.Count;
 
-        // Realistic logistics fuel consumption estimation based on points
-        double estimatedDistanceKm = Math.Round(35.0 + (activeCount * 8.5), 1);
-        double avgLitersPer100 = 11.4; // GAZelle Next / Ford Transit standard diesel consumption
-        double consumedLiters = Math.Round((estimatedDistanceKm / 100.0) * avgLitersPer100, 2);
-        double remainingLiters = Math.Round(70.0 - consumedLiters, 1);
+        // ВАРИАНТ 7: Формирование отчета на основе агрегированных данных из локальной таблицы поездок trip_records
+        var tripStats = await _databaseService.GetAggregatedTripStatisticsAsync(driverId);
+        var waybill = await _databaseService.GetOrCreateWaybillAsync(driverId, driverName, vehicleNumber);
+
+        double totalDistanceKm = tripStats.TotalDistanceKm;
+        double consumedLiters = tripStats.TotalFuelConsumedLiters;
+        double avgLitersPer100 = tripStats.AverageConsumptionPer100Km;
+        double remainingLiters = Math.Max(5.0, Math.Round(waybill.FuelStartingLiters - consumedLiters, 1));
 
         var report = new FuelReport
         {
@@ -55,12 +62,12 @@ public class FuelReportService : IFuelReportService
             DriverName = driverName,
             VehicleNumber = vehicleNumber,
             GeneratedAt = DateTime.UtcNow,
-            TotalDistanceKm = estimatedDistanceKm,
+            TotalDistanceKm = totalDistanceKm,
             FuelConsumedLiters = consumedLiters,
             FuelRemainingLiters = remainingLiters,
             AverageLitersPer100Km = avgLitersPer100,
             VisitedOrders = points.Select(p => $"{p.OrderNumber}: {p.ClientName} ({p.Status})").ToList(),
-            Notes = $"Автоматический срез датчиков ДУТ. Доставлено: {deliveredCount} из {activeCount} точек маршрута."
+            Notes = $"Агрегировано из SQLite: {tripStats.TotalTrips} рейсов, средняя скорость {tripStats.AverageSpeedKmh:F1} км/ч. Обработано {deliveredCount} из {activeCount} точек."
         };
 
         // 1. Формирование структурированного текстового документа
@@ -76,11 +83,15 @@ public class FuelReportService : IFuelReportService
         sb.AppendLine($"Время генерации:         {DateTime.Now:dd.MM.yyyy HH:mm:ss} (Локальное)");
         sb.AppendLine($"Время сервера (UTC):     {report.GeneratedAt:yyyy-MM-dd HH:mm:ss}Z");
         sb.AppendLine("--------------------------------------------------------------------------------");
-        sb.AppendLine("ПОКАЗАНИЯ ДАТЧИКОВ УРОВНЯ ТОПЛИВА (ДУТ) И СПИДОМЕТРА:");
-        sb.AppendLine($"  • Общий суточный пробег:      {report.TotalDistanceKm:F1} км");
+        sb.AppendLine("ИСТОЧНИК: ЛОКАЛЬНАЯ РЕЛЯЦИОННАЯ СУБД SQLITE (Таблицы: waybills, trip_records)");
+        sb.AppendLine($"  • Учтенных поездок в БД:      {tripStats.TotalTrips}");
+        sb.AppendLine($"  • Агрегированный пробег:      {report.TotalDistanceKm:F1} км");
         sb.AppendLine($"  • Объем израсходованного ДТ:  {report.FuelConsumedLiters:F2} л");
         sb.AppendLine($"  • Средний расход на 100 км:   {report.AverageLitersPer100Km:F1} л/100 км");
-        sb.AppendLine($"  • Расчетный остаток в баке:   {report.FuelRemainingLiters:F1} л");
+        sb.AppendLine($"  • Средняя скорость датчиков:  {tripStats.AverageSpeedKmh:F1} км/ч");
+        sb.AppendLine($"  • Путевой лист водителя:      #{waybill.Id} ({waybill.Status}, {waybill.WaybillDate:dd.MM.yyyy})");
+        sb.AppendLine($"  • Одометр автомобиля:         {waybill.InitialOdometerKm:F1} км -> {waybill.InitialOdometerKm + report.TotalDistanceKm:F1} км");
+        sb.AppendLine($"  • Расчетный остаток в баке:   {report.FuelRemainingLiters:F1} л (из {waybill.FuelStartingLiters:F1} л)");
         sb.AppendLine($"  • Примечание диспетчера:      {report.Notes}");
         sb.AppendLine("--------------------------------------------------------------------------------");
         sb.AppendLine("ОБРАБОТАННЫЕ ПУТЕВЫЕ ТОЧКИ МАРШРУТНОГО ЛИСТА:");

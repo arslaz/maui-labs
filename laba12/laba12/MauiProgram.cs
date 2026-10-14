@@ -36,9 +36,9 @@ public static class MauiProgram
             client.DefaultRequestHeaders.Add("User-Agent", "MauiLogisticsNavigator/1.0");
         });
 
-        // 3. Core & Business Services
         builder.Services.AddSingleton<MockBackendServer>();
         builder.Services.AddSingleton<ISecureStorageService, SecureStorageService>();
+        builder.Services.AddSingleton<ILocalDatabaseService, LocalDatabaseService>();
         builder.Services.AddSingleton<ICacheService, FileCacheService>();
         builder.Services.AddSingleton<INetworkStatusService, NetworkStatusService>();
         builder.Services.AddSingleton<ISyncQueueService, SyncQueueService>();

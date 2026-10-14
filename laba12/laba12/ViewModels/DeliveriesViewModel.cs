@@ -19,6 +19,7 @@ public partial class DeliveriesViewModel : BaseViewModel
     private readonly IDeviceLocationService _locationService;
     private readonly ISyncQueueService _syncQueueService;
     private readonly IFuelReportService _fuelReportService;
+    private readonly ILocalDatabaseService _databaseService;
 
     public ObservableCollection<DeliveryPoint> Deliveries { get; } = new();
 
@@ -67,14 +68,20 @@ public partial class DeliveriesViewModel : BaseViewModel
     [ObservableProperty]
     private string? lastUpdatedText;
 
-    // Свойства отложенной синхронизации (Offline JSON Queue)
+    // Свойства отложенной синхронизации (SQLite & Offline Queue)
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasPendingSyncTransactions))]
     [NotifyPropertyChangedFor(nameof(PendingSyncBadgeText))]
     private int pendingSyncCount;
 
-    public bool HasPendingSyncTransactions => PendingSyncCount > 0;
-    public string PendingSyncBadgeText => $"Очередь офлайн-транзакций: {PendingSyncCount}";
+    [ObservableProperty]
+    private int pendingSqliteSyncCount;
+
+    [ObservableProperty]
+    private string databaseStatusText = "SQLite: app_local_storage.db3";
+
+    public bool HasPendingSyncTransactions => PendingSyncCount > 0 || PendingSqliteSyncCount > 0;
+    public string PendingSyncBadgeText => $"Очередь синхронизации: {Math.Max(PendingSyncCount, PendingSqliteSyncCount)}";
 
     // Свойства отчета о топливе
     [ObservableProperty]
@@ -112,7 +119,8 @@ public partial class DeliveriesViewModel : BaseViewModel
         INetworkStatusService networkStatusService,
         IDeviceLocationService locationService,
         ISyncQueueService syncQueueService,
-        IFuelReportService fuelReportService)
+        IFuelReportService fuelReportService,
+        ILocalDatabaseService databaseService)
     {
         _apiService = apiService;
         _cacheService = cacheService;
@@ -124,6 +132,7 @@ public partial class DeliveriesViewModel : BaseViewModel
         _locationService = locationService;
         _syncQueueService = syncQueueService;
         _fuelReportService = fuelReportService;
+        _databaseService = databaseService;
 
         Title = "Маршрутный лист водителя";
 
@@ -183,8 +192,14 @@ public partial class DeliveriesViewModel : BaseViewModel
             VehicleNumber = savedVehicle;
         }
 
+        // Автоматическая миграция legacy JSON в реляционные таблицы SQLite при открытии
+        await _databaseService.MigrateFromLegacyJsonAsync(DriverId);
+        await _databaseService.GetOrCreateWaybillAsync(DriverId, DriverName, VehicleNumber);
+
         PendingSyncCount = await _syncQueueService.GetPendingCountAsync();
+        await UpdateDatabaseCountsAsync();
         UpdateTelemetryUI();
+
         await LoadDeliveriesAsync(refresh: true);
     }
 
@@ -199,9 +214,10 @@ public partial class DeliveriesViewModel : BaseViewModel
     }
 
     /// <summary>
-    /// СТРАТЕГИЯ CACHE-ASIDE:
-    /// Сначала мгновенно считывает информацию из локального файла-кэша для быстрого рендера UI,
-    /// и лишь затем инициирует асинхронный фоновый запрос к REST API для актуализации данных.
+    /// ЛОКАЛЬНЫЕ БАЗЫ ДАННЫХ (SQLite-net-pcl):
+    /// Главный экран со списком обязан мгновенно загружать данные из базы данных при открытии,
+    /// а сетевой запрос к API переводит приложение в состояние обновления и синхронизирует 
+    /// полученные извне структуры с локальной БД SQLite.
     /// </summary>
     [RelayCommand]
     public async Task LoadDeliveriesAsync(bool refresh = false)
@@ -214,26 +230,41 @@ public partial class DeliveriesViewModel : BaseViewModel
             HasMoreItems = true;
         }
 
-        // ШАГ 1: МГНОВЕННОЕ ЧТЕНИЕ ИЗ ЛОКАЛЬНОГО JSON-КЭША (Стратегия Cache-Aside)
-        var cached = await _cacheService.GetCachedDeliveriesAsync(DriverId);
-        var lastCacheTime = await _cacheService.GetLastCacheTimeAsync(DriverId);
-
-        if (cached != null && cached.Any())
+        // ШАГ 1: МГНОВЕННАЯ ЗАГРУЗКА ИЗ ЛОКАЛЬНОЙ БАЗЫ ДАННЫХ SQLITE (таблица delivery_points)
+        var localPoints = await _databaseService.GetDeliveryPointsAsync(DriverId);
+        if (localPoints.Any())
         {
             Deliveries.Clear();
-            foreach (var item in cached)
+            foreach (var item in localPoints)
             {
                 Deliveries.Add(item);
             }
             TotalCount = Deliveries.Count;
-            LastUpdatedText = $"Локальный кэш: {lastCacheTime:dd.MM.yyyy HH:mm:ss}";
+            LastUpdatedText = $"БД SQLite (app_local_storage.db3): {DateTime.Now:HH:mm:ss}";
         }
+        else
+        {
+            // Резервный фолбэк на legacy JSON-кэш, если SQLite еще не заполнен
+            var cached = await _cacheService.GetCachedDeliveriesAsync(DriverId);
+            if (cached != null && cached.Any())
+            {
+                Deliveries.Clear();
+                foreach (var item in cached)
+                {
+                    Deliveries.Add(item);
+                }
+                TotalCount = Deliveries.Count;
+                LastUpdatedText = $"Локальный JSON кэш: {DateTime.Now:HH:mm:ss}";
+            }
+        }
+
+        await UpdateDatabaseCountsAsync();
 
         // Если физическая сеть отсутствует или включена симуляция офлайна
         if (!_networkStatusService.IsConnected || _mockBackendServer.SimulateOffline)
         {
             IsOffline = true;
-            CacheNotice = $"ОФЛАЙН: Телефон работает автономно. Отображен кэш ({lastCacheTime:HH:mm:ss}) из AppDataDirectory.";
+            CacheNotice = $"ОФЛАЙН: Автономный режим. Данные мгновенно отображены из локальной базы SQLite ({Deliveries.Count} нарядов).";
             IsBusy = false;
             IsRefreshing = false;
             return;
@@ -248,8 +279,13 @@ public partial class DeliveriesViewModel : BaseViewModel
         {
             var response = await _apiService.GetDeliveriesAsync(DriverId, CurrentPage, PageSize, token);
 
+            // ШАГ 3: СИНХРОНИЗАЦИЯ ПОЛУЧЕННЫХ ИЗВНЕ СТРУКТУР С ЛОКАЛЬНОЙ БД SQLITE (Upsert)
+            await _databaseService.SaveOrUpdateDeliveriesFromApiAsync(DriverId, response.Items);
+
+            // Получаем актуальный список из SQLite с сохранением локальных статусов
+            var refreshedFromDb = await _databaseService.GetDeliveryPointsAsync(DriverId);
             Deliveries.Clear();
-            foreach (var item in response.Items)
+            foreach (var item in refreshedFromDb)
             {
                 Deliveries.Add(item);
             }
@@ -258,10 +294,11 @@ public partial class DeliveriesViewModel : BaseViewModel
             HasMoreItems = response.HasMore;
             IsOffline = false;
             CacheNotice = null;
-            LastUpdatedText = $"REST API (Bearer Token): {DateTime.Now:HH:mm:ss}";
+            LastUpdatedText = $"Синхронизировано API ➔ SQLite: {DateTime.Now:HH:mm:ss}";
 
-            // ШАГ 3: ОБНОВЛЕНИЕ ЛОКАЛЬНОГО КЭША В AppDataDirectory
+            // Резервное дублирование в legacy JSON
             await _cacheService.SaveDeliveriesAsync(DriverId, Deliveries.ToList());
+            await UpdateDatabaseCountsAsync();
         }
         catch (OperationCanceledException)
         {
@@ -269,9 +306,9 @@ public partial class DeliveriesViewModel : BaseViewModel
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[DeliveriesViewModel] Сетевой запрос завершился ошибкой: {ex.Message}. Кэш уже отображен.");
+            System.Diagnostics.Debug.WriteLine($"[DeliveriesViewModel] Сетевой запрос завершился ошибкой: {ex.Message}. SQLite уже отображен.");
             IsOffline = true;
-            CacheNotice = $"ОФЛАЙН: Сервер недоступен ({ex.Message}). Показаны данные из локального кэша.";
+            CacheNotice = $"ОФЛАЙН: Сервер недоступен ({ex.Message}). Показаны данные из локальной базы SQLite.";
         }
         finally
         {
@@ -365,6 +402,7 @@ public partial class DeliveriesViewModel : BaseViewModel
 
     /// <summary>
     /// Вариант 7: Контекстное меню -> «Отметить прибытие» (PATCH-запрос со штампом времени)
+    /// Атомарно меняет состояние строки в локальной таблице SQLite с фиксацией этапа в trip_records.
     /// </summary>
     [RelayCommand]
     public async Task MarkArrivalAsync(DeliveryPoint? point)
@@ -372,15 +410,22 @@ public partial class DeliveriesViewModel : BaseViewModel
         if (point == null) return;
 
         var arrivalTime = DateTime.UtcNow;
+        bool isOffline = IsOffline || _mockBackendServer.SimulateOffline || !_networkStatusService.IsConnected;
 
-        // Мгновенное оптимистичное обновление UI и локального кэша
+        // 1. АТОМАРНАЯ МОДИФИКАЦИЯ СТРОКИ В ТАБЛИЦЕ SQLITE (таблица delivery_points + фиксация в trip_records)
+        await _databaseService.MarkArrivalAsync(point.Id, arrivalTime, isOffline);
+
+        // 2. Мгновенное оптимистичное обновление UI и локального кэша
         point.Status = "Прибыл";
-        point.Notes = $"Прибытие зафиксировано: {DateTime.Now:HH:mm:ss}";
+        point.Notes = $"Отметка прибытия: {DateTime.Now:HH:mm:ss} (зафиксировано в SQLite)";
         point.UpdatedAt = arrivalTime;
+        point.IsSyncPending = isOffline;
         await _cacheService.UpdateCachedPointAsync(DriverId, point);
 
-        // Проверка: офлайн или сбой сети
-        if (IsOffline || _mockBackendServer.SimulateOffline || !_networkStatusService.IsConnected)
+        await UpdateDatabaseCountsAsync();
+
+        // 3. Если офлайн или симуляция сбоя — фиксируем в очереди и выходим
+        if (isOffline)
         {
             var tx = new SyncTransaction
             {
@@ -394,11 +439,11 @@ public partial class DeliveriesViewModel : BaseViewModel
 
             await _syncQueueService.EnqueueAsync(tx);
             PendingSyncCount = await _syncQueueService.GetPendingCountAsync();
-            StatusNotice = $"ОФЛАЙН: Отметка прибытия ({point.OrderNumber}) сохранена в JSON-лог отложенной синхронизации.";
+            StatusNotice = $"ОФЛАЙН: Отметка прибытия ({point.OrderNumber}) атомарно сохранена в SQLite (IsSyncPending=true).";
             return;
         }
 
-        // Онлайн: отправка PATCH-запроса на сервер
+        // 4. Онлайн: отправка PATCH-запроса на сервер
         IsBusy = true;
         try
         {
@@ -408,13 +453,18 @@ public partial class DeliveriesViewModel : BaseViewModel
             {
                 point.Status = updated.Status;
                 point.Notes = updated.Notes;
+                point.IsSyncPending = false;
+                await _databaseService.ClearSyncPendingFlagAsync(point.Id);
                 await _cacheService.UpdateCachedPointAsync(DriverId, point);
             }
-            StatusNotice = $"PATCH: Прибытие по наряду {point.OrderNumber} успешно подтверждено сервером!";
+            StatusNotice = $"PATCH: Прибытие по наряду {point.OrderNumber} подтверждено сервером и зафиксировано в SQLite!";
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[DeliveriesViewModel] PATCH error: {ex.Message}. Сохранение в JSON-лог.");
+            System.Diagnostics.Debug.WriteLine($"[DeliveriesViewModel] PATCH error: {ex.Message}. Отложенная синхронизация SQLite.");
+            await _databaseService.MarkArrivalAsync(point.Id, arrivalTime, isOffline: true);
+            point.IsSyncPending = true;
+
             var tx = new SyncTransaction
             {
                 DeliveryId = point.Id,
@@ -426,17 +476,19 @@ public partial class DeliveriesViewModel : BaseViewModel
             };
             await _syncQueueService.EnqueueAsync(tx);
             PendingSyncCount = await _syncQueueService.GetPendingCountAsync();
-            StatusNotice = $"Сбой сети: Отметка прибытия помещена в JSON-лог синхронизации.";
+            StatusNotice = $"Сбой сети: Прибытие сохранено в SQLite со статусом IsSyncPending=true.";
         }
         finally
         {
             IsBusy = false;
+            await UpdateDatabaseCountsAsync();
             ResetCancellation();
         }
     }
 
     /// <summary>
     /// Вариант 7: Контекстное меню -> «Зафиксировать отказ от груза» (PUT-запрос с указанием причины)
+    /// Атомарно меняет состояние строки в таблице SQLite с внесением записи в trip_records.
     /// </summary>
     [RelayCommand]
     public async Task RejectCargoAsync(DeliveryPoint? point)
@@ -454,15 +506,22 @@ public partial class DeliveriesViewModel : BaseViewModel
         if (string.IsNullOrWhiteSpace(reason)) return;
 
         var rejectTime = DateTime.UtcNow;
+        bool isOffline = IsOffline || _mockBackendServer.SimulateOffline || !_networkStatusService.IsConnected;
 
-        // Мгновенное оптимистичное обновление UI и локального кэша
+        // 1. АТОМАРНАЯ МОДИФИКАЦИЯ СТРОКИ В ТАБЛИЦЕ SQLITE
+        await _databaseService.MarkRejectAsync(point.Id, reason, isOffline);
+
+        // 2. Мгновенное обновление UI и локального кэша
         point.Status = "Отказ";
-        point.Notes = $"Причина отказа: {reason}";
+        point.Notes = $"Акт отказа (SQLite): {reason}";
         point.UpdatedAt = rejectTime;
+        point.IsSyncPending = isOffline;
         await _cacheService.UpdateCachedPointAsync(DriverId, point);
 
-        // Проверка: офлайн
-        if (IsOffline || _mockBackendServer.SimulateOffline || !_networkStatusService.IsConnected)
+        await UpdateDatabaseCountsAsync();
+
+        // 3. Если офлайн - сохраняем транзакцию для сервера
+        if (isOffline)
         {
             var tx = new SyncTransaction
             {
@@ -476,11 +535,11 @@ public partial class DeliveriesViewModel : BaseViewModel
 
             await _syncQueueService.EnqueueAsync(tx);
             PendingSyncCount = await _syncQueueService.GetPendingCountAsync();
-            StatusNotice = $"ОФЛАЙН: Отказ от груза ({point.OrderNumber}) сохранен в JSON-лог отложенной синхронизации.";
+            StatusNotice = $"ОФЛАЙН: Отказ ({point.OrderNumber}) атомарно сохранен в SQLite (IsSyncPending=true).";
             return;
         }
 
-        // Онлайн: отправка PUT-запроса на сервер
+        // 4. Онлайн: отправка PUT-запроса на сервер
         IsBusy = true;
         try
         {
@@ -490,13 +549,18 @@ public partial class DeliveriesViewModel : BaseViewModel
             {
                 point.Status = updated.Status;
                 point.Notes = updated.Notes;
+                point.IsSyncPending = false;
+                await _databaseService.ClearSyncPendingFlagAsync(point.Id);
                 await _cacheService.UpdateCachedPointAsync(DriverId, point);
             }
-            StatusNotice = $"PUT: Акт отказа по заказу {point.OrderNumber} успешно принят сервером!";
+            StatusNotice = $"PUT: Акт отказа по заказу {point.OrderNumber} принят сервером и подтвержден в SQLite!";
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[DeliveriesViewModel] PUT error: {ex.Message}. Сохранение в JSON-лог.");
+            System.Diagnostics.Debug.WriteLine($"[DeliveriesViewModel] PUT error: {ex.Message}. Отложенная синхронизация SQLite.");
+            await _databaseService.MarkRejectAsync(point.Id, reason, isOffline: true);
+            point.IsSyncPending = true;
+
             var tx = new SyncTransaction
             {
                 DeliveryId = point.Id,
@@ -508,11 +572,12 @@ public partial class DeliveriesViewModel : BaseViewModel
             };
             await _syncQueueService.EnqueueAsync(tx);
             PendingSyncCount = await _syncQueueService.GetPendingCountAsync();
-            StatusNotice = $"Сбой сети: Отказ от груза помещен в JSON-лог синхронизации.";
+            StatusNotice = $"Сбой сети: Отказ сохранен в SQLite со статусом IsSyncPending=true.";
         }
         finally
         {
             IsBusy = false;
+            await UpdateDatabaseCountsAsync();
             ResetCancellation();
         }
     }
@@ -533,13 +598,19 @@ public partial class DeliveriesViewModel : BaseViewModel
 
         if (!confirm) return;
 
-        // Удаление из UI и обновление локального кэша
+        bool isOffline = IsOffline || _mockBackendServer.SimulateOffline || !_networkStatusService.IsConnected;
+
+        // 1. АТОМАРНОЕ УДАЛЕНИЕ / ПОМЕТКА НА УДАЛЕНИЕ В SQLITE
+        await _databaseService.DeleteDeliveryPointAsync(point.Id, isOffline);
+
+        // 2. Удаление из UI и обновление резервного кэша
         Deliveries.Remove(point);
         TotalCount = Deliveries.Count;
         await _cacheService.SaveDeliveriesAsync(DriverId, Deliveries.ToList());
 
-        // Проверка: офлайн
-        if (IsOffline || _mockBackendServer.SimulateOffline || !_networkStatusService.IsConnected)
+        await UpdateDatabaseCountsAsync();
+
+        if (isOffline)
         {
             var tx = new SyncTransaction
             {
@@ -552,7 +623,7 @@ public partial class DeliveriesViewModel : BaseViewModel
 
             await _syncQueueService.EnqueueAsync(tx);
             PendingSyncCount = await _syncQueueService.GetPendingCountAsync();
-            StatusNotice = $"ОФЛАЙН: Запрос на удаление ({point.OrderNumber}) сохранен в JSON-лог синхронизации.";
+            StatusNotice = $"ОФЛАЙН: Запись {point.OrderNumber} помечена в SQLite на удаление (IsSyncPending=true).";
             return;
         }
 
@@ -564,12 +635,13 @@ public partial class DeliveriesViewModel : BaseViewModel
             var deleted = await _apiService.DeleteDeliveryAsync(point.Id, token);
             if (deleted)
             {
-                StatusNotice = $"DELETE: Наряд {point.OrderNumber} успешно удален на сервере!";
+                await _databaseService.ClearSyncPendingFlagAsync(point.Id);
+                StatusNotice = $"DELETE: Наряд {point.OrderNumber} успешно удален из SQLite и сервера!";
             }
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[DeliveriesViewModel] DELETE error: {ex.Message}. Сохранение в JSON-лог.");
+            System.Diagnostics.Debug.WriteLine($"[DeliveriesViewModel] DELETE error: {ex.Message}.");
             var tx = new SyncTransaction
             {
                 DeliveryId = point.Id,
@@ -580,25 +652,26 @@ public partial class DeliveriesViewModel : BaseViewModel
             };
             await _syncQueueService.EnqueueAsync(tx);
             PendingSyncCount = await _syncQueueService.GetPendingCountAsync();
-            StatusNotice = $"Сбой сети: Удаление помещено в JSON-лог синхронизации.";
+            StatusNotice = $"Сбой сети: Удаление помещено в лог синхронизации.";
         }
         finally
         {
             IsBusy = false;
+            await UpdateDatabaseCountsAsync();
             ResetCancellation();
         }
     }
 
     // =========================================================================
-    // ОТЛОЖЕННАЯ СИНХРОНИЗАЦИЯ (ОБРАБОТКА ОФЛАЙН JSON-ЛОГА)
+    // ОТЛОЖЕННАЯ СИНХРОНИЗАЦИЯ (ОБРАБОТКА SQLITE ФЛАГОВ И ОФЛАЙН-ОЧЕРЕДИ)
     // =========================================================================
 
     [RelayCommand]
     public async Task ProcessSyncQueueAsync()
     {
-        if (PendingSyncCount == 0)
+        if (PendingSyncCount == 0 && PendingSqliteSyncCount == 0)
         {
-            await Shell.Current.DisplayAlertAsync("Синхронизация", "Локальный JSON-лог синхронизации пуст.", "OK");
+            await Shell.Current.DisplayAlertAsync("Синхронизация", "Локальная база данных SQLite и лог синхронизации полностью синхронизированы.", "OK");
             return;
         }
 
@@ -614,23 +687,111 @@ public partial class DeliveriesViewModel : BaseViewModel
     private async Task ProcessSyncQueueInternalAsync()
     {
         IsBusy = true;
-        StatusNotice = "Синхронизация отложенных транзакций с сервером...";
+        StatusNotice = "Синхронизация отложенных изменений SQLite с сервером...";
         try
         {
+            // 1. Поиск и отправка всех строк с флагом IsSyncPending = true из SQLite
+            var pendingPoints = await _databaseService.GetPendingSyncItemsAsync(DriverId);
+            int sqliteSyncedCount = 0;
+
+            foreach (var item in pendingPoints)
+            {
+                try
+                {
+                    if (item.PendingOperation == "PATCH_ARRIVAL")
+                    {
+                        await _apiService.MarkArrivalAsync(item.Id, item.ArrivedAt ?? DateTime.UtcNow, CancellationToken.None);
+                        await _databaseService.ClearSyncPendingFlagAsync(item.Id);
+                        sqliteSyncedCount++;
+                    }
+                    else if (item.PendingOperation == "PUT_REJECT")
+                    {
+                        await _apiService.RejectCargoAsync(item.Id, item.RejectionReason ?? "Отказ от груза", CancellationToken.None);
+                        await _databaseService.ClearSyncPendingFlagAsync(item.Id);
+                        sqliteSyncedCount++;
+                    }
+                    else if (item.PendingOperation == "DELETE")
+                    {
+                        await _apiService.DeleteDeliveryAsync(item.Id, CancellationToken.None);
+                        await _databaseService.ClearSyncPendingFlagAsync(item.Id);
+                        sqliteSyncedCount++;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[ProcessSyncQueue] Ошибка отправки строки {item.Id}: {ex.Message}");
+                }
+            }
+
+            // 2. Обработка резервной файловой очереди JSON
             var result = await _syncQueueService.ProcessQueueAsync(_apiService);
             PendingSyncCount = await _syncQueueService.GetPendingCountAsync();
-            StatusNotice = result.Message;
-            await Shell.Current.DisplayAlertAsync("Отложенная синхронизация", result.Message, "OK");
+            await UpdateDatabaseCountsAsync();
+
+            string resultMsg = sqliteSyncedCount > 0
+                ? $"Успешно синхронизировано строк SQLite: {sqliteSyncedCount}. {result.Message}"
+                : result.Message;
+
+            StatusNotice = resultMsg;
+            await Shell.Current.DisplayAlertAsync("Отложенная синхронизация", resultMsg, "OK");
             await LoadDeliveriesAsync(refresh: true);
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Сбой при синхронизации JSON-лога: {ex.Message}";
+            ErrorMessage = $"Сбой при синхронизации: {ex.Message}";
         }
         finally
         {
             IsBusy = false;
         }
+    }
+
+    private async Task UpdateDatabaseCountsAsync()
+    {
+        try
+        {
+            var summary = await _databaseService.GetDatabaseSummaryAsync(DriverId);
+            PendingSqliteSyncCount = summary.PendingSyncCount;
+            DatabaseStatusText = $"SQLite: {summary.DeliveriesCount} точек (путевой #{summary.WaybillCount})";
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[DeliveriesViewModel] UpdateDatabaseCounts error: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Инспектор базы данных SQLite для демонстрации преподавателю
+    /// </summary>
+    [RelayCommand]
+    public async Task ViewDatabaseInfoAsync()
+    {
+        var summary = await _databaseService.GetDatabaseSummaryAsync(DriverId);
+        var stats = await _databaseService.GetAggregatedTripStatisticsAsync(DriverId);
+        var waybill = await _databaseService.GetOrCreateWaybillAsync(DriverId, DriverName, VehicleNumber);
+
+        string message =
+            $"📂 ФАЙЛ БАЗЫ ДАННЫХ SQLITE:\n{summary.DbPath}\n\n" +
+            $"📋 ТАБЛИЦА 1: waybills (Путевые листы водителей)\n" +
+            $"• Записей в таблице: {summary.WaybillCount}\n" +
+            $"• Активный путевой лист: #{waybill.Id} ({waybill.Status})\n" +
+            $"• Дата смены: {waybill.WaybillDate:dd.MM.yyyy}\n" +
+            $"• Водитель: {waybill.DriverName} ({waybill.VehicleNumber})\n" +
+            $"• Начальный одометр: {waybill.InitialOdometerKm:F1} км\n" +
+            $"• Текущий одометр: {waybill.CurrentOdometerKm:F1} км\n" +
+            $"• Топливо в баке: {waybill.FuelRemainingLiters:F1} л (из {waybill.FuelStartingLiters:F1} л)\n\n" +
+            $"📦 ТАБЛИЦА 2: delivery_points (Точки маршрутного листа)\n" +
+            $"• Всего точек в SQLite: {summary.DeliveriesCount}\n" +
+            $"• Ожидают отправки на сервер (IsSyncPending): {summary.PendingSyncCount}\n\n" +
+            $"🚚 ТАБЛИЦА 3: trip_records (Рейсы и расход топлива ДУТ)\n" +
+            $"• Зарегистрировано рейсов: {summary.TripRecordsCount}\n" +
+            $"• Агрегированный пробег: {stats.TotalDistanceKm:F1} км\n" +
+            $"• Израсходовано топлива: {stats.TotalFuelConsumedLiters:F2} л\n" +
+            $"• Средний расход: {stats.AverageConsumptionPer100Km:F1} л/100 км\n" +
+            $"• Средняя скорость движения: {stats.AverageSpeedKmh:F1} км/ч\n\n" +
+            $"✅ МИГРАЦИЯ ДАННЫХ: Старые JSON-файлы успешно перенесены в реляционные таблицы SQLite!";
+
+        await Shell.Current.DisplayAlertAsync("Инспектор СУБД SQLite", message, "Закрыть");
     }
 
     [RelayCommand]

@@ -17,291 +17,10 @@
         </ResourceDictionary>
     </ContentPage.Resources>
 
-    <Grid RowDefinitions="Auto,Auto,*,Auto">
+    <Grid RowDefinitions="*,Auto">
 
-        <!-- Top Header & Driver Info -->
-        <Border Grid.Row="0"
-                BackgroundColor="#1C2541"
-                Stroke="#3A506B"
-                StrokeThickness="1"
-                Margin="12,12,12,6"
-                Padding="16,12"
-                StrokeShape="RoundRectangle 16">
-            <VerticalStackLayout Spacing="10">
-                <!-- Driver Info & Logout Row -->
-                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10" VerticalOptions="Center">
-                    <!-- Driver Avatar -->
-                    <Border Grid.Column="0"
-                            StrokeShape="RoundRectangle 20"
-                            BackgroundColor="#2563EB"
-                            WidthRequest="42" HeightRequest="42"
-                            HorizontalOptions="Center" VerticalOptions="Center">
-                        <Label Text="🚛" FontSize="22" HorizontalOptions="Center" VerticalOptions="Center"/>
-                    </Border>
-
-                    <!-- Driver Details -->
-                    <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
-                        <Label Text="{Binding DriverName}" 
-                               FontAttributes="Bold" 
-                               FontSize="15" 
-                               TextColor="#F8FAFC"
-                               LineBreakMode="TailTruncation"/>
-                        <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
-                            <Label Text="{Binding VehicleNumber}" FontSize="12" TextColor="#94A3B8"/>
-                            <Border StrokeShape="RoundRectangle 6" BackgroundColor="#0F172A" Padding="5,2">
-                                <Label Text="{Binding DriverId}" FontSize="10" TextColor="#38BDF8" FontAttributes="Bold"/>
-                            </Border>
-                        </HorizontalStackLayout>
-                    </VerticalStackLayout>
-
-                    <!-- Status Badge & Logout -->
-                    <HorizontalStackLayout Grid.Column="2" Spacing="8" VerticalOptions="Center">
-                        <Border StrokeShape="RoundRectangle 8" 
-                                BackgroundColor="{Binding NetworkBadgeBgColor}"
-                                Padding="8,4">
-                            <HorizontalStackLayout Spacing="5" VerticalOptions="Center">
-                                <BoxView WidthRequest="7" HeightRequest="7" CornerRadius="3" 
-                                         Color="{Binding NetworkStatusColor}"/>
-                                <Label Text="{Binding NetworkStatusBadgeText}" 
-                                       FontSize="10" 
-                                       FontAttributes="Bold" 
-                                       TextColor="{Binding NetworkStatusColor}"/>
-                            </HorizontalStackLayout>
-                        </Border>
-
-                        <Button Text="Выйти" 
-                                Command="{Binding LogoutCommand}" 
-                                BackgroundColor="#334155" 
-                                TextColor="#CBD5E1" 
-                                FontSize="11" 
-                                Padding="10,0" 
-                                HeightRequest="30"
-                                CornerRadius="8"/>
-                    </HorizontalStackLayout>
-                </Grid>
-
-                <!-- Thin separator line -->
-                <BoxView HeightRequest="1" Color="#283548"/>
-
-                <!-- Telemetry status text -->
-                <Grid ColumnDefinitions="*,Auto">
-                    <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
-                        <Label Text="📶" FontSize="13" VerticalOptions="Center"/>
-                        <Label Text="{Binding TelemetryStatusText}" 
-                               FontSize="11" 
-                               TextColor="#94A3B8" 
-                               LineBreakMode="TailTruncation"
-                               VerticalOptions="Center"/>
-                    </HorizontalStackLayout>
-                    <Label Grid.Column="1" Text="{Binding VehicleSpeedText}" FontSize="11" TextColor="#38BDF8" FontAttributes="Bold"/>
-                </Grid>
-
-                <!-- Action buttons Grid: 2 rows of 2 columns -->
-                <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="8" RowSpacing="6">
-                    <!-- Row 0: Fuel Report (Binary AES upload) & Offline Toggle -->
-                    <Button Grid.Row="0" Grid.Column="0"
-                            Text="📊 Отчет топлива (AES)" 
-                            Command="{Binding GenerateAndUploadFuelReportCommand}" 
-                            BackgroundColor="#047857" 
-                            TextColor="#A7F3D0" 
-                            FontSize="11" 
-                            FontAttributes="Bold"
-                            HeightRequest="34" 
-                            CornerRadius="8"
-                            Padding="4,0"/>
-
-                    <Button Grid.Row="0" Grid.Column="1"
-                            Text="{Binding SimulateOfflineButtonText}" 
-                            Command="{Binding ToggleSimulateOfflineCommand}" 
-                            BackgroundColor="{Binding SimulateOfflineButtonBgColor}"
-                            TextColor="{Binding SimulateOfflineTextColor}" 
-                            FontSize="11" 
-                            FontAttributes="Bold"
-                            HeightRequest="34" 
-                            CornerRadius="8"
-                            Padding="4,0"/>
-
-                    <!-- Row 1: DelegatingHandler 401 Refresh test & Telemetry Ping -->
-                    <Button Grid.Row="1" Grid.Column="0"
-                            Text="🔑 Тест 401 Refresh" 
-                            Command="{Binding SimulateTokenExpirationCommand}" 
-                            BackgroundColor="#4C1D95" 
-                            TextColor="#DDD6FE" 
-                            FontSize="11" 
-                            FontAttributes="Bold"
-                            HeightRequest="34" 
-                            CornerRadius="8"
-                            Padding="4,0"/>
-
-                    <Button Grid.Row="1" Grid.Column="1"
-                            Text="⚡ Отправить пинг" 
-                            Command="{Binding SendTelemetryNowCommand}" 
-                            BackgroundColor="#1E293B" 
-                            TextColor="#38BDF8" 
-                            FontSize="11" 
-                            FontAttributes="Bold"
-                            HeightRequest="34" 
-                            CornerRadius="8"
-                            Padding="4,0"/>
-                </Grid>
-            </VerticalStackLayout>
-        </Border>
-
-        <!-- Route Bar, Alerts and Notifications -->
-        <VerticalStackLayout Grid.Row="1" Margin="12,0,12,6" Spacing="6">
-            
-            <!-- Deferred Synchronization Banner (Offline JSON Queue) -->
-            <Border IsVisible="{Binding HasPendingSyncTransactions}"
-                    BackgroundColor="#451A03"
-                    Stroke="#F59E0B"
-                    StrokeThickness="1"
-                    StrokeShape="RoundRectangle 12"
-                    Padding="12,8">
-                <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="6">
-                    <Label Text="📦" FontSize="18" VerticalOptions="Center" Margin="0,0,4,0"/>
-                    <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
-                        <Label Text="{Binding PendingSyncBadgeText}" FontAttributes="Bold" FontSize="12" TextColor="#FDE68A"/>
-                        <Label Text="Транзакции в локальном логе (offline)" FontSize="10" TextColor="#FEF3C7"/>
-                    </VerticalStackLayout>
-                    <Button Grid.Column="2" 
-                            Text="📄 JSON лог" 
-                            Command="{Binding ViewPendingQueueJsonCommand}" 
-                            BackgroundColor="#1E293B" 
-                            TextColor="#38BDF8" 
-                            FontSize="11" 
-                            FontAttributes="Bold"
-                            HeightRequest="32" 
-                            Padding="8,0"
-                            CornerRadius="8"/>
-                    <Button Grid.Column="3" 
-                            Text="Синхронизировать" 
-                            Command="{Binding ProcessSyncQueueCommand}" 
-                            BackgroundColor="#D97706" 
-                            TextColor="White" 
-                            FontSize="11" 
-                            FontAttributes="Bold"
-                            HeightRequest="32" 
-                            Padding="8,0"
-                            CornerRadius="8"/>
-                </Grid>
-            </Border>
-
-            <!-- Status Notice (Feedback from operations) -->
-            <Border IsVisible="{Binding StatusNotice, Converter={StaticResource StringNotEmptyConverter}}"
-                    BackgroundColor="#064E3B"
-                    Stroke="#10B981"
-                    StrokeThickness="1"
-                    StrokeShape="RoundRectangle 10"
-                    Padding="10,6">
-                <Grid ColumnDefinitions="Auto,*">
-                    <Label Text="✨" FontSize="14" VerticalOptions="Center" Margin="0,0,6,0"/>
-                    <Label Grid.Column="1" Text="{Binding StatusNotice}" TextColor="#A7F3D0" FontSize="11" VerticalOptions="Center" LineBreakMode="WordWrap"/>
-                </Grid>
-            </Border>
-
-            <!-- Offline alert banner -->
-            <Border IsVisible="{Binding IsOffline}"
-                    BackgroundColor="#450A0A"
-                    Stroke="#DC2626"
-                    StrokeShape="RoundRectangle 12"
-                    Padding="12,8">
-                <Grid ColumnDefinitions="Auto,*,Auto">
-                    <Label Text="⚠️" FontSize="16" VerticalOptions="Center" Margin="0,0,8,0"/>
-                    <VerticalStackLayout Grid.Column="1">
-                        <Label Text="Автономный режим (Офлайн)" FontAttributes="Bold" FontSize="12" TextColor="#FCA5A5"/>
-                        <Label Text="{Binding CacheNotice}" FontSize="11" TextColor="#FECACA"/>
-                    </VerticalStackLayout>
-                    <Button Grid.Column="2" 
-                            Text="Повтор сети" 
-                            Command="{Binding RefreshCommand}" 
-                            BackgroundColor="#DC2626" 
-                            TextColor="White" 
-                            FontSize="11" 
-                            HeightRequest="32" 
-                            Padding="8,0"/>
-                </Grid>
-            </Border>
-
-            <!-- Fuel Report Info Pill (if available) -->
-            <Border IsVisible="{Binding FuelReportStatusText, Converter={StaticResource StringNotEmptyConverter}}"
-                    BackgroundColor="#0F172A"
-                    Stroke="#059669"
-                    StrokeShape="RoundRectangle 8"
-                    Padding="10,4">
-                <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
-                    <Label Text="⛽" FontSize="12"/>
-                    <Label Text="{Binding FuelReportStatusText}" FontSize="11" TextColor="#6EE7B7" LineBreakMode="TailTruncation"/>
-                </HorizontalStackLayout>
-            </Border>
-
-            <!-- Route Summary Card -->
-            <Border BackgroundColor="#1E293B"
-                    Stroke="#334155"
-                    StrokeThickness="1"
-                    StrokeShape="RoundRectangle 14"
-                    Padding="14,10">
-                <VerticalStackLayout Spacing="8">
-                    <!-- Title and Status Text -->
-                    <VerticalStackLayout Spacing="2">
-                        <Label Text="Маршрутный план на сегодня" FontSize="11" TextColor="#94A3B8"/>
-                        <Label Text="{Binding RouteSummary, FallbackValue='Маршрут не рассчитан (нажмите для прокладки)'}" 
-                               FontSize="13" 
-                               FontAttributes="Bold" 
-                               TextColor="#38BDF8" 
-                               LineBreakMode="TailTruncation"/>
-                    </VerticalStackLayout>
-
-                    <!-- Route Buttons -->
-                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
-                        <Button Grid.Column="0"
-                                Text="🗺️ Проложить OSRM"
-                                Command="{Binding PlotRouteCommand}"
-                                IsEnabled="{Binding IsNotBusy}"
-                                BackgroundColor="#2563EB"
-                                TextColor="White"
-                                FontAttributes="Bold"
-                                FontSize="12"
-                                HeightRequest="36"
-                                CornerRadius="10"
-                                Padding="8,0"/>
-
-                        <Button Grid.Column="1"
-                                Text="📍 Открыть карту"
-                                Command="{Binding OpenMapCommand}"
-                                BackgroundColor="#059669"
-                                TextColor="White"
-                                FontAttributes="Bold"
-                                FontSize="12"
-                                HeightRequest="36"
-                                CornerRadius="10"
-                                Padding="8,0"/>
-                    </Grid>
-                </VerticalStackLayout>
-            </Border>
-
-            <!-- Active request cancellation strip -->
-            <Border IsVisible="{Binding IsBusy}"
-                    BackgroundColor="#1E293B"
-                    Stroke="#EAB308"
-                    StrokeShape="RoundRectangle 10"
-                    Padding="12,6">
-                <Grid ColumnDefinitions="Auto,*,Auto">
-                    <ActivityIndicator IsRunning="True" Color="#EAB308" WidthRequest="24" HeightRequest="24" Margin="0,0,8,0"/>
-                    <Label Grid.Column="1" Text="Выполняется сетевой запрос..." TextColor="#FEF08A" FontSize="12" VerticalOptions="Center"/>
-                    <Button Grid.Column="2" 
-                            Text="Отмена (CTS)" 
-                            Command="{Binding CancelCurrentOperationCommand}" 
-                            BackgroundColor="#DC2626" 
-                            TextColor="White" 
-                            FontSize="11" 
-                            HeightRequest="30" 
-                            Padding="10,0"/>
-                </Grid>
-            </Border>
-        </VerticalStackLayout>
-
-        <!-- Main Delivery List with SwipeView Context Menu & Pull-to-Refresh -->
-        <RefreshView Grid.Row="2"
+        <!-- Весь скроллящийся контент: Header + список -->
+        <RefreshView Grid.Row="0"
                      IsRefreshing="{Binding IsRefreshing}"
                      Command="{Binding RefreshCommand}"
                      RefreshColor="#38BDF8">
@@ -309,7 +28,312 @@
                             RemainingItemsThreshold="2"
                             RemainingItemsThresholdReachedCommand="{Binding LoadMoreCommand}"
                             Margin="12,0">
-                
+
+                <!-- ===== ШАПКА (скроллится вместе со списком) ===== -->
+                <CollectionView.Header>
+                    <VerticalStackLayout Spacing="6" Margin="0,12,0,6">
+
+                        <!-- Top Header & Driver Info -->
+                        <Border BackgroundColor="#1C2541"
+                                Stroke="#3A506B"
+                                StrokeThickness="1"
+                                Padding="16,12"
+                                StrokeShape="RoundRectangle 16">
+                            <VerticalStackLayout Spacing="10">
+                                <!-- Driver Info & Logout Row -->
+                                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10" VerticalOptions="Center">
+                                    <!-- Driver Avatar -->
+                                    <Border Grid.Column="0"
+                                            StrokeShape="RoundRectangle 20"
+                                            BackgroundColor="#2563EB"
+                                            WidthRequest="42" HeightRequest="42"
+                                            HorizontalOptions="Center" VerticalOptions="Center">
+                                        <Label Text="🚛" FontSize="22" HorizontalOptions="Center" VerticalOptions="Center"/>
+                                    </Border>
+
+                                    <!-- Driver Details -->
+                                    <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
+                                        <Label Text="{Binding DriverName}" 
+                                               FontAttributes="Bold" 
+                                               FontSize="15" 
+                                               TextColor="#F8FAFC"
+                                               LineBreakMode="TailTruncation"/>
+                                        <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                                            <Label Text="{Binding VehicleNumber}" FontSize="12" TextColor="#94A3B8"/>
+                                            <Border StrokeShape="RoundRectangle 6" BackgroundColor="#0F172A" Padding="5,2">
+                                                <Label Text="{Binding DriverId}" FontSize="10" TextColor="#38BDF8" FontAttributes="Bold"/>
+                                            </Border>
+                                        </HorizontalStackLayout>
+                                    </VerticalStackLayout>
+
+                                    <!-- Status Badge & Logout -->
+                                    <HorizontalStackLayout Grid.Column="2" Spacing="8" VerticalOptions="Center">
+                                        <Border StrokeShape="RoundRectangle 8" 
+                                                BackgroundColor="{Binding NetworkBadgeBgColor}"
+                                                Padding="8,4">
+                                            <HorizontalStackLayout Spacing="5" VerticalOptions="Center">
+                                                <BoxView WidthRequest="7" HeightRequest="7" CornerRadius="3" 
+                                                         Color="{Binding NetworkStatusColor}"/>
+                                                <Label Text="{Binding NetworkStatusBadgeText}" 
+                                                       FontSize="10" 
+                                                       FontAttributes="Bold" 
+                                                       TextColor="{Binding NetworkStatusColor}"/>
+                                            </HorizontalStackLayout>
+                                        </Border>
+
+                                        <Button Text="Выйти" 
+                                                Command="{Binding LogoutCommand}" 
+                                                BackgroundColor="#334155" 
+                                                TextColor="#CBD5E1" 
+                                                FontSize="11" 
+                                                Padding="10,0" 
+                                                HeightRequest="30"
+                                                CornerRadius="8"/>
+                                    </HorizontalStackLayout>
+                                </Grid>
+
+                                <!-- Thin separator line -->
+                                <BoxView HeightRequest="1" Color="#283548"/>
+
+                                <!-- Telemetry status text -->
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                                        <Label Text="📶" FontSize="13" VerticalOptions="Center"/>
+                                        <Label Text="{Binding TelemetryStatusText}" 
+                                               FontSize="11" 
+                                               TextColor="#94A3B8" 
+                                               LineBreakMode="TailTruncation"
+                                               VerticalOptions="Center"/>
+                                    </HorizontalStackLayout>
+                                    <Label Grid.Column="1" Text="{Binding VehicleSpeedText}" FontSize="11" TextColor="#38BDF8" FontAttributes="Bold"/>
+                                </Grid>
+
+                                <!-- Action buttons Grid: 3 rows of 2 columns -->
+                                <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="8" RowSpacing="6">
+                                    <!-- Row 0: Fuel Report & Offline Toggle -->
+                                    <Button Grid.Row="0" Grid.Column="0"
+                                            Text="📊 Отчет топлива (AES)" 
+                                            Command="{Binding GenerateAndUploadFuelReportCommand}" 
+                                            BackgroundColor="#047857" 
+                                            TextColor="#A7F3D0" 
+                                            FontSize="11" 
+                                            FontAttributes="Bold"
+                                            HeightRequest="34" 
+                                            CornerRadius="8"
+                                            Padding="4,0"/>
+
+                                    <Button Grid.Row="0" Grid.Column="1"
+                                            Text="{Binding SimulateOfflineButtonText}" 
+                                            Command="{Binding ToggleSimulateOfflineCommand}" 
+                                            BackgroundColor="{Binding SimulateOfflineButtonBgColor}"
+                                            TextColor="{Binding SimulateOfflineTextColor}" 
+                                            FontSize="11" 
+                                            FontAttributes="Bold"
+                                            HeightRequest="34" 
+                                            CornerRadius="8"
+                                            Padding="4,0"/>
+
+                                    <!-- Row 1: SQLite Database Inspector & DelegatingHandler 401 Refresh test -->
+                                    <Button Grid.Row="1" Grid.Column="0"
+                                            Text="🗄️ База SQLite" 
+                                            Command="{Binding ViewDatabaseInfoCommand}" 
+                                            BackgroundColor="#0284C7" 
+                                            TextColor="#E0F2FE" 
+                                            FontSize="11" 
+                                            FontAttributes="Bold"
+                                            HeightRequest="34" 
+                                            CornerRadius="8"
+                                            Padding="4,0"/>
+
+                                    <Button Grid.Row="1" Grid.Column="1"
+                                            Text="🔑 Тест 401 Refresh" 
+                                            Command="{Binding SimulateTokenExpirationCommand}" 
+                                            BackgroundColor="#4C1D95" 
+                                            TextColor="#DDD6FE" 
+                                            FontSize="11" 
+                                            FontAttributes="Bold"
+                                            HeightRequest="34" 
+                                            CornerRadius="8"
+                                            Padding="4,0"/>
+
+                                    <!-- Row 2: Telemetry Ping & JSON Cache View -->
+                                    <Button Grid.Row="2" Grid.Column="0"
+                                            Text="⚡ Отправить пинг" 
+                                            Command="{Binding SendTelemetryNowCommand}" 
+                                            BackgroundColor="#1E293B" 
+                                            TextColor="#38BDF8" 
+                                            FontSize="11" 
+                                            FontAttributes="Bold"
+                                            HeightRequest="34" 
+                                            CornerRadius="8"
+                                            Padding="4,0"/>
+
+                                    <Button Grid.Row="2" Grid.Column="1"
+                                            Text="📄 Кэш JSON" 
+                                            Command="{Binding ViewDeliveriesCacheJsonCommand}" 
+                                            BackgroundColor="#1E293B" 
+                                            TextColor="#CBD5E1" 
+                                            FontSize="11" 
+                                            FontAttributes="Bold"
+                                            HeightRequest="34" 
+                                            CornerRadius="8"
+                                            Padding="4,0"/>
+                                </Grid>
+                            </VerticalStackLayout>
+                        </Border>
+
+                        <!-- Deferred Synchronization Banner (Offline JSON Queue) -->
+                        <Border IsVisible="{Binding HasPendingSyncTransactions}"
+                                BackgroundColor="#451A03"
+                                Stroke="#F59E0B"
+                                StrokeThickness="1"
+                                StrokeShape="RoundRectangle 12"
+                                Padding="12,8">
+                            <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="6">
+                                <Label Text="📦" FontSize="18" VerticalOptions="Center" Margin="0,0,4,0"/>
+                                <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
+                                    <Label Text="{Binding PendingSyncBadgeText}" FontAttributes="Bold" FontSize="12" TextColor="#FDE68A"/>
+                                    <Label Text="Транзакции в локальном логе (offline)" FontSize="10" TextColor="#FEF3C7"/>
+                                </VerticalStackLayout>
+                                <Button Grid.Column="2" 
+                                        Text="📄 JSON лог" 
+                                        Command="{Binding ViewPendingQueueJsonCommand}" 
+                                        BackgroundColor="#1E293B" 
+                                        TextColor="#38BDF8" 
+                                        FontSize="11" 
+                                        FontAttributes="Bold"
+                                        HeightRequest="32" 
+                                        Padding="8,0"
+                                        CornerRadius="8"/>
+                                <Button Grid.Column="3" 
+                                        Text="Синхронизировать" 
+                                        Command="{Binding ProcessSyncQueueCommand}" 
+                                        BackgroundColor="#D97706" 
+                                        TextColor="White" 
+                                        FontSize="11" 
+                                        FontAttributes="Bold"
+                                        HeightRequest="32" 
+                                        Padding="8,0"
+                                        CornerRadius="8"/>
+                            </Grid>
+                        </Border>
+
+                        <!-- Status Notice (Feedback from operations) -->
+                        <Border IsVisible="{Binding StatusNotice, Converter={StaticResource StringNotEmptyConverter}}"
+                                BackgroundColor="#064E3B"
+                                Stroke="#10B981"
+                                StrokeThickness="1"
+                                StrokeShape="RoundRectangle 10"
+                                Padding="10,6">
+                            <Grid ColumnDefinitions="Auto,*">
+                                <Label Text="✨" FontSize="14" VerticalOptions="Center" Margin="0,0,6,0"/>
+                                <Label Grid.Column="1" Text="{Binding StatusNotice}" TextColor="#A7F3D0" FontSize="11" VerticalOptions="Center" LineBreakMode="WordWrap"/>
+                            </Grid>
+                        </Border>
+
+                        <!-- Offline alert banner -->
+                        <Border IsVisible="{Binding IsOffline}"
+                                BackgroundColor="#450A0A"
+                                Stroke="#DC2626"
+                                StrokeShape="RoundRectangle 12"
+                                Padding="12,8">
+                            <Grid ColumnDefinitions="Auto,*,Auto">
+                                <Label Text="⚠️" FontSize="16" VerticalOptions="Center" Margin="0,0,8,0"/>
+                                <VerticalStackLayout Grid.Column="1">
+                                    <Label Text="Автономный режим (Офлайн)" FontAttributes="Bold" FontSize="12" TextColor="#FCA5A5"/>
+                                    <Label Text="{Binding CacheNotice}" FontSize="11" TextColor="#FECACA"/>
+                                </VerticalStackLayout>
+                                <Button Grid.Column="2" 
+                                        Text="Повтор сети" 
+                                        Command="{Binding RefreshCommand}" 
+                                        BackgroundColor="#DC2626" 
+                                        TextColor="White" 
+                                        FontSize="11" 
+                                        HeightRequest="32" 
+                                        Padding="8,0"/>
+                            </Grid>
+                        </Border>
+
+                        <!-- Fuel Report Info Pill (if available) -->
+                        <Border IsVisible="{Binding FuelReportStatusText, Converter={StaticResource StringNotEmptyConverter}}"
+                                BackgroundColor="#0F172A"
+                                Stroke="#059669"
+                                StrokeShape="RoundRectangle 8"
+                                Padding="10,4">
+                            <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                                <Label Text="⛽" FontSize="12"/>
+                                <Label Text="{Binding FuelReportStatusText}" FontSize="11" TextColor="#6EE7B7" LineBreakMode="TailTruncation"/>
+                            </HorizontalStackLayout>
+                        </Border>
+
+                        <!-- Route Summary Card -->
+                        <Border BackgroundColor="#1E293B"
+                                Stroke="#334155"
+                                StrokeThickness="1"
+                                StrokeShape="RoundRectangle 14"
+                                Padding="14,10">
+                            <VerticalStackLayout Spacing="8">
+                                <!-- Title and Status Text -->
+                                <VerticalStackLayout Spacing="2">
+                                    <Label Text="Маршрутный план на сегодня" FontSize="11" TextColor="#94A3B8"/>
+                                    <Label Text="{Binding RouteSummary, FallbackValue='Маршрут не рассчитан (нажмите для прокладки)'}" 
+                                           FontSize="13" 
+                                           FontAttributes="Bold" 
+                                           TextColor="#38BDF8" 
+                                           LineBreakMode="TailTruncation"/>
+                                </VerticalStackLayout>
+
+                                <!-- Route Buttons -->
+                                <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                                    <Button Grid.Column="0"
+                                            Text="🗺️ Проложить OSRM"
+                                            Command="{Binding PlotRouteCommand}"
+                                            IsEnabled="{Binding IsNotBusy}"
+                                            BackgroundColor="#2563EB"
+                                            TextColor="White"
+                                            FontAttributes="Bold"
+                                            FontSize="12"
+                                            HeightRequest="36"
+                                            CornerRadius="10"
+                                            Padding="8,0"/>
+
+                                    <Button Grid.Column="1"
+                                            Text="📍 Открыть карту"
+                                            Command="{Binding OpenMapCommand}"
+                                            BackgroundColor="#059669"
+                                            TextColor="White"
+                                            FontAttributes="Bold"
+                                            FontSize="12"
+                                            HeightRequest="36"
+                                            CornerRadius="10"
+                                            Padding="8,0"/>
+                                </Grid>
+                            </VerticalStackLayout>
+                        </Border>
+
+                        <!-- Active request cancellation strip -->
+                        <Border IsVisible="{Binding IsBusy}"
+                                BackgroundColor="#1E293B"
+                                Stroke="#EAB308"
+                                StrokeShape="RoundRectangle 10"
+                                Padding="12,6">
+                            <Grid ColumnDefinitions="Auto,*,Auto">
+                                <ActivityIndicator IsRunning="True" Color="#EAB308" WidthRequest="24" HeightRequest="24" Margin="0,0,8,0"/>
+                                <Label Grid.Column="1" Text="Выполняется сетевой запрос..." TextColor="#FEF08A" FontSize="12" VerticalOptions="Center"/>
+                                <Button Grid.Column="2" 
+                                        Text="Отмена (CTS)" 
+                                        Command="{Binding CancelCurrentOperationCommand}" 
+                                        BackgroundColor="#DC2626" 
+                                        TextColor="White" 
+                                        FontSize="11" 
+                                        HeightRequest="30" 
+                                        Padding="10,0"/>
+                            </Grid>
+                        </Border>
+
+                    </VerticalStackLayout>
+                </CollectionView.Header>
+
                 <CollectionView.EmptyView>
                     <VerticalStackLayout Spacing="16" HorizontalOptions="Center" VerticalOptions="Center" Padding="32">
                         <Label Text="📦" FontSize="50" HorizontalOptions="Center"/>
@@ -388,6 +412,16 @@
                                         
                                         <Border Grid.Column="1" StrokeShape="RoundRectangle 6" BackgroundColor="#374151" Padding="6,3">
                                             <Label Text="{Binding Priority}" FontSize="10" TextColor="#F3F4F6"/>
+                                        </Border>
+
+                                        <!-- SQLite IsSyncPending Badge -->
+                                        <Border Grid.Column="2" 
+                                                IsVisible="{Binding IsSyncPending}"
+                                                StrokeShape="RoundRectangle 6" 
+                                                BackgroundColor="#7C2D12" 
+                                                Padding="6,2"
+                                                HorizontalOptions="Start">
+                                            <Label Text="💾 SQLite: офлайн" FontSize="9" TextColor="#FED7AA" FontAttributes="Bold"/>
                                         </Border>
 
                                         <!-- Status Chip -->
@@ -475,8 +509,8 @@
             </CollectionView>
         </RefreshView>
 
-        <!-- Bottom Status Bar -->
-        <Border Grid.Row="3"
+        <!-- Bottom Status Bar (закреплён снизу) -->
+        <Border Grid.Row="1"
                 BackgroundColor="#0F172A"
                 Stroke="#1E293B"
                 StrokeThickness="1"

@@ -10,6 +10,7 @@ public partial class DeliveryDetailViewModel : BaseViewModel, IQueryAttributable
     private readonly ILogisticsApiService _apiService;
     private readonly ICacheService _cacheService;
     private readonly ISecureStorageService _secureStorageService;
+    private readonly ILocalDatabaseService _databaseService;
 
     [ObservableProperty]
     private DeliveryPoint? delivery;
@@ -37,11 +38,13 @@ public partial class DeliveryDetailViewModel : BaseViewModel, IQueryAttributable
     public DeliveryDetailViewModel(
         ILogisticsApiService apiService,
         ICacheService cacheService,
-        ISecureStorageService secureStorageService)
+        ISecureStorageService secureStorageService,
+        ILocalDatabaseService databaseService)
     {
         _apiService = apiService;
         _cacheService = cacheService;
         _secureStorageService = secureStorageService;
+        _databaseService = databaseService;
         Title = "Детали заказа и груза";
     }
 
@@ -72,6 +75,7 @@ public partial class DeliveryDetailViewModel : BaseViewModel, IQueryAttributable
         Delivery.UpdatedAt = DateTime.UtcNow;
 
         var driverId = await _secureStorageService.GetDriverIdAsync() ?? "DRV-104";
+        bool isOffline = false;
 
         try
         {
@@ -84,11 +88,8 @@ public partial class DeliveryDetailViewModel : BaseViewModel, IQueryAttributable
                 Delivery.Notes = updated.Notes;
             }
 
-            // Always update local cache in AppDataDirectory
-            await _cacheService.UpdateCachedPointAsync(driverId, Delivery);
-
             IsSuccessNotice = true;
-            StatusFeedback = "Изменения успешно отправлены на сервер и сохранены в кэше!";
+            StatusFeedback = "Изменения успешно отправлены на сервер и сохранены в SQLite!";
         }
         catch (OperationCanceledException)
         {
@@ -97,16 +98,30 @@ public partial class DeliveryDetailViewModel : BaseViewModel, IQueryAttributable
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[DeliveryDetailViewModel] Update failed: {ex.Message}. Saving to cache only.");
-            
-            // Offline fallback: save changes in local file cache
-            await _cacheService.UpdateCachedPointAsync(driverId, Delivery);
-
+            System.Diagnostics.Debug.WriteLine($"[DeliveryDetailViewModel] Update failed: {ex.Message}. Сохранение в локальную SQLite.");
+            isOffline = true;
             IsSuccessNotice = true;
-            StatusFeedback = "ОФЛАЙН: Сервер недоступен. Статус сохранен в локальном кэше (будет синхронизирован позже).";
+            StatusFeedback = "ОФЛАЙН: Сервер недоступен. Изменения атомарно зафиксированы в SQLite (IsSyncPending=true).";
         }
         finally
         {
+            // Атомарное сохранение в локальную SQLite базу
+            if (Delivery.Status == "Прибыл")
+            {
+                await _databaseService.MarkArrivalAsync(Delivery.Id, Delivery.UpdatedAt, isOffline);
+            }
+            else if (Delivery.Status == "Отказ")
+            {
+                await _databaseService.MarkRejectAsync(Delivery.Id, Delivery.Notes, isOffline);
+            }
+            else
+            {
+                await _databaseService.SaveOrUpdateDeliveriesFromApiAsync(driverId, new[] { Delivery });
+            }
+
+            // Always update local cache in AppDataDirectory
+            await _cacheService.UpdateCachedPointAsync(driverId, Delivery);
+
             IsBusy = false;
             ResetCancellation();
         }

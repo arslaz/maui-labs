@@ -58,6 +58,10 @@ public partial class DeliveryPoint : ObservableObject
     [JsonPropertyName("updatedAt")]
     private DateTime updatedAt = DateTime.UtcNow;
 
+    [ObservableProperty]
+    [JsonPropertyName("isSyncPending")]
+    private bool isSyncPending;
+
     // UI helper properties
     [JsonIgnore]
     public string StatusColor => Status switch
