@@ -11,6 +11,7 @@ public partial class DeliveryDetailViewModel : BaseViewModel, IQueryAttributable
     private readonly ICacheService _cacheService;
     private readonly ISecureStorageService _secureStorageService;
     private readonly ILocalDatabaseService _databaseService;
+    private readonly INativeFeedbackService _nativeFeedbackService;
 
     [ObservableProperty]
     private DeliveryPoint? delivery;
@@ -39,12 +40,14 @@ public partial class DeliveryDetailViewModel : BaseViewModel, IQueryAttributable
         ILogisticsApiService apiService,
         ICacheService cacheService,
         ISecureStorageService secureStorageService,
-        ILocalDatabaseService databaseService)
+        ILocalDatabaseService databaseService,
+        INativeFeedbackService nativeFeedbackService)
     {
         _apiService = apiService;
         _cacheService = cacheService;
         _secureStorageService = secureStorageService;
         _databaseService = databaseService;
+        _nativeFeedbackService = nativeFeedbackService;
         Title = "Детали заказа и груза";
     }
 
@@ -88,11 +91,14 @@ public partial class DeliveryDetailViewModel : BaseViewModel, IQueryAttributable
                 Delivery.Notes = updated.Notes;
             }
 
+            await _nativeFeedbackService.TriggerSuccessFeedbackAsync();
+            await _nativeFeedbackService.ShowNativeToastAsync("Изменения наряда успешно отправлены!");
             IsSuccessNotice = true;
             StatusFeedback = "Изменения успешно отправлены на сервер и сохранены в SQLite!";
         }
         catch (OperationCanceledException)
         {
+            await _nativeFeedbackService.TriggerWarningFeedbackAsync();
             ErrorMessage = "Отправка изменений отменена пользователем.";
             IsSuccessNotice = false;
         }

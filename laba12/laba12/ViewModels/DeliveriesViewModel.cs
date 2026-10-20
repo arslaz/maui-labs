@@ -20,6 +20,8 @@ public partial class DeliveriesViewModel : BaseViewModel
     private readonly ISyncQueueService _syncQueueService;
     private readonly IFuelReportService _fuelReportService;
     private readonly ILocalDatabaseService _databaseService;
+    private readonly INativeFeedbackService _nativeFeedbackService;
+    private readonly INativeTelemetryService _nativeTelemetryService;
 
     public ObservableCollection<DeliveryPoint> Deliveries { get; } = new();
 
@@ -120,7 +122,9 @@ public partial class DeliveriesViewModel : BaseViewModel
         IDeviceLocationService locationService,
         ISyncQueueService syncQueueService,
         IFuelReportService fuelReportService,
-        ILocalDatabaseService databaseService)
+        ILocalDatabaseService databaseService,
+        INativeFeedbackService nativeFeedbackService,
+        INativeTelemetryService nativeTelemetryService)
     {
         _apiService = apiService;
         _cacheService = cacheService;
@@ -133,6 +137,8 @@ public partial class DeliveriesViewModel : BaseViewModel
         _syncQueueService = syncQueueService;
         _fuelReportService = fuelReportService;
         _databaseService = databaseService;
+        _nativeFeedbackService = nativeFeedbackService;
+        _nativeTelemetryService = nativeTelemetryService;
 
         Title = "Маршрутный лист водителя";
 
@@ -603,6 +609,10 @@ public partial class DeliveriesViewModel : BaseViewModel
         // 1. АТОМАРНОЕ УДАЛЕНИЕ / ПОМЕТКА НА УДАЛЕНИЕ В SQLITE
         await _databaseService.DeleteDeliveryPointAsync(point.Id, isOffline);
 
+        // Нативный тактильный отклик удаления элемента (Общее требование #4)
+        await _nativeFeedbackService.TriggerItemDeletedFeedbackAsync();
+        await _nativeFeedbackService.ShowNativeToastAsync($"Наряд {point.OrderNumber} удален");
+
         // 2. Удаление из UI и обновление резервного кэша
         Deliveries.Remove(point);
         TotalCount = Deliveries.Count;
@@ -732,6 +742,8 @@ public partial class DeliveriesViewModel : BaseViewModel
                 ? $"Успешно синхронизировано строк SQLite: {sqliteSyncedCount}. {result.Message}"
                 : result.Message;
 
+            await _nativeFeedbackService.TriggerSuccessFeedbackAsync();
+            await _nativeFeedbackService.ShowNativeToastAsync("Синхронизация с сервером завершена!");
             StatusNotice = resultMsg;
             await Shell.Current.DisplayAlertAsync("Отложенная синхронизация", resultMsg, "OK");
             await LoadDeliveriesAsync(refresh: true);
@@ -873,6 +885,8 @@ public partial class DeliveriesViewModel : BaseViewModel
 
             if (uploadResult.Success)
             {
+                await _nativeFeedbackService.TriggerSuccessFeedbackAsync();
+                await _nativeFeedbackService.ShowNativeToastAsync("Отчет топлива успешно передан на сервер!");
                 FuelReportStatusText = $"Сервер принял отчет: {uploadResult.FileName} ({uploadResult.FileSizeBytes} байт)";
                 StatusNotice = "Отчет о расходе топлива успешно зашифрован и передан на сервер!";
 
@@ -933,6 +947,7 @@ public partial class DeliveriesViewModel : BaseViewModel
 
             if (route.IsSuccess)
             {
+                await _nativeFeedbackService.TriggerSuccessFeedbackAsync();
                 LastCalculatedRoute = route;
                 IsRouteAvailable = true;
                 RouteSummary = $"Дистанция: {route.FormattedDistance} • Время в пути: ~{route.FormattedDuration} ({route.Geometry.Count} точек)";

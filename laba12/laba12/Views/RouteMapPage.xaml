@@ -15,43 +15,69 @@
         </ResourceDictionary>
     </ContentPage.Resources>
 
-    <Grid RowDefinitions="Auto,*,Auto">
+    <!-- Специфичный для платформ отступ под Notch / Dynamic Island на iOS и статус-бар на Android -->
+    <ContentPage.Padding>
+        <OnPlatform x:TypeArguments="Thickness">
+            <On Platform="iOS" Value="0,44,0,0" />
+            <On Platform="Android" Value="0,10,0,0" />
+            <On Platform="Default" Value="0,0,0,0" />
+        </OnPlatform>
+    </ContentPage.Padding>
 
-        <!-- Top Route Stats Header -->
+    <Grid RowDefinitions="Auto,Auto,*,Auto">
+
+        <!-- 1. Top Route Stats Header (Адаптация под Планшет/Телефон через OnIdiom и OnPlatform) -->
         <Border Grid.Row="0"
                 BackgroundColor="#1C2541"
                 Stroke="#3A506B"
                 StrokeThickness="1"
-                Margin="12,10,12,6"
-                Padding="16,12"
-                StrokeShape="RoundRectangle 16">
-            <VerticalStackLayout Spacing="8">
+                Margin="{OnIdiom Phone='12,6,12,4', Tablet='18,10,18,6', Desktop='12,6,12,4'}"
+                Padding="{OnIdiom Phone='14,10', Tablet='22,16', Desktop='16,12'}"
+                StrokeShape="{OnPlatform Android='RoundRectangle 12', iOS='RoundRectangle 22', Default='RoundRectangle 16'}">
+            <VerticalStackLayout Spacing="{OnIdiom Phone=6, Tablet=12, Desktop=8}">
                 <!-- Title & Stats text -->
-                <Label Text="НИТЬ МАРШРУТА OSRM (OpenStreetMap)" FontSize="11" TextColor="#38BDF8" FontAttributes="Bold"/>
-                <Label Text="{Binding RouteStatsText}" FontSize="15" FontAttributes="Bold" TextColor="#F8FAFC" LineBreakMode="TailTruncation"/>
+                <Grid ColumnDefinitions="*,Auto">
+                    <Label Text="НИТЬ МАРШРУТА OSRM (OpenStreetMap)" 
+                           FontSize="{OnIdiom Phone=11, Tablet=14, Desktop=12}" 
+                           TextColor="#38BDF8" 
+                           FontAttributes="Bold"/>
+                    <!-- Индикатор режима экрана -->
+                    <Border Grid.Column="1" StrokeShape="RoundRectangle 6" BackgroundColor="#0F172A" Padding="6,2">
+                        <Label Text="{OnIdiom Phone='📱 Phone UI', Tablet='📟 Tablet Driver Mode (Крупные кнопки)', Desktop='💻 Desktop UI'}" 
+                               FontSize="10" 
+                               TextColor="#10B981" 
+                               FontAttributes="Bold"/>
+                    </Border>
+                </Grid>
+
+                <Label Text="{Binding RouteStatsText}" 
+                       FontSize="{OnIdiom Phone=14, Tablet=20, Desktop=16}" 
+                       FontAttributes="Bold" 
+                       TextColor="#F8FAFC" 
+                       LineBreakMode="TailTruncation"/>
 
                 <!-- Route metrics badges -->
-                <HorizontalStackLayout Spacing="14">
+                <HorizontalStackLayout Spacing="{OnIdiom Phone=10, Tablet=20, Desktop=14}">
                     <HorizontalStackLayout Spacing="4">
-                        <Label Text="📍 Точек:" FontSize="11" TextColor="#94A3B8"/>
-                        <Label Text="{Binding WaypointCount}" FontSize="11" FontAttributes="Bold" TextColor="#38BDF8"/>
+                        <Label Text="📍 Точек:" FontSize="{OnIdiom Phone=11, Tablet=15, Desktop=12}" TextColor="#94A3B8"/>
+                        <Label Text="{Binding WaypointCount}" FontSize="{OnIdiom Phone=11, Tablet=15, Desktop=12}" FontAttributes="Bold" TextColor="#38BDF8"/>
                     </HorizontalStackLayout>
                     <HorizontalStackLayout Spacing="4">
-                        <Label Text="⏱️ Время:" FontSize="11" TextColor="#94A3B8"/>
-                        <Label Text="{Binding RouteDuration}" FontSize="11" FontAttributes="Bold" TextColor="#10B981"/>
+                        <Label Text="⏱️ Время:" FontSize="{OnIdiom Phone=11, Tablet=15, Desktop=12}" TextColor="#94A3B8"/>
+                        <Label Text="{Binding RouteDuration}" FontSize="{OnIdiom Phone=11, Tablet=15, Desktop=12}" FontAttributes="Bold" TextColor="#10B981"/>
                     </HorizontalStackLayout>
                     <HorizontalStackLayout Spacing="4">
-                        <Label Text="📏 Длина:" FontSize="11" TextColor="#94A3B8"/>
-                        <Label Text="{Binding RouteDistance}" FontSize="11" FontAttributes="Bold" TextColor="#F59E0B"/>
+                        <Label Text="📏 Длина:" FontSize="{OnIdiom Phone=11, Tablet=15, Desktop=12}" TextColor="#94A3B8"/>
+                        <Label Text="{Binding RouteDistance}" FontSize="{OnIdiom Phone=11, Tablet=15, Desktop=12}" FontAttributes="Bold" TextColor="#F59E0B"/>
                     </HorizontalStackLayout>
                     <HorizontalStackLayout Spacing="4">
-                        <Label Text="📡" FontSize="11"/>
-                        <Label Text="{Binding GpsStatusText}" FontSize="11" FontAttributes="Bold" TextColor="#10B981"/>
+                        <Label Text="📡" FontSize="{OnIdiom Phone=11, Tablet=15, Desktop=12}"/>
+                        <Label Text="{Binding GpsStatusText}" FontSize="{OnIdiom Phone=11, Tablet=15, Desktop=12}" FontAttributes="Bold" TextColor="#10B981"/>
                     </HorizontalStackLayout>
                 </HorizontalStackLayout>
 
-                <!-- Navigation Action Buttons in dedicated 3-column grid -->
-                <Grid ColumnDefinitions="*,*,*" ColumnSpacing="8" Margin="0,4,0,0">
+                <!-- Вариант 7: Навигационные кнопки управления картой (Крупный размер на планшете для нажатия водителем в движении) -->
+                <Grid ColumnDefinitions="*,*,*" ColumnSpacing="{OnIdiom Phone=8, Tablet=14, Desktop=10}" Margin="0,4,0,0">
                     <Button Grid.Column="0"
                             Text="📍 Где я (GPS)" 
                             Command="{Binding LocateMeCommand}" 
@@ -59,9 +85,10 @@
                             BackgroundColor="#059669" 
                             TextColor="White" 
                             FontAttributes="Bold"
-                            FontSize="12" 
-                            HeightRequest="36" 
-                            CornerRadius="8"/>
+                            FontSize="{OnIdiom Phone=12, Tablet=17, Desktop=13}" 
+                            HeightRequest="{OnIdiom Phone=38, Tablet=62, Desktop=42}" 
+                            CornerRadius="{OnPlatform Android='8', iOS='18', Default='10'}"/>
+
                     <Button Grid.Column="1"
                             Text="🔄 Обновить" 
                             Command="{Binding RecalculateRouteCommand}" 
@@ -69,28 +96,77 @@
                             BackgroundColor="#2563EB" 
                             TextColor="White" 
                             FontAttributes="Bold"
-                            FontSize="12" 
-                            HeightRequest="36" 
-                            CornerRadius="8"/>
+                            FontSize="{OnIdiom Phone=12, Tablet=17, Desktop=13}" 
+                            HeightRequest="{OnIdiom Phone=38, Tablet=62, Desktop=42}" 
+                            CornerRadius="{OnPlatform Android='8', iOS='18', Default='10'}"/>
+
                     <Button Grid.Column="2"
                             Text="← Назад" 
                             Command="{Binding GoBackCommand}" 
                             BackgroundColor="#334155" 
                             TextColor="White" 
                             FontAttributes="Bold"
-                            FontSize="12" 
-                            HeightRequest="36" 
-                            CornerRadius="8"/>
+                            FontSize="{OnIdiom Phone=12, Tablet=17, Desktop=13}" 
+                            HeightRequest="{OnIdiom Phone=38, Tablet=62, Desktop=42}" 
+                            CornerRadius="{OnPlatform Android='8', iOS='18', Default='10'}"/>
                 </Grid>
             </VerticalStackLayout>
         </Border>
 
-        <!-- Map View (Leaflet + OpenStreetMap) -->
+        <!-- 2. Вариант 7: Плашка расширенной нативной телеметрии (BatteryManager + ConnectivityManager) -->
         <Border Grid.Row="1"
-                StrokeShape="RoundRectangle 16"
+                BackgroundColor="#0F172A"
+                Stroke="#1E293B"
+                StrokeThickness="1"
+                Margin="{OnIdiom Phone='12,0,12,6', Tablet='18,0,18,8', Desktop='12,0,12,6'}"
+                Padding="{OnIdiom Phone='12,8', Tablet='18,12', Desktop='14,10'}"
+                StrokeShape="{OnPlatform Android='RoundRectangle 10', iOS='RoundRectangle 18', Default='RoundRectangle 12'}">
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10" VerticalOptions="Center">
+                <VerticalStackLayout Spacing="3" VerticalOptions="Center">
+                    <HorizontalStackLayout Spacing="10" VerticalOptions="Center">
+                        <Label Text="{Binding NativeBatteryText}" 
+                               FontSize="{OnIdiom Phone=12, Tablet=16, Desktop=13}" 
+                               FontAttributes="Bold" 
+                               TextColor="#38BDF8"/>
+                        <Label Text="•" TextColor="#475569" FontSize="12"/>
+                        <Label Text="{Binding NativeNetworkText}" 
+                               FontSize="{OnIdiom Phone=12, Tablet=16, Desktop=13}" 
+                               FontAttributes="Bold" 
+                               TextColor="#A7F3D0"/>
+                    </HorizontalStackLayout>
+                    <Label Text="{Binding NativeIntervalText}" 
+                           FontSize="{OnIdiom Phone=11, Tablet=14, Desktop=12}" 
+                           TextColor="#FBBF24" 
+                           FontAttributes="Bold"/>
+                    <Label Text="{Binding NativeOptimizationReason}" 
+                           FontSize="{OnIdiom Phone=10, Tablet=13, Desktop=11}" 
+                           TextColor="#94A3B8" 
+                           LineBreakMode="TailTruncation"/>
+                </VerticalStackLayout>
+
+                <!-- Кнопка обновления нативной телеметрии (увеличенная для планшета) -->
+                <Button Grid.Column="1"
+                        Text="⚡ Опросить ОС"
+                        Command="{Binding ReadNativeTelemetryCommand}"
+                        BackgroundColor="#1E293B"
+                        BorderColor="#38BDF8"
+                        BorderWidth="1"
+                        TextColor="#38BDF8"
+                        FontAttributes="Bold"
+                        FontSize="{OnIdiom Phone=11, Tablet=15, Desktop=12}"
+                        HeightRequest="{OnIdiom Phone=34, Tablet=54, Desktop=38}"
+                        CornerRadius="{OnPlatform Android='6', iOS='16', Default='8'}"
+                        Padding="{OnIdiom Phone='10,0', Tablet='18,0', Desktop='12,0'}"
+                        VerticalOptions="Center"/>
+            </Grid>
+        </Border>
+
+        <!-- 3. Map View (Leaflet + OpenStreetMap) -->
+        <Border Grid.Row="2"
+                StrokeShape="{OnPlatform Android='RoundRectangle 12', iOS='RoundRectangle 20', Default='RoundRectangle 16'}"
                 Stroke="#334155"
                 StrokeThickness="1"
-                Margin="12,0,12,6"
+                Margin="{OnIdiom Phone='12,0,12,6', Tablet='18,0,18,8', Desktop='12,0,12,6'}"
                 BackgroundColor="#0F172A">
             <WebView x:Name="MapWebView" HorizontalOptions="Fill" VerticalOptions="Fill">
                 <WebView.Source>
@@ -99,24 +175,27 @@
             </WebView>
         </Border>
 
-        <!-- Bottom Step-by-Step Leg instructions / Drawer -->
-        <Border Grid.Row="2"
+        <!-- 4. Bottom Step-by-Step Leg instructions / Drawer -->
+        <Border Grid.Row="3"
                 BackgroundColor="#1E293B"
                 Stroke="#334155"
                 StrokeThickness="1"
-                Margin="12,0,12,10"
-                Padding="14,10"
-                StrokeShape="RoundRectangle 14">
+                Margin="{OnIdiom Phone='12,0,12,10', Tablet='18,0,18,14', Desktop='12,0,12,10'}"
+                Padding="{OnIdiom Phone='14,10', Tablet='20,14', Desktop='14,10'}"
+                StrokeShape="{OnPlatform Android='RoundRectangle 12', iOS='RoundRectangle 18', Default='RoundRectangle 14'}">
             <VerticalStackLayout Spacing="8">
-                <Label Text="Маршрутный лист этапов доставки:" FontSize="12" FontAttributes="Bold" TextColor="#94A3B8"/>
+                <Label Text="Маршрутный лист этапов доставки:" 
+                       FontSize="{OnIdiom Phone=12, Tablet=16, Desktop=13}" 
+                       FontAttributes="Bold" 
+                       TextColor="#94A3B8"/>
 
-                <ScrollView MaximumHeightRequest="110">
+                <ScrollView MaximumHeightRequest="{OnIdiom Phone=100, Tablet=180, Desktop=120}">
                     <VerticalStackLayout BindableLayout.ItemsSource="{Binding RouteInstructions}" Spacing="4">
                         <BindableLayout.ItemTemplate>
                             <DataTemplate x:DataType="x:String">
                                 <HorizontalStackLayout Spacing="6">
-                                    <Label Text="👉" FontSize="11" TextColor="#38BDF8"/>
-                                    <Label Text="{Binding .}" FontSize="11" TextColor="#E2E8F0" LineBreakMode="WordWrap"/>
+                                    <Label Text="👉" FontSize="{OnIdiom Phone=11, Tablet=15, Desktop=12}" TextColor="#38BDF8"/>
+                                    <Label Text="{Binding .}" FontSize="{OnIdiom Phone=11, Tablet=15, Desktop=12}" TextColor="#E2E8F0" LineBreakMode="WordWrap"/>
                                 </HorizontalStackLayout>
                             </DataTemplate>
                         </BindableLayout.ItemTemplate>
@@ -126,9 +205,9 @@
         </Border>
 
         <!-- Loading Overlay -->
-        <Grid Grid.RowSpan="3" BackgroundColor="#CC000000" IsVisible="{Binding IsBusy}">
+        <Grid Grid.RowSpan="4" BackgroundColor="#CC000000" IsVisible="{Binding IsBusy}">
             <VerticalStackLayout Spacing="16" HorizontalOptions="Center" VerticalOptions="Center">
-                <ActivityIndicator IsRunning="{Binding IsBusy}" Color="#38BDF8" WidthRequest="44" HeightRequest="44"/>
+                <ActivityIndicator IsRunning="{Binding IsBusy}" Color="#38BDF8" WidthRequest="50" HeightRequest="50"/>
                 <Label Text="Расчет оптимального маршрута через OSRM..." TextColor="#F8FAFC" FontSize="14"/>
                 <Button Text="Отмена" Command="{Binding CancelCurrentOperationCommand}" BackgroundColor="#EF4444" TextColor="White" CornerRadius="8"/>
             </VerticalStackLayout>

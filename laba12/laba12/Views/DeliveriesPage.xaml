@@ -17,6 +17,15 @@
         </ResourceDictionary>
     </ContentPage.Resources>
 
+    <!-- Требование #2: Специфичный для платформ отступ сверху под панель уведомлений и вырезы экрана (Notch / Dynamic Island на iOS) -->
+    <ContentPage.Padding>
+        <OnPlatform x:TypeArguments="Thickness">
+            <On Platform="iOS" Value="0,48,0,0" />
+            <On Platform="Android" Value="0,12,0,0" />
+            <On Platform="Default" Value="0,0,0,0" />
+        </OnPlatform>
+    </ContentPage.Padding>
+
     <Grid RowDefinitions="*,Auto">
 
         <!-- Весь скроллящийся контент: Header + список -->
@@ -27,18 +36,18 @@
             <CollectionView ItemsSource="{Binding Deliveries}"
                             RemainingItemsThreshold="2"
                             RemainingItemsThresholdReachedCommand="{Binding LoadMoreCommand}"
-                            Margin="12,0">
+                            Margin="{OnPlatform Android='10,0', iOS='14,0', Default='12,0'}">
 
                 <!-- ===== ШАПКА (скроллится вместе со списком) ===== -->
                 <CollectionView.Header>
-                    <VerticalStackLayout Spacing="6" Margin="0,12,0,6">
+                    <VerticalStackLayout Spacing="6" Margin="0,8,0,6">
 
                         <!-- Top Header & Driver Info -->
                         <Border BackgroundColor="#1C2541"
                                 Stroke="#3A506B"
                                 StrokeThickness="1"
-                                Padding="16,12"
-                                StrokeShape="RoundRectangle 16">
+                                Padding="{OnPlatform Android='14,10', iOS='18,14', Default='16,12'}"
+                                StrokeShape="{OnPlatform Android='RoundRectangle 12', iOS='RoundRectangle 22', Default='RoundRectangle 16'}">
                             <VerticalStackLayout Spacing="10">
                                 <!-- Driver Info & Logout Row -->
                                 <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10" VerticalOptions="Center">
@@ -116,10 +125,10 @@
                                             Command="{Binding GenerateAndUploadFuelReportCommand}" 
                                             BackgroundColor="#047857" 
                                             TextColor="#A7F3D0" 
-                                            FontSize="11" 
-                                            FontAttributes="Bold"
-                                            HeightRequest="34" 
-                                            CornerRadius="8"
+                                            FontSize="{OnPlatform Android='11', iOS='12', Default='11'}" 
+                                            FontAttributes="Bold" 
+                                            HeightRequest="{OnPlatform Android='34', iOS='40', Default='36'}" 
+                                            CornerRadius="{OnPlatform Android='6', iOS='16', Default='8'}" 
                                             Padding="4,0"/>
 
                                     <Button Grid.Row="0" Grid.Column="1"
@@ -127,10 +136,10 @@
                                             Command="{Binding ToggleSimulateOfflineCommand}" 
                                             BackgroundColor="{Binding SimulateOfflineButtonBgColor}"
                                             TextColor="{Binding SimulateOfflineTextColor}" 
-                                            FontSize="11" 
-                                            FontAttributes="Bold"
-                                            HeightRequest="34" 
-                                            CornerRadius="8"
+                                            FontSize="{OnPlatform Android='11', iOS='12', Default='11'}" 
+                                            FontAttributes="Bold" 
+                                            HeightRequest="{OnPlatform Android='34', iOS='40', Default='36'}" 
+                                            CornerRadius="{OnPlatform Android='6', iOS='16', Default='8'}" 
                                             Padding="4,0"/>
 
                                     <!-- Row 1: SQLite Database Inspector & DelegatingHandler 401 Refresh test -->
@@ -139,10 +148,10 @@
                                             Command="{Binding ViewDatabaseInfoCommand}" 
                                             BackgroundColor="#0284C7" 
                                             TextColor="#E0F2FE" 
-                                            FontSize="11" 
-                                            FontAttributes="Bold"
-                                            HeightRequest="34" 
-                                            CornerRadius="8"
+                                            FontSize="{OnPlatform Android='11', iOS='12', Default='11'}" 
+                                            FontAttributes="Bold" 
+                                            HeightRequest="{OnPlatform Android='34', iOS='40', Default='36'}" 
+                                            CornerRadius="{OnPlatform Android='6', iOS='16', Default='8'}" 
                                             Padding="4,0"/>
 
                                     <Button Grid.Row="1" Grid.Column="1"
@@ -150,10 +159,10 @@
                                             Command="{Binding SimulateTokenExpirationCommand}" 
                                             BackgroundColor="#4C1D95" 
                                             TextColor="#DDD6FE" 
-                                            FontSize="11" 
-                                            FontAttributes="Bold"
-                                            HeightRequest="34" 
-                                            CornerRadius="8"
+                                            FontSize="{OnPlatform Android='11', iOS='12', Default='11'}" 
+                                            FontAttributes="Bold" 
+                                            HeightRequest="{OnPlatform Android='34', iOS='40', Default='36'}" 
+                                            CornerRadius="{OnPlatform Android='6', iOS='16', Default='8'}" 
                                             Padding="4,0"/>
 
                                     <!-- Row 2: Telemetry Ping & JSON Cache View -->
@@ -162,10 +171,10 @@
                                             Command="{Binding SendTelemetryNowCommand}" 
                                             BackgroundColor="#1E293B" 
                                             TextColor="#38BDF8" 
-                                            FontSize="11" 
-                                            FontAttributes="Bold"
-                                            HeightRequest="34" 
-                                            CornerRadius="8"
+                                            FontSize="{OnPlatform Android='11', iOS='12', Default='11'}" 
+                                            FontAttributes="Bold" 
+                                            HeightRequest="{OnPlatform Android='34', iOS='40', Default='36'}" 
+                                            CornerRadius="{OnPlatform Android='6', iOS='16', Default='8'}" 
                                             Padding="4,0"/>
 
                                     <Button Grid.Row="2" Grid.Column="1"
@@ -173,10 +182,10 @@
                                             Command="{Binding ViewDeliveriesCacheJsonCommand}" 
                                             BackgroundColor="#1E293B" 
                                             TextColor="#CBD5E1" 
-                                            FontSize="11" 
-                                            FontAttributes="Bold"
-                                            HeightRequest="34" 
-                                            CornerRadius="8"
+                                            FontSize="{OnPlatform Android='11', iOS='12', Default='11'}" 
+                                            FontAttributes="Bold" 
+                                            HeightRequest="{OnPlatform Android='34', iOS='40', Default='36'}" 
+                                            CornerRadius="{OnPlatform Android='6', iOS='16', Default='8'}" 
                                             Padding="4,0"/>
                                 </Grid>
                             </VerticalStackLayout>
@@ -292,9 +301,9 @@
                                             BackgroundColor="#2563EB"
                                             TextColor="White"
                                             FontAttributes="Bold"
-                                            FontSize="12"
-                                            HeightRequest="36"
-                                            CornerRadius="10"
+                                            FontSize="{OnPlatform Android='12', iOS='13', Default='12'}"
+                                            HeightRequest="{OnPlatform Android='36', iOS='44', Default='38'}"
+                                            CornerRadius="{OnPlatform Android='8', iOS='18', Default='10'}"
                                             Padding="8,0"/>
 
                                     <Button Grid.Column="1"
@@ -303,9 +312,9 @@
                                             BackgroundColor="#059669"
                                             TextColor="White"
                                             FontAttributes="Bold"
-                                            FontSize="12"
-                                            HeightRequest="36"
-                                            CornerRadius="10"
+                                            FontSize="{OnPlatform Android='12', iOS='13', Default='12'}"
+                                            HeightRequest="{OnPlatform Android='36', iOS='44', Default='38'}"
+                                            CornerRadius="{OnPlatform Android='8', iOS='18', Default='10'}"
                                             Padding="8,0"/>
                                 </Grid>
                             </VerticalStackLayout>
@@ -375,12 +384,12 @@
                                 </SwipeItems>
                             </SwipeView.RightItems>
 
-                            <!-- Основная карточка точки доставки -->
-                            <Border StrokeShape="RoundRectangle 14"
+                            <!-- Основная карточка точки доставки (адаптивная верстка OnPlatform) -->
+                            <Border StrokeShape="{OnPlatform Android='RoundRectangle 10', iOS='RoundRectangle 18', Default='RoundRectangle 14'}"
                                     BackgroundColor="#1E293B"
                                     Stroke="#334155"
                                     StrokeThickness="1"
-                                    Padding="14">
+                                    Padding="{OnPlatform Android='12,10', iOS='16,14', Default='14,12'}">
                                 
                                 <!-- Контекстное меню по правому клику (ПКМ / Long Press) -->
                                 <FlyoutBase.ContextFlyout>
@@ -406,11 +415,11 @@
                                 <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto" RowSpacing="6">
                                     <!-- Row 0: Order Number, Priority, Status Chip, and ⋯ Context Menu Button -->
                                     <Grid Grid.Row="0" ColumnDefinitions="Auto,Auto,*,Auto,Auto" ColumnSpacing="6" VerticalOptions="Center">
-                                        <Border Grid.Column="0" StrokeShape="RoundRectangle 6" BackgroundColor="#0F172A" Padding="8,3">
-                                            <Label Text="{Binding OrderNumber}" FontAttributes="Bold" FontSize="12" TextColor="#38BDF8"/>
+                                        <Border Grid.Column="0" StrokeShape="{OnPlatform Android='RoundRectangle 4', iOS='RoundRectangle 10', Default='RoundRectangle 6'}" BackgroundColor="#0F172A" Padding="8,3">
+                                            <Label Text="{Binding OrderNumber}" FontAttributes="Bold" FontSize="{OnPlatform Android='11', iOS='13', Default='12'}" TextColor="#38BDF8"/>
                                         </Border>
                                         
-                                        <Border Grid.Column="1" StrokeShape="RoundRectangle 6" BackgroundColor="#374151" Padding="6,3">
+                                        <Border Grid.Column="1" StrokeShape="{OnPlatform Android='RoundRectangle 4', iOS='RoundRectangle 8', Default='RoundRectangle 6'}" BackgroundColor="#374151" Padding="6,3">
                                             <Label Text="{Binding Priority}" FontSize="10" TextColor="#F3F4F6"/>
                                         </Border>
 
@@ -426,11 +435,11 @@
 
                                         <!-- Status Chip -->
                                         <Border Grid.Column="3" 
-                                                StrokeShape="RoundRectangle 12" 
+                                                StrokeShape="{OnPlatform Android='RoundRectangle 8', iOS='RoundRectangle 16', Default='RoundRectangle 12'}" 
                                                 BackgroundColor="{Binding Status, Converter={StaticResource StatusColorConverter}}" 
-                                                Padding="10,4">
+                                                Padding="{OnPlatform Android='8,3', iOS='12,4', Default='10,4'}">
                                             <Label Text="{Binding Status}" 
-                                                   FontSize="11" 
+                                                   FontSize="{OnPlatform Android='10', iOS='12', Default='11'}" 
                                                    FontAttributes="Bold" 
                                                    TextColor="White"/>
                                         </Border>
@@ -438,14 +447,14 @@
                                         <!-- Кнопка вызова контекстного меню (⋮) -->
                                         <Button Grid.Column="4"
                                                 Text="⋮"
-                                                FontSize="16"
+                                                FontSize="{OnPlatform Android='15', iOS='18', Default='16'}"
                                                 FontAttributes="Bold"
                                                 TextColor="#CBD5E1"
                                                 BackgroundColor="#0F172A"
-                                                WidthRequest="32"
-                                                HeightRequest="28"
+                                                WidthRequest="{OnPlatform Android='30', iOS='36', Default='32'}"
+                                                HeightRequest="{OnPlatform Android='26', iOS='32', Default='28'}"
                                                 Padding="0"
-                                                CornerRadius="6"
+                                                CornerRadius="{OnPlatform Android='4', iOS='12', Default='6'}"
                                                 Command="{Binding Source={RelativeSource AncestorType={x:Type vm:DeliveriesViewModel}}, Path=ShowItemContextMenuCommand}"
                                                 CommandParameter="{Binding .}"/>
                                     </Grid>
@@ -514,7 +523,8 @@
                 BackgroundColor="#0F172A"
                 Stroke="#1E293B"
                 StrokeThickness="1"
-                Padding="16,6">
+                StrokeShape="{OnPlatform Android='Rectangle', iOS='RoundRectangle 16 16 0 0', Default='Rectangle'}"
+                Padding="{OnPlatform Android='14,6', iOS='18,12', Default='16,8'}">
             <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
                 <Label Text="{Binding LastUpdatedText, FallbackValue='Готово к работе'}" 
                        FontSize="11" 
@@ -527,9 +537,9 @@
                         BackgroundColor="#1E293B"
                         TextColor="#94A3B8"
                         FontSize="10"
-                        HeightRequest="28"
+                        HeightRequest="{OnPlatform Android='28', iOS='32', Default='28'}"
                         Padding="6,0"
-                        CornerRadius="6"
+                        CornerRadius="{OnPlatform Android='6', iOS='12', Default='6'}"
                         VerticalOptions="Center"/>
 
                 <HorizontalStackLayout Grid.Column="2" Spacing="6" VerticalOptions="Center">

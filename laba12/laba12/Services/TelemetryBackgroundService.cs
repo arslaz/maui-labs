@@ -11,6 +11,7 @@ public interface ITelemetryService
     int QueuedCount { get; }
     string StatusMessage { get; }
     DateTime? LastSentTime { get; }
+    NativeDeviceTelemetry? CurrentNativeTelemetry { get; }
 
     event Action? OnTelemetryStatusChanged;
 
@@ -25,6 +26,7 @@ public class TelemetryBackgroundService : ITelemetryService, IDisposable
 {
     private readonly ILogisticsApiService _apiService;
     private readonly IDeviceLocationService _locationService;
+    private readonly INativeTelemetryService _nativeTelemetryService;
     private CancellationTokenSource? _cts;
     private Task? _telemetryTask;
     private readonly Queue<TelemetryData> _offlineQueue = new();
@@ -46,13 +48,18 @@ public class TelemetryBackgroundService : ITelemetryService, IDisposable
     }
     public string StatusMessage { get; private set; } = "Телеметрия не запущена";
     public DateTime? LastSentTime { get; private set; }
+    public NativeDeviceTelemetry? CurrentNativeTelemetry { get; private set; }
 
     public event Action? OnTelemetryStatusChanged;
 
-    public TelemetryBackgroundService(ILogisticsApiService apiService, IDeviceLocationService locationService)
+    public TelemetryBackgroundService(
+        ILogisticsApiService apiService,
+        IDeviceLocationService locationService,
+        INativeTelemetryService nativeTelemetryService)
     {
         _apiService = apiService;
         _locationService = locationService;
+        _nativeTelemetryService = nativeTelemetryService;
     }
 
     public void Start(string driverId)
@@ -82,15 +89,23 @@ public class TelemetryBackgroundService : ITelemetryService, IDisposable
 
     private async Task RunTelemetryLoopAsync(CancellationToken ct)
     {
-        // First ping immediately
-        await SendSingleTelemetryAsync(ct);
-
-        using var timer = new PeriodicTimer(TimeSpan.FromSeconds(30));
         try
         {
-            while (!ct.IsCancellationRequested && await timer.WaitForNextTickAsync(ct))
+            // First ping immediately
+            await SendSingleTelemetryAsync(ct);
+
+            while (!ct.IsCancellationRequested)
             {
-                await SendSingleTelemetryAsync(ct);
+                // Динамическая адаптация интервала на основе низкоуровневой телеметрии ОС (Вариант 7)
+                int delaySec = CurrentNativeTelemetry?.RecommendedTelemetryIntervalSeconds ?? 25;
+                if (delaySec < 5) delaySec = 5;
+
+                await Task.Delay(TimeSpan.FromSeconds(delaySec), ct);
+
+                if (!ct.IsCancellationRequested)
+                {
+                    await SendSingleTelemetryAsync(ct);
+                }
             }
         }
         catch (OperationCanceledException)
@@ -138,6 +153,18 @@ public class TelemetryBackgroundService : ITelemetryService, IDisposable
 
     private async Task<bool> SendSingleTelemetryAsync(CancellationToken ct)
     {
+        // 1. Опрос расширенной телеметрии через нативные менеджеры ОС (Вариант 7)
+        NativeDeviceTelemetry nativeTelemetry;
+        try
+        {
+            nativeTelemetry = await _nativeTelemetryService.GetExtendedTelemetryAsync();
+        }
+        catch
+        {
+            nativeTelemetry = new NativeDeviceTelemetry();
+        }
+        CurrentNativeTelemetry = nativeTelemetry;
+
         // Try getting real GPS location from device location service
         try
         {
@@ -166,7 +193,7 @@ public class TelemetryBackgroundService : ITelemetryService, IDisposable
             _currentSpeed = Math.Round(45.0 + _random.NextDouble() * 35.0, 1);
         }
 
-        var isConnected = Connectivity.Current.NetworkAccess == NetworkAccess.Internet;
+        var isConnected = nativeTelemetry.IsInternetAvailable && Connectivity.Current.NetworkAccess == NetworkAccess.Internet;
 
         var telemetry = new TelemetryData
         {
@@ -176,8 +203,8 @@ public class TelemetryBackgroundService : ITelemetryService, IDisposable
             SpeedKmh = _currentSpeed,
             HeadingDegrees = _random.Next(0, 360),
             Timestamp = DateTime.UtcNow,
-            BatteryPercent = Math.Max(20, 95 - _random.Next(0, 10)),
-            NetworkStatus = isConnected ? "4G/LTE" : "Нет сети"
+            BatteryPercent = (int)Math.Round(nativeTelemetry.BatteryPercent),
+            NetworkStatus = nativeTelemetry.NetworkConnectionType
         };
 
         bool success = false;
@@ -190,7 +217,7 @@ public class TelemetryBackgroundService : ITelemetryService, IDisposable
                 _offlineQueue.Enqueue(telemetry);
                 if (_offlineQueue.Count > 200) _offlineQueue.Dequeue();
             }
-            StatusMessage = $"Разрыв связи на трассе! Пакет в буфере (накоплено: {QueuedCount})";
+            StatusMessage = $"Разрыв связи на трассе! Пакет в буфере (накоплено: {QueuedCount}) | {nativeTelemetry.FormattedBattery}";
             OnTelemetryStatusChanged?.Invoke();
             return false;
         }
@@ -222,11 +249,11 @@ public class TelemetryBackgroundService : ITelemetryService, IDisposable
 
             if (flushedCount > 0)
             {
-                StatusMessage = $"Связь восстановлена! Передано {flushedCount} накопленных пакетов.";
+                StatusMessage = $"Связь восстановлена! Передано {flushedCount} накопленных пакетов | {nativeTelemetry.FormattedBattery}";
             }
             else
             {
-                StatusMessage = $"POST-телеметрия: {LastSentTime:HH:mm:ss} ({_currentSpeed:F0} км/ч, {_currentLat:F4}°N)";
+                StatusMessage = $"POST-телеметрия: {LastSentTime:HH:mm:ss} | {nativeTelemetry.FormattedBattery} | {nativeTelemetry.FormattedNetwork} (интервал: {nativeTelemetry.RecommendedTelemetryIntervalSeconds}с)";
             }
         }
         else
@@ -237,7 +264,7 @@ public class TelemetryBackgroundService : ITelemetryService, IDisposable
                 _offlineQueue.Enqueue(telemetry);
                 if (_offlineQueue.Count > 200) _offlineQueue.Dequeue();
             }
-            StatusMessage = $"Сбой отправки на трассе! Пакет в буфере (накоплено: {QueuedCount})";
+            StatusMessage = $"Сбой отправки на трассе! Пакет в буфере (накоплено: {QueuedCount}) | {nativeTelemetry.FormattedBattery}";
         }
 
         OnTelemetryStatusChanged?.Invoke();

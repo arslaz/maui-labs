@@ -11,6 +11,7 @@ public partial class LoginViewModel : BaseViewModel
     private readonly ITelemetryService _telemetryService;
     private readonly MockBackendServer _mockBackendServer;
     private readonly ILocalDatabaseService _databaseService;
+    private readonly INativeFeedbackService _nativeFeedbackService;
 
     [ObservableProperty]
     private string driverId = "DRV-104";
@@ -38,13 +39,15 @@ public partial class LoginViewModel : BaseViewModel
         ISecureStorageService secureStorageService,
         ITelemetryService telemetryService,
         MockBackendServer mockBackendServer,
-        ILocalDatabaseService databaseService)
+        ILocalDatabaseService databaseService,
+        INativeFeedbackService nativeFeedbackService)
     {
         _apiService = apiService;
         _secureStorageService = secureStorageService;
         _telemetryService = telemetryService;
         _mockBackendServer = mockBackendServer;
         _databaseService = databaseService;
+        _nativeFeedbackService = nativeFeedbackService;
         Title = "Вход в систему доставки";
 
         _ = InitializeAsync();
@@ -136,6 +139,10 @@ public partial class LoginViewModel : BaseViewModel
                 StatusMessage = $"Вход выполнен: {result.DriverName}";
                 ErrorMessage = null;
                 
+                // Нативный тактильный и системный отклик (Общее требование #4)
+                await _nativeFeedbackService.TriggerSuccessFeedbackAsync();
+                await _nativeFeedbackService.ShowNativeToastAsync($"Добро пожаловать, {result.DriverName}!");
+
                 // Запуск службы телеметрии
                 _telemetryService.Start(result.DriverId);
 
@@ -148,7 +155,8 @@ public partial class LoginViewModel : BaseViewModel
             }
             else
             {
-                // Сервер отклонил вход (401 Unauthorized): доступ к контенту заблокирован!
+                // Нативный отклик ошибки
+                await _nativeFeedbackService.TriggerWarningFeedbackAsync();
                 ErrorMessage = result.ErrorMessage ?? "Ошибка аутентификации: неверный логин или пароль.";
                 StatusMessage = null;
             }
@@ -160,6 +168,7 @@ public partial class LoginViewModel : BaseViewModel
         }
         catch (Exception ex)
         {
+            await _nativeFeedbackService.TriggerWarningFeedbackAsync();
             ErrorMessage = $"Сбой подключения к серверу: {ex.Message}";
             StatusMessage = null;
         }
@@ -173,6 +182,7 @@ public partial class LoginViewModel : BaseViewModel
     [RelayCommand]
     private async Task ClearCredentialsAsync()
     {
+        await _nativeFeedbackService.TriggerClickFeedbackAsync();
         await _secureStorageService.ClearAuthAsync();
         SavedTokenPreview = null;
         DriverId = string.Empty;

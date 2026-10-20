@@ -16,31 +16,40 @@
         </ResourceDictionary>
     </ContentPage.Resources>
 
+    <!-- Специфичный для платформ отступ под Notch / статус-бар -->
+    <ContentPage.Padding>
+        <OnPlatform x:TypeArguments="Thickness">
+            <On Platform="iOS" Value="0,44,0,0" />
+            <On Platform="Android" Value="0,10,0,0" />
+            <On Platform="Default" Value="0,0,0,0" />
+        </OnPlatform>
+    </ContentPage.Padding>
+
     <Grid>
         <ScrollView>
-            <VerticalStackLayout Spacing="16" Padding="16,20" MaximumWidthRequest="600" HorizontalOptions="Center">
+            <VerticalStackLayout Spacing="16" Padding="{OnPlatform Android='14,16', iOS='18,22', Default='16,20'}" MaximumWidthRequest="600" HorizontalOptions="Center">
 
                 <!-- Header Card -->
-                <Border StrokeShape="RoundRectangle 16"
+                <Border StrokeShape="{OnPlatform Android='RoundRectangle 12', iOS='RoundRectangle 22', Default='RoundRectangle 16'}"
                         BackgroundColor="#1C2541"
                         Stroke="#3A506B"
                         StrokeThickness="1"
-                        Padding="16">
+                        Padding="{OnPlatform Android='14,12', iOS='18,16', Default='16,14'}">
                     <Grid RowDefinitions="Auto,Auto,Auto" RowSpacing="8">
                         <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto">
-                            <Border Grid.Column="0" StrokeShape="RoundRectangle 8" BackgroundColor="#0F172A" Padding="8,4">
-                                <Label Text="{Binding Delivery.OrderNumber}" FontAttributes="Bold" FontSize="14" TextColor="#38BDF8"/>
+                            <Border Grid.Column="0" StrokeShape="{OnPlatform Android='RoundRectangle 6', iOS='RoundRectangle 12', Default='RoundRectangle 8'}" BackgroundColor="#0F172A" Padding="8,4">
+                                <Label Text="{Binding Delivery.OrderNumber}" FontAttributes="Bold" FontSize="{OnPlatform Android='13', iOS='15', Default='14'}" TextColor="#38BDF8"/>
                             </Border>
 
                             <Border Grid.Column="2" 
-                                    StrokeShape="RoundRectangle 12" 
+                                    StrokeShape="{OnPlatform Android='RoundRectangle 8', iOS='RoundRectangle 16', Default='RoundRectangle 12'}" 
                                     BackgroundColor="{Binding Delivery.Status, Converter={StaticResource StatusColorConverter}}" 
                                     Padding="12,4">
                                 <Label Text="{Binding Delivery.Status}" FontSize="12" FontAttributes="Bold" TextColor="White"/>
                             </Border>
                         </Grid>
 
-                        <Label Grid.Row="1" Text="{Binding Delivery.ClientName}" FontSize="18" FontAttributes="Bold" TextColor="#F8FAFC"/>
+                        <Label Grid.Row="1" Text="{Binding Delivery.ClientName}" FontSize="{OnPlatform Android='17', iOS='20', Default='18'}" FontAttributes="Bold" TextColor="#F8FAFC"/>
 
                         <HorizontalStackLayout Grid.Row="2" Spacing="6">
                             <Label Text="📍" FontSize="14"/>
@@ -50,10 +59,10 @@
                 </Border>
 
                 <!-- Client Contact & Actions Card -->
-                <Border StrokeShape="RoundRectangle 16"
+                <Border StrokeShape="{OnPlatform Android='RoundRectangle 12', iOS='RoundRectangle 20', Default='RoundRectangle 16'}"
                         BackgroundColor="#1E293B"
                         Stroke="#334155"
-                        Padding="16">
+                        Padding="{OnPlatform Android='14', iOS='18', Default='16'}">
                     <VerticalStackLayout Spacing="10">
                         <Label Text="Контакты получателя" FontSize="14" FontAttributes="Bold" TextColor="#94A3B8"/>
                         
@@ -69,9 +78,9 @@
                                     BackgroundColor="#10B981" 
                                     TextColor="White" 
                                     FontAttributes="Bold"
-                                    FontSize="12" 
-                                    HeightRequest="38" 
-                                    CornerRadius="10"/>
+                                    FontSize="{OnPlatform Android='11', iOS='13', Default='12'}" 
+                                    HeightRequest="{OnPlatform Android='38', iOS='46', Default='40'}" 
+                                    CornerRadius="{OnPlatform Android='6', iOS='16', Default='10'}"/>
 
                             <Button Grid.Column="1" 
                                     Text="🗺️ На карте" 
@@ -79,9 +88,9 @@
                                     BackgroundColor="#3B82F6" 
                                     TextColor="White" 
                                     FontAttributes="Bold"
-                                    FontSize="12" 
-                                    HeightRequest="38" 
-                                    CornerRadius="10"/>
+                                    FontSize="{OnPlatform Android='11', iOS='13', Default='12'}" 
+                                    HeightRequest="{OnPlatform Android='38', iOS='46', Default='40'}" 
+                                    CornerRadius="{OnPlatform Android='6', iOS='16', Default='10'}"/>
                         </Grid>
                     </VerticalStackLayout>
                 </Border>
@@ -183,8 +192,9 @@
                                 BackgroundColor="#2563EB"
                                 TextColor="White"
                                 FontAttributes="Bold"
-                                HeightRequest="48"
-                                CornerRadius="12"/>
+                                FontSize="{OnPlatform Android='13', iOS='15', Default='14'}"
+                                HeightRequest="{OnPlatform Android='46', iOS='52', Default='48'}"
+                                CornerRadius="{OnPlatform Android='8', iOS='22', Default='12'}"/>
 
                         <!-- Cancel request button (visible when busy) -->
                         <Button Text="Отменить отправку (CTS)"
@@ -193,8 +203,9 @@
                                 BackgroundColor="#DC2626"
                                 TextColor="White"
                                 FontAttributes="Bold"
-                                HeightRequest="40"
-                                CornerRadius="10"/>
+                                FontSize="{OnPlatform Android='12', iOS='14', Default='13'}"
+                                HeightRequest="{OnPlatform Android='38', iOS='46', Default='40'}"
+                                CornerRadius="{OnPlatform Android='8', iOS='18', Default='10'}"/>
 
                         <!-- Back button -->
                         <Button Text="← Вернуться к списку"

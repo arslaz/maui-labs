@@ -15,49 +15,63 @@
         </ResourceDictionary>
     </ContentPage.Resources>
 
+    <ContentPage.Padding>
+        <OnPlatform x:TypeArguments="Thickness">
+            <On Platform="iOS" Value="0,44,0,0" />
+            <On Platform="Android" Value="0,12,0,0" />
+            <On Platform="Default" Value="0,0,0,0" />
+        </OnPlatform>
+    </ContentPage.Padding>
+
     <Grid>
         <ScrollView>
-            <VerticalStackLayout Spacing="24" Padding="24,36" MaximumWidthRequest="500" HorizontalOptions="Center">
+            <VerticalStackLayout Spacing="24" Padding="{OnPlatform Android='16,24', iOS='24,32', Default='20,28'}" MaximumWidthRequest="500" HorizontalOptions="Center">
                 
                 <!-- Header / Logo -->
                 <VerticalStackLayout Spacing="10" HorizontalOptions="Center">
-                    <Border StrokeShape="RoundRectangle 24" 
+                    <Border StrokeShape="{OnPlatform Android='RoundRectangle 16', iOS='RoundRectangle 26', Default='RoundRectangle 20'}" 
                             BackgroundColor="#1E293B" 
                             Stroke="#334155" 
                             StrokeThickness="1" 
-                            WidthRequest="80" 
-                            HeightRequest="80" 
+                            WidthRequest="{OnPlatform Android='72', iOS='84', Default='78'}" 
+                            HeightRequest="{OnPlatform Android='72', iOS='84', Default='78'}" 
                             HorizontalOptions="Center">
-                        <Label Text="🚛" FontSize="38" HorizontalOptions="Center" VerticalOptions="Center"/>
+                        <Label Text="🚛" FontSize="{OnPlatform Android='34', iOS='40', Default='36'}" HorizontalOptions="Center" VerticalOptions="Center"/>
                     </Border>
                     
                     <Label Text="LogiRoute Pro" 
-                           FontSize="26" 
+                           FontSize="{OnPlatform Android='24', iOS='27', Default='26'}" 
                            FontAttributes="Bold" 
                            TextColor="#F8FAFC" 
                            HorizontalOptions="Center"/>
                     <Label Text="Навигатор грузоперевозок и доставок" 
-                           FontSize="14" 
+                           FontSize="{OnPlatform Android='13', iOS='14', Default='14'}" 
                            TextColor="#94A3B8" 
                            HorizontalOptions="Center"/>
+
+                    <!-- Платформенный бейдж (OnPlatform) -->
+                    <Border StrokeShape="RoundRectangle 8" BackgroundColor="#0F172A" Stroke="#334155" Padding="8,3" HorizontalOptions="Center">
+                        <Label Text="{OnPlatform Android='🤖 Android Material 3 UI', iOS='🍏 Apple iOS HIG Native UI', Default='💻 Cross-Platform UI'}"
+                               FontSize="10" TextColor="#38BDF8" FontAttributes="Bold"/>
+                    </Border>
                 </VerticalStackLayout>
 
                 <!-- Login Card -->
-                <Border StrokeShape="RoundRectangle 16"
+                <Border StrokeShape="{OnPlatform Android='RoundRectangle 12', iOS='RoundRectangle 24', Default='RoundRectangle 16'}"
                         BackgroundColor="#1E293B"
                         Stroke="#334155"
                         StrokeThickness="1"
-                        Padding="20">
+                        Padding="{OnPlatform Android='18,16', iOS='24,22', Default='20,18'}">
                     <VerticalStackLayout Spacing="16">
                         <Label Text="Авторизация водителя" 
-                               FontSize="18" 
+                               FontSize="{OnPlatform Android='17', iOS='19', Default='18'}" 
                                FontAttributes="Bold" 
                                TextColor="#F1F5F9" />
 
                         <!-- Driver ID -->
                         <VerticalStackLayout Spacing="6">
                             <Label Text="Табельный номер (ID водителя)" FontSize="12" TextColor="#94A3B8" />
-                            <Border StrokeShape="RoundRectangle 10" BackgroundColor="#0F172A" Stroke="#334155" Padding="12,4">
+                            <Border StrokeShape="{OnPlatform Android='RoundRectangle 8', iOS='RoundRectangle 14', Default='RoundRectangle 10'}" BackgroundColor="#0F172A" Stroke="#334155" Padding="{OnPlatform Android='12,4', iOS='14,8', Default='12,6'}">
                                 <Entry Text="{Binding DriverId}" 
                                        Placeholder="Например: DRV-104" 
                                        TextColor="#F8FAFC" 
@@ -68,7 +82,7 @@
                         <!-- Password -->
                         <VerticalStackLayout Spacing="6">
                             <Label Text="Пароль / PIN доступа" FontSize="12" TextColor="#94A3B8" />
-                            <Border StrokeShape="RoundRectangle 10" BackgroundColor="#0F172A" Stroke="#334155" Padding="12,4">
+                            <Border StrokeShape="{OnPlatform Android='RoundRectangle 8', iOS='RoundRectangle 14', Default='RoundRectangle 10'}" BackgroundColor="#0F172A" Stroke="#334155" Padding="{OnPlatform Android='12,4', iOS='14,8', Default='12,6'}">
                                 <Entry Text="{Binding Password}" 
                                        IsPassword="True" 
                                        Placeholder="Пароль учетной записи" 
@@ -140,8 +154,9 @@
                                 BackgroundColor="#2563EB" 
                                 TextColor="#FFFFFF" 
                                 FontAttributes="Bold" 
-                                CornerRadius="12" 
-                                HeightRequest="48"
+                                CornerRadius="{OnPlatform Android='8', iOS='22', Default='12'}" 
+                                HeightRequest="{OnPlatform Android='46', iOS='52', Default='48'}"
+                                FontSize="{OnPlatform Android='14', iOS='16', Default='15'}"
                                 Margin="0,6,0,0"/>
 
                         <!-- Cancel Request Button (Visible when busy) -->
@@ -151,8 +166,8 @@
                                 BackgroundColor="#DC2626" 
                                 TextColor="#FFFFFF" 
                                 FontAttributes="Bold" 
-                                CornerRadius="12" 
-                                HeightRequest="40"/>
+                                CornerRadius="{OnPlatform Android='8', iOS='20', Default='12'}" 
+                                HeightRequest="{OnPlatform Android='40', iOS='46', Default='42'}"/>
 
                         <!-- Token Preview in SecureStorage -->
                         <Label Text="{Binding SavedTokenPreview}" 

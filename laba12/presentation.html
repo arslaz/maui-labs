@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Климат США — Лазаревич Арсений ПО2311</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #ffffff;
+      --text: #111827;
+      --muted: #6b7280;
+      --card-bg: #f9fafb;
+      --border: #e5e7eb;
+      --accent: #1e293b;
+      --font: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: #0f1115;
+      color: var(--text);
+      font-family: var(--font);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Presentation Deck Container */
+    #deck {
+      width: 92vw;
+      max-width: 1360px;
+      aspect-ratio: 16 / 9;
+      background: var(--bg);
+      border-radius: 8px;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.45);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+    }
+
+    .slide {
+      position: absolute;
+      inset: 0;
+      padding: 4.5% 6%;
+      display: flex;
+      flex-direction: column;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+      background: var(--bg);
+    }
+
+    .slide.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* Minimalist Header */
+    .slide-header {
+      margin-bottom: 2.2rem;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 1.4rem;
+    }
+
+    .slide-tag {
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+    }
+
+    .slide-title {
+      font-size: 2.15rem;
+      font-weight: 800;
+      color: var(--text);
+      letter-spacing: -0.03em;
+      line-height: 1.15;
+    }
+
+    .slide-desc {
+      font-size: 0.98rem;
+      color: var(--muted);
+      margin-top: 0.4rem;
+      font-weight: 400;
+    }
+
+    /* Content Layouts */
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+      flex: 1;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.8rem;
+      flex: 1;
+    }
+
+    .grid-custom-sw {
+      display: grid;
+      grid-template-columns: 1.45fr 0.95fr;
+      gap: 1.8rem;
+      flex: 1;
+    }
+
+    .col-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 1.5rem 1.6rem;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .col-num {
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 0.5rem;
+    }
+
+    .col-title {
+      font-size: 1.18rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 1rem;
+      letter-spacing: -0.01em;
+    }
+
+    .col-content {
+      font-size: 0.88rem;
+      line-height: 1.6;
+      color: #334155;
+    }
+
+    .item-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+    }
+
+    .item-list li {
+      position: relative;
+      padding-left: 1.1rem;
+      font-size: 0.88rem;
+      line-height: 1.5;
+      color: #334155;
+    }
+
+    .item-list li::before {
+      content: "—";
+      position: absolute;
+      left: 0;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .item-list strong {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    /* Big Metric Cards */
+    .metric-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 0.9rem;
+    }
+
+    .metric-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 1.1rem 1.4rem;
+    }
+
+    .metric-val {
+      font-size: 1.7rem;
+      font-weight: 800;
+      font-family: var(--mono);
+      color: var(--text);
+      letter-spacing: -0.04em;
+    }
+
+    .metric-label {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-top: 0.2rem;
+    }
+
+    .metric-desc {
+      font-size: 0.82rem;
+      color: #475569;
+      margin-top: 0.35rem;
+      line-height: 1.45;
+    }
+
+    /* Title Slide Specifics */
+    .title-slide {
+      justify-content: space-between;
+      padding: 5.5% 6.5%;
+    }
+
+    .title-top {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .title-tag {
+      font-family: var(--mono);
+      font-size: 0.85rem;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-bottom: 1.2rem;
+    }
+
+    .title-h1 {
+      font-size: 4.2rem;
+      font-weight: 800;
+      color: var(--text);
+      letter-spacing: -0.04em;
+      line-height: 1.05;
+      margin-bottom: 1rem;
+    }
+
+    .title-lead {
+      font-size: 1.25rem;
+      color: var(--muted);
+      max-width: 720px;
+      line-height: 1.5;
+      font-weight: 400;
+    }
+
+    .title-footer {
+      border-top: 1px solid var(--border);
+      padding-top: 2rem;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      align-items: flex-end;
+    }
+
+    .author-block .label {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+      margin-bottom: 0.4rem;
+    }
+
+    .author-block .name {
+      font-size: 1.55rem;
+      font-weight: 800;
+      color: var(--text);
+      letter-spacing: -0.02em;
+    }
+
+    .author-block .group {
+      font-size: 0.95rem;
+      font-weight: 500;
+      color: var(--muted);
+      margin-top: 0.2rem;
+    }
+
+    .thesis-block {
+      text-align: right;
+    }
+
+    .thesis-block .label {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+      margin-bottom: 0.4rem;
+    }
+
+    .thesis-block .text {
+      font-size: 0.95rem;
+      color: #334155;
+      line-height: 1.55;
+      max-width: 440px;
+      margin-left: auto;
+    }
+
+    /* Bottom Control Bar */
+    .controls {
+      margin-top: 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      color: #94a3b8;
+      font-family: var(--mono);
+      font-size: 0.85rem;
+    }
+
+    .btn-nav {
+      background: #1e293b;
+      color: #f1f5f9;
+      border: 1px solid #334155;
+      border-radius: 4px;
+      padding: 0.45rem 0.9rem;
+      cursor: pointer;
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      font-weight: 500;
+      transition: all 0.15s ease;
+    }
+
+    .btn-nav:hover {
+      background: #334155;
+      color: #fff;
+    }
+
+    .keys-hint {
+      color: #64748b;
+      font-size: 0.78rem;
+    }
+
+    /* Speaker Notes Drawer (Toggled by 'N') */
+    #notes-drawer {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #1e293b;
+      color: #f8fafc;
+      padding: 1.2rem 2rem;
+      border-top: 2px solid #38bdf8;
+      font-size: 0.9rem;
+      line-height: 1.55;
+      transform: translateY(100%);
+      transition: transform 0.2s ease;
+      z-index: 100;
+    }
+
+    #notes-drawer.open {
+      transform: translateY(0);
+    }
+
+    #notes-drawer .notes-header {
+      display: flex;
+      justify-content: space-between;
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      color: #94a3b8;
+      margin-bottom: 0.4rem;
+    }
+
+    /* Print / PDF Styles */
+    @media print {
+      body {
+        background: #fff;
+        height: auto;
+        overflow: visible;
+        display: block;
+      }
+
+      #deck {
+        width: 100% !important;
+        max-width: none !important;
+        aspect-ratio: auto !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        display: block !important;
+      }
+
+      .slide {
+        position: relative !important;
+        opacity: 1 !important;
+        page-break-after: always !important;
+        height: 100vh !important;
+        padding: 5% !important;
+      }
+
+      .controls, #notes-drawer {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Slide Deck -->
+  <div id="deck">
+
+    <!-- SLIDE 1: ТИТУЛЬНЫЙ -->
+    <section class="slide title-slide active" data-slide="1" data-notes="Приветствие. Представьте тему: Климат США уникален тем, что на территории одного государства сосредоточены практически все климатические пояса Земли — от вечной мерзлоты Аляски до тропиков Гавайев. Выполнил Лазаревич Арсений, группа ПО2311.">
+      <div class="title-top">
+        <div class="title-tag">География & Природные зоны</div>
+        <h1 class="title-h1">Климат США</h1>
+        <p class="title-lead">Климатические пояса, ключевые факторы разнообразия и региональные контрасты территории</p>
+      </div>
+      <div class="title-footer">
+        <div class="author-block">
+          <div class="label">Выполнил студент</div>
+          <div class="name">Лазаревич Арсений</div>
+          <div class="group">Группа ПО2311</div>
+        </div>
+        <div class="thesis-block">
+          <div class="label">Структура доклада</div>
+          <p class="text">7 ключевых разделов: климатообразующие факторы, Запад, аридный Юго-Запад, Великие равнины, Восток, Аляска и Гавайи.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 2: ФАКТОРЫ -->
+    <section class="slide" data-slide="2" data-notes="Объясните три фундаментальных фактора: 1) Океаны — холодный Тихий и теплый Гольфстрим. 2) Рельеф — горы тянутся меридионально (с севера на юг), поэтому между ними нет преграды для арктического воздуха и тепла с юга. 3) Широта — от полярных широт до экваториальных.">
+      <div class="slide-header">
+        <div class="slide-tag">02 / Географическая основа</div>
+        <h2 class="slide-title">Ключевые климатообразующие факторы</h2>
+        <p class="slide-desc">Почему на территории одной страны сформировались кардинально несхожие природные зоны</p>
+      </div>
+      <div class="grid-3">
+        <div class="col-card">
+          <div class="col-num">01</div>
+          <div class="col-title">Океанические течения</div>
+          <p class="col-content">
+            Два океана создают сильную асимметрию. Холодное <strong>Калифорнийское течение</strong> на западе стабилизирует воздух и порождает частые туманы. Теплый <strong>Гольфстрим</strong> на юго-востоке насыщает континент влагой и подпитывает штормовые циклоны.
+          </p>
+        </div>
+        <div class="col-card">
+          <div class="col-num">02</div>
+          <div class="col-title">Меридиональный рельеф</div>
+          <p class="col-content">
+            Хребты <strong>Кордильер</strong> на западе и <strong>Аппалачей</strong> на востоке вытянуты вдоль меридианов. Из-за отсутствия поперечных горных цепей формируется гигантский коридор для свободного проникновения полярного холода и тропической жары.
+          </p>
+        </div>
+        <div class="col-card">
+          <div class="col-num">03</div>
+          <div class="col-title">Широтная протяженность</div>
+          <p class="col-content">
+            Географический диапазон охватывает более <strong>52 градусов широты</strong>: от мыса Барроу на Аляске (71° с.ш.) до Большого острова Гавайи (19° с.ш.). Основной массив штатов лежит в умеренном и субтропическом поясах.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 3: ЗАПАДНОЕ ПОБЕРЕЖЬЕ -->
+    <section class="slide" data-slide="3" data-notes="Запад делится на две контрастные части: Северо-Запад (Сиэтл, Портленд) с мягкой морской зимой и рекордными дождями, и Калифорния с мягким средиземноморским климатом, летней засухой и знаменитым морским туманом над мостом 'Золотые Ворота'.">
+      <div class="slide-header">
+        <div class="slide-tag">03 / Тихоокеанский регион</div>
+        <h2 class="slide-title">Западное побережье и Кордильеры</h2>
+        <p class="slide-desc">Контраст умеренно-морского севера и средиземноморской Калифорнии</p>
+      </div>
+      <div class="grid-2">
+        <div class="col-card">
+          <div class="col-num">РЕГИОН I</div>
+          <div class="col-title">Северо-Запад (Вашингтон, Орегон)</div>
+          <ul class="item-list">
+            <li><strong>Тип климата:</strong> Умеренный морской океанический.</li>
+            <li><strong>Температуры:</strong> Мягкая зима (+3...+7°C), нежаркое лето (+20...+23°C). Отсутствие затяжных морозов.</li>
+            <li><strong>Осадки:</strong> До 2500–3500 мм в предгорьях Каскадных гор; зона реликтовых хвойных дождевых лесов.</li>
+            <li><strong>Погода:</strong> Долгая пасмурная осень и зима с моросящими дождями и густыми туманами.</li>
+          </ul>
+        </div>
+        <div class="col-card">
+          <div class="col-num">РЕГИОН II</div>
+          <div class="col-title">Калифорнийское побережье</div>
+          <ul class="item-list">
+            <li><strong>Тип климата:</strong> Классический средиземноморский.</li>
+            <li><strong>Температуры:</strong> Сухое лето (+22...+28°C), теплая влажная зима (+12...+16°C).</li>
+            <li><strong>Прибрежный туман (Marine Layer):</strong> Холодное течение порождает густые туманы, охлаждающие Сан-Франциско в летний зной.</li>
+            <li><strong>Риски:</strong> Продолжительные периоды засухи с мая по октябрь, сухие ветры «Санта-Ана» и лесные пожары.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 4: ЮГО-ЗАПАД И ПУСТЫНИ -->
+    <section class="slide" data-slide="4" data-notes="Юго-Запад — царство пустынь. Здесь действует эффект дождевой тени: горы задерживают влагу, оставляя внутренние плато сухими. Подчеркните Долину Смерти с мировым рекордом тепла +56.7°C.">
+      <div class="slide-header">
+        <div class="slide-tag">04 / Засушливые зоны</div>
+        <h2 class="slide-title">Аридный Юго-Запад и Пустыни</h2>
+        <p class="slide-desc">Эффект дождевой тени Сьерра-Невады и глобальные температурные рекорды</p>
+      </div>
+      <div class="grid-custom-sw">
+        <div class="col-card">
+          <div class="col-num">ХАРАКТЕРИСТИКА ЗОНЫ</div>
+          <div class="col-title">Невада, Аризона, Нью-Мексико, Юта</div>
+          <ul class="item-list">
+            <li><strong>Дождевая тень:</strong> Высокие хребты Сьерра-Невада полностью перекрывают доступ океанической влаге с Тихого океана.</li>
+            <li><strong>Годовые осадки:</strong> Менее 150–250 мм в год; во многих котловинах дождей нет месяцами.</li>
+            <li><strong>Суточный перепад:</strong> Из-за сухого воздуха и безоблачного неба ночью земля быстро остывает, перепад температур достигает 20–25°C за сутки.</li>
+            <li><strong>Североамериканский муссон:</strong> В июле-августе проникает влажный воздух с юга, вызывая внезапные ливни и селевые паводки (flash floods).</li>
+          </ul>
+        </div>
+        <div class="metric-stack">
+          <div class="metric-card">
+            <div class="metric-val">+56.7 °C</div>
+            <div class="metric-label">Мировой рекорд жары</div>
+            <p class="metric-desc">Зафиксирован в Долине Смерти (Фернис-Крик, Калифорния). Абсолютный максимум температуры воздуха на Земле.</p>
+          </div>
+          <div class="metric-card">
+            <div class="metric-val">&lt; 100 мм</div>
+            <div class="metric-label">Норма осадков</div>
+            <p class="metric-desc">Среднегодовой уровень осадков в пустынях Мохаве и Сонора.</p>
+          </div>
+          <div class="metric-card">
+            <div class="metric-val">+42...+46 °C</div>
+            <div class="metric-label">Летний норматив</div>
+            <p class="metric-desc">Обычная дневная температура летом в Фениксе и Лас-Вегасе.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 5: ВЕЛИКИЕ РАВНИНЫ И ТОРНАДО -->
+    <section class="slide" data-slide="5" data-notes="Великие равнины — сердце американского континентального климата. Зимой мороз до -30°C, летом жара под +40°C. Из-за столкновения арктического холода из Канады и теплой влаги из Мексиканского залива здесь находится Аллея Торнадо — свыше 1000 смерчей каждый год.">
+      <div class="slide-header">
+        <div class="slide-tag">05 / Внутренний континент</div>
+        <h2 class="slide-title">Великие равнины и Аллея Торнадо</h2>
+        <p class="slide-desc">Резкая континентальность и глобальный центр экстремальной конвекции</p>
+      </div>
+      <div class="grid-2">
+        <div class="col-card">
+          <div class="col-num">РЕЖИМ</div>
+          <div class="col-title">Резкая континентальность (Мидвест)</div>
+          <ul class="item-list">
+            <li><strong>Штаты:</strong> Северная и Южная Дакота, Небраска, Канзас, Айова, Миннесота.</li>
+            <li><strong>Суровые зимы:</strong> Сильные ветры («бураны»), снежные бури и температуры до -25...-35°C.</li>
+            <li><strong>Жаркое лето:</strong> Температуры регулярно поднимаются до +35...+40°C с волнами изнуряющей суховеистой жары.</li>
+            <li><strong>Температурные скачки:</strong> Смена воздушных масс может вызвать падение температуры на 20°C всего за 2–3 часа.</li>
+          </ul>
+        </div>
+        <div class="col-card">
+          <div class="col-num">ОПАСНЫЕ ЯВЛЕНИЯ</div>
+          <div class="col-title">Аллея Торнадо (Tornado Alley)</div>
+          <ul class="item-list">
+            <li><strong>Физика процесса:</strong> Столкновение сухого воздуха с гор, ледяного воздуха из Канады и теплого влажного из Мексиканского залива.</li>
+            <li><strong>Суперъячейки:</strong> Образование гигантских вращающихся грозовых облаков с градом размером с бейсбольный мяч.</li>
+            <li><strong>Статистика:</strong> Ежегодно в США регистрируется от 1000 до 1400 торнадо — мировой рекорд плотности.</li>
+            <li><strong>Пиковый сезон:</strong> С апреля по июнь в Оклахоме, Канзасе и Техасе.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 6: ВОСТОК И ЮГО-ВОСТОК -->
+    <section class="slide" data-slide="6" data-notes="На востоке: Северо-Восток (Нью-Йорк, Чикаго) страдает от снежных штормов норд-остов и эффекта Великих озер. Юго-Восток (Флорида) — субтропики и тропики с жарким влажным летом и разрушительным сезоном атлантических ураганов с июня по ноябрь.">
+      <div class="slide-header">
+        <div class="slide-tag">06 / Атлантический бассейн</div>
+        <h2 class="slide-title">Восток и Юго-Восток</h2>
+        <p class="slide-desc">Влажный континентальный север и субтропический юг с сезоном ураганов</p>
+      </div>
+      <div class="grid-2">
+        <div class="col-card">
+          <div class="col-num">СЕВЕРО-ВОСТОК</div>
+          <div class="col-title">Новая Англия, Нью-Йорк, Великие озера</div>
+          <ul class="item-list">
+            <li><strong>Тип климата:</strong> Влажный континентальный с 4 четко выраженными сезонами.</li>
+            <li><strong>Штормы Норд-осты (Nor'easters):</strong> Мощные циклоны с Атлантики, приносящие ураганные ветры и метели.</li>
+            <li><strong>Снежный эффект озер:</strong> Массы холодного воздуха над теплыми озерами порождают многометровые снегопады (Баффало).</li>
+            <li><strong>Летний сезон:</strong> Теплое, умеренно влажное лето (+24...+28°C).</li>
+          </ul>
+        </div>
+        <div class="col-card">
+          <div class="col-num">ЮГО-ВОСТОК</div>
+          <div class="col-title">Флорида, Джорджия, Луизиана</div>
+          <ul class="item-list">
+            <li><strong>Тип климата:</strong> Влажный субтропический, на крайнем юге Флориды — тропический.</li>
+            <li><strong>Летняя погода:</strong> Долгое знойное лето (+30...+34°C) с влажностью до 85% и ежедневными ливнями.</li>
+            <li><strong>Сезон атлантических ураганов:</strong> Период с 1 июня по 30 ноября с циклонами категорий 3–5 (Катрина, Иэн).</li>
+            <li><strong>Мягкая зима:</strong> Безморозный период, средняя зимняя температура во Флориде +18...+22°C.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 7: ЭКСТРЕМАЛЬНЫЕ РЕГИОНЫ И ВЫВОД -->
+    <section class="slide" data-slide="7" data-notes="Заключительный слайд. Аляска — царство вечной мерзлоты и морозов до -60°C. Гавайи — тропический рай со стабильными +27°C и самым дождливым местом планеты (гора Ваиалеале). Вывод: США обладают уникальной палитрой климатических зон, что определяет их экономику, энергетику и сельское хозяйство.">
+      <div class="slide-header">
+        <div class="slide-tag">07 / Внеконтинентальные штаты & Итог</div>
+        <h2 class="slide-title">Экстремальные регионы и Заключение</h2>
+        <p class="slide-desc">Арктическая Аляска, тропические Гавайи и главный географический вывод</p>
+      </div>
+      <div class="grid-3">
+        <div class="col-card">
+          <div class="col-num">АРКТИКА</div>
+          <div class="col-title">Штат Аляска</div>
+          <ul class="item-list">
+            <li><strong>Пояса:</strong> Арктический и субарктический.</li>
+            <li><strong>Температуры:</strong> Зимние морозы до -50...-60°C во внутренних районах.</li>
+            <li><strong>Мерзлота:</strong> Около 85% территории занято многолетней мерзлотой.</li>
+            <li><strong>Юг штата:</strong> Морской климат, до 4000 мм осадков.</li>
+          </ul>
+        </div>
+        <div class="col-card">
+          <div class="col-num">ТРОПИКИ</div>
+          <div class="col-title">Гавайский архипелаг</div>
+          <ul class="item-list">
+            <li><strong>Пояс:</strong> Морской тропический пассатный.</li>
+            <li><strong>Стабильность:</strong> Круглый год +24...+30°C без выраженной зимы.</li>
+            <li><strong>Рекорд влажности:</strong> Гора Ваиалеале (о. Кауаи) — до 11 500 мм осадков в год.</li>
+            <li><strong>Микроклиматы:</strong> От дождевого леса до полупустыни на одном острове.</li>
+          </ul>
+        </div>
+        <div class="col-card">
+          <div class="col-num">РЕЗЮМЕ</div>
+          <div class="col-title">Главный вывод</div>
+          <ul class="item-list">
+            <li><strong>Полный спектр:</strong> Представлены почти все пояса планеты (кроме экваториального).</li>
+            <li><strong>Высокая контрастность:</strong> Открытый равнинный коридор делает погоду крайне динамичной.</li>
+            <li><strong>Влияние:</strong> Климатическое зонирование создало легендарные агропояса (Кукурузный, Пшеничный).</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Notes Drawer -->
+    <div id="notes-drawer">
+      <div class="notes-header">
+        <span>Подсказки докладчика (Шпаргалка к слайду)</span>
+        <span>Нажмите N чтобы скрыть</span>
+      </div>
+      <div id="notes-content">Текст заметок появится здесь</div>
+    </div>
+
+  </div>
+
+  <!-- Bottom Navigation / UI -->
+  <div class="controls">
+    <button class="btn-nav" id="prev-btn" onclick="prevSlide()">← Назад</button>
+    <span id="slide-indicator">01 / 07</span>
+    <button class="btn-nav" id="next-btn" onclick="nextSlide()">Вперед →</button>
+    <button class="btn-nav" onclick="toggleNotes()">Заметки (N)</button>
+    <button class="btn-nav" onclick="toggleFullscreen()">На весь экран (F)</button>
+    <span class="keys-hint">Навигация: ← / → / Пробел | Печать в PDF: Cmd+P</span>
+  </div>
+
+  <script>
+    let currentSlide = 1;
+    const totalSlides = 7;
+    const slides = document.querySelectorAll('.slide');
+    const indicator = document.getElementById('slide-indicator');
+    const notesDrawer = document.getElementById('notes-drawer');
+    const notesContent = document.getElementById('notes-content');
+
+    function updateSlide() {
+      slides.forEach((s, idx) => {
+        if (idx + 1 === currentSlide) {
+          s.classList.add('active');
+          const notes = s.getAttribute('data-notes') || '';
+          notesContent.textContent = notes;
+        } else {
+          s.classList.remove('active');
+        }
+      });
+      indicator.textContent = String(currentSlide).padStart(2, '0') + ' / ' + String(totalSlides).padStart(2, '0');
+    }
+
+    function nextSlide() {
+      if (currentSlide < totalSlides) {
+        currentSlide++;
+        updateSlide();
+      }
+    }
+
+    function prevSlide() {
+      if (currentSlide > 1) {
+        currentSlide--;
+        updateSlide();
+      }
+    }
+
+    function toggleNotes() {
+      notesDrawer.classList.toggle('open');
+    }
+
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        }
+      }
+    }
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+        nextSlide();
+      } else if (e.key === 'ArrowLeft' || e.key === 'Backspace' || e.key === 'PageUp') {
+        prevSlide();
+      } else if (e.key.toLowerCase() === 'n') {
+        toggleNotes();
+      } else if (e.key.toLowerCase() === 'f') {
+        toggleFullscreen();
+      } else if (e.key >= '1' && e.key <= '7') {
+        currentSlide = parseInt(e.key, 10);
+        updateSlide();
+      }
+    });
+
+    updateSlide();
+  </script>
+</body>
+</html>

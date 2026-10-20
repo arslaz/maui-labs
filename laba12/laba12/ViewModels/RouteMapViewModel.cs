@@ -14,6 +14,8 @@ public partial class RouteMapViewModel : BaseViewModel, IQueryAttributable
     private readonly ICacheService _cacheService;
     private readonly ISecureStorageService _secureStorageService;
     private readonly IDeviceLocationService _locationService;
+    private readonly INativeTelemetryService _nativeTelemetryService;
+    private readonly INativeFeedbackService _nativeFeedbackService;
     private RouteInfo? _passedRoute;
 
     [ObservableProperty]
@@ -37,18 +39,41 @@ public partial class RouteMapViewModel : BaseViewModel, IQueryAttributable
     [ObservableProperty]
     private List<string> routeInstructions = new();
 
+    // Вариант 7: Расширенная низкоуровневая телеметрия (аккумулятор, тип сети, оптимизация GPS)
+    [ObservableProperty]
+    private string nativeBatteryText = "🔋 Загрузка АКБ...";
+
+    [ObservableProperty]
+    private string nativeNetworkText = "📶 Определение сети...";
+
+    [ObservableProperty]
+    private string nativeIntervalText = "⏱️ Интервал GPS: 15 сек";
+
+    [ObservableProperty]
+    private string nativeOptimizationReason = "Адаптивный алгоритм расчета";
+
+    [ObservableProperty]
+    private string nativeProviderName = "Системный менеджер ОС";
+
+    [ObservableProperty]
+    private bool isTabletDevice = DeviceInfo.Current.Idiom == DeviceIdiom.Tablet;
+
     public RouteMapViewModel(
         IRoutingService routingService,
         ITelemetryService telemetryService,
         ICacheService cacheService,
         ISecureStorageService secureStorageService,
-        IDeviceLocationService locationService)
+        IDeviceLocationService locationService,
+        INativeTelemetryService nativeTelemetryService,
+        INativeFeedbackService nativeFeedbackService)
     {
         _routingService = routingService;
         _telemetryService = telemetryService;
         _cacheService = cacheService;
         _secureStorageService = secureStorageService;
         _locationService = locationService;
+        _nativeTelemetryService = nativeTelemetryService;
+        _nativeFeedbackService = nativeFeedbackService;
 
         Title = "Карта и навигация OSRM";
     }
@@ -103,9 +128,14 @@ public partial class RouteMapViewModel : BaseViewModel, IQueryAttributable
 
                 // Generate Leaflet OpenStreetMap HTML
                 MapHtml = GenerateLeafletHtml(startLat, startLon, points, route);
+
+                // Опрос расширенной низкоуровневой телеметрии (Вариант 7)
+                await ReadNativeTelemetryInternalAsync();
+                await _nativeFeedbackService.TriggerSuccessFeedbackAsync();
             }
             else
             {
+                await _nativeFeedbackService.TriggerWarningFeedbackAsync();
                 ErrorMessage = route.ErrorMessage ?? "Не удалось построить гео-маршрут.";
             }
         }
@@ -115,6 +145,7 @@ public partial class RouteMapViewModel : BaseViewModel, IQueryAttributable
         }
         catch (Exception ex)
         {
+            await _nativeFeedbackService.TriggerWarningFeedbackAsync();
             ErrorMessage = $"Ошибка карты: {ex.Message}";
         }
         finally
@@ -133,6 +164,8 @@ public partial class RouteMapViewModel : BaseViewModel, IQueryAttributable
 
         try
         {
+            await _nativeFeedbackService.TriggerClickFeedbackAsync();
+
             var driverId = await _secureStorageService.GetDriverIdAsync() ?? "DRV-104";
             var points = await _cacheService.GetCachedDeliveriesAsync(driverId) ?? new List<DeliveryPoint>();
 
@@ -152,10 +185,14 @@ public partial class RouteMapViewModel : BaseViewModel, IQueryAttributable
                 RouteStatsText = $"Дистанция: {RouteDistance} • Время в пути: ~{RouteDuration}";
                 RouteInstructions = route.Instructions;
                 MapHtml = GenerateLeafletHtml(loc.Latitude, loc.Longitude, points, route);
+
+                await ReadNativeTelemetryInternalAsync();
+                await _nativeFeedbackService.TriggerSuccessFeedbackAsync();
             }
         }
         catch (Exception ex)
         {
+            await _nativeFeedbackService.TriggerWarningFeedbackAsync();
             ErrorMessage = $"Не удалось определить GPS: {ex.Message}";
         }
         finally
@@ -165,15 +202,45 @@ public partial class RouteMapViewModel : BaseViewModel, IQueryAttributable
         }
     }
 
+    /// <summary>
+    /// Вариант 7: Опрос низкоуровневой системной телеметрии (уровень заряда, тип сети, адаптивный интервал)
+    /// </summary>
+    [RelayCommand]
+    public async Task ReadNativeTelemetryAsync()
+    {
+        await _nativeFeedbackService.TriggerClickFeedbackAsync();
+        await ReadNativeTelemetryInternalAsync();
+        await _nativeFeedbackService.ShowNativeToastAsync($"Телеметрия обновлена: {NativeBatteryText}, сеть: {NativeNetworkText}");
+    }
+
+    private async Task ReadNativeTelemetryInternalAsync()
+    {
+        try
+        {
+            var telemetry = await _nativeTelemetryService.GetExtendedTelemetryAsync();
+            NativeBatteryText = telemetry.FormattedBattery;
+            NativeNetworkText = telemetry.FormattedNetwork;
+            NativeIntervalText = $"⏱️ Интервал GPS: {telemetry.RecommendedTelemetryIntervalSeconds} сек";
+            NativeOptimizationReason = telemetry.OptimizationDescription;
+            NativeProviderName = _nativeTelemetryService.PlatformProviderName;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[RouteMapViewModel] Native telemetry read error: {ex.Message}");
+        }
+    }
+
     [RelayCommand]
     public async Task RecalculateRouteAsync()
     {
+        await _nativeFeedbackService.TriggerClickFeedbackAsync();
         await InitializeMapAsync(precomputedRoute: null);
     }
 
     [RelayCommand]
     public async Task GoBackAsync()
     {
+        await _nativeFeedbackService.TriggerClickFeedbackAsync();
         await Shell.Current.GoToAsync("..");
     }
 
@@ -290,6 +357,18 @@ public partial class RouteMapViewModel : BaseViewModel, IQueryAttributable
             align-items: center;
             gap: 6px;
             transition: all 0.2s ease;
+        }}
+        @media (min-width: 600px) {{
+            .floating-btn {{
+                padding: 16px 24px;
+                font-size: 16px;
+                border-radius: 36px;
+                gap: 10px;
+            }}
+            .gps-pill {{
+                font-size: 15px;
+                padding: 10px 22px;
+            }}
         }}
         .floating-btn:hover {{
             background: #1d4ed8;

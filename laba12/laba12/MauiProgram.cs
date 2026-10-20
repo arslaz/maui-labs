@@ -48,6 +48,30 @@ public static class MauiProgram
         builder.Services.AddSingleton<IDeviceLocationService, DeviceLocationService>();
         builder.Services.AddSingleton<ITelemetryService, TelemetryBackgroundService>();
 
+        // 3. Нативные системные сервисы (DI + поддержка DependencyService)
+#if ANDROID
+        builder.Services.AddSingleton<INativeFeedbackService, laba12.Platforms.Android.AndroidNativeFeedbackService>();
+        builder.Services.AddSingleton<INativeTelemetryService, laba12.Platforms.Android.AndroidNativeTelemetryService>();
+        DependencyService.Register<INativeFeedbackService, laba12.Platforms.Android.AndroidNativeFeedbackService>();
+        DependencyService.Register<INativeTelemetryService, laba12.Platforms.Android.AndroidNativeTelemetryService>();
+#elif IOS
+        builder.Services.AddSingleton<INativeFeedbackService, laba12.Platforms.iOS.IosNativeFeedbackService>();
+        builder.Services.AddSingleton<INativeTelemetryService, laba12.Platforms.iOS.IosNativeTelemetryService>();
+        DependencyService.Register<INativeFeedbackService, laba12.Platforms.iOS.IosNativeFeedbackService>();
+        DependencyService.Register<INativeTelemetryService, laba12.Platforms.iOS.IosNativeTelemetryService>();
+#elif MACCATALYST
+        builder.Services.AddSingleton<INativeFeedbackService, laba12.Platforms.MacCatalyst.MacCatalystNativeFeedbackService>();
+        builder.Services.AddSingleton<INativeTelemetryService, laba12.Platforms.MacCatalyst.MacCatalystNativeTelemetryService>();
+        DependencyService.Register<INativeFeedbackService, laba12.Platforms.MacCatalyst.MacCatalystNativeFeedbackService>();
+        DependencyService.Register<INativeTelemetryService, laba12.Platforms.MacCatalyst.MacCatalystNativeTelemetryService>();
+#else
+        builder.Services.AddSingleton<INativeFeedbackService, DefaultNativeFeedbackService>();
+        builder.Services.AddSingleton<INativeTelemetryService, DefaultNativeTelemetryService>();
+        DependencyService.Register<INativeFeedbackService, DefaultNativeFeedbackService>();
+        DependencyService.Register<INativeTelemetryService, DefaultNativeTelemetryService>();
+#endif
+
+
         // 4. ViewModels
         builder.Services.AddTransient<LoginViewModel>();
         builder.Services.AddTransient<DeliveriesViewModel>();
