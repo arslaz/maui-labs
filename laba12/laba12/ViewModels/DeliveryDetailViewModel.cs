@@ -28,6 +28,13 @@ public partial class DeliveryDetailViewModel : BaseViewModel, IQueryAttributable
     [ObservableProperty]
     private bool isSuccessNotice;
 
+    // Вариант 7: Свойства справочника требований к грузу и агрегированных данных из СУБД (JOIN)
+    [ObservableProperty]
+    private string categoryOrdersSummary = "Загрузка данных категории...";
+
+    [ObservableProperty]
+    private string categoryAggregatedShiftStats = string.Empty;
+
     public List<string> AvailableStatuses { get; } = new()
     {
         "Ожидает",
@@ -51,7 +58,7 @@ public partial class DeliveryDetailViewModel : BaseViewModel, IQueryAttributable
         Title = "Детали заказа и груза";
     }
 
-    public void ApplyQueryAttributes(IDictionary<string, object> query)
+    public async void ApplyQueryAttributes(IDictionary<string, object> query)
     {
         if (query.TryGetValue("DeliveryPoint", out var pointObj) && pointObj is DeliveryPoint point)
         {
@@ -59,6 +66,51 @@ public partial class DeliveryDetailViewModel : BaseViewModel, IQueryAttributable
             SelectedStatus = point.Status;
             NotesText = point.Notes ?? string.Empty;
             Title = $"Заказ {point.OrderNumber}";
+
+            await LoadCargoRegulationsAndAggregatesAsync(point);
+        }
+    }
+
+    /// <summary>
+    /// Вариант 7: Выполнение связывающего JOIN-запроса к таблице cargo_categories
+    /// и агрегирующего запроса по смене водителя без вложенных циклов в C#.
+    /// </summary>
+    private async Task LoadCargoRegulationsAndAggregatesAsync(DeliveryPoint point)
+    {
+        try
+        {
+            var driverId = await _secureStorageService.GetDriverIdAsync() ?? "DRV-104";
+
+            // 1. Извлечение полных данных ограничений груза через SQL JOIN
+            var detail = await _databaseService.GetDeliveryPointRegulationDetailAsync(point.Id);
+            if (detail != null)
+            {
+                point.CargoCategoryCode = detail.CargoCategoryCode;
+                point.CargoCategoryName = detail.CargoCategoryName;
+                point.CargoTemperatureMode = detail.CargoTemperatureMode;
+                point.CargoHumidityAndVentilation = detail.CargoHumidityAndVentilation;
+                point.CargoHandlingRequirements = detail.CargoHandlingRequirements;
+                point.CargoSafetyClass = detail.CargoSafetyClass;
+                point.CargoRequiresSeal = detail.CargoRequiresSeal;
+                point.CargoIconGlyph = detail.CargoIconGlyph;
+            }
+
+            // 2. Извлечение агрегированных данных смены по данной категории через сложный JOIN
+            var reports = await _databaseService.GetCargoAggregatedReportAsync(driverId);
+            var catReport = reports.FirstOrDefault(x => x.CategoryId == point.CargoCategoryId);
+            if (catReport != null)
+            {
+                CategoryOrdersSummary = $"{catReport.TotalOrdersCount} наряда в смене • Суммарная масса: {catReport.TotalWeightKg:F1} кг ({catReport.TotalVolumeM3:F2} м³)";
+                CategoryAggregatedShiftStats = $"Рейсы по категории в смене: {catReport.TotalDistanceKm:F1} км (израсходовано {catReport.TotalFuelLiters:F2} л топлива)";
+            }
+            else
+            {
+                CategoryOrdersSummary = $"Категория: {point.CargoCategoryName}";
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[DeliveryDetailViewModel] Ошибка загрузки данных JOIN: {ex.Message}");
         }
     }
 

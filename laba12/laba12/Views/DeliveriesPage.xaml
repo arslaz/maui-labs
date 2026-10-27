@@ -117,8 +117,8 @@
                                     <Label Grid.Column="1" Text="{Binding VehicleSpeedText}" FontSize="12" TextColor="#38BDF8" FontAttributes="Bold" VerticalOptions="Center"/>
                                 </Grid>
 
-                                <!-- Основная панель действий водителя (4 кнопки в 2 ряда) -->
-                                <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="8" RowSpacing="6">
+                                <!-- Основная панель действий водителя (5 кнопок) -->
+                                <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="8" RowSpacing="6">
                                     
                                     <!-- 1. Маршрут -->
                                     <Button Grid.Row="0" Grid.Column="0"
@@ -165,6 +165,19 @@
                                             Command="{Binding SyncAllDataCommand}" 
                                             IsEnabled="{Binding IsNotBusy}"
                                             BackgroundColor="#D97706" 
+                                            TextColor="White" 
+                                            FontSize="12" 
+                                            FontAttributes="Bold" 
+                                            HeightRequest="36" 
+                                            CornerRadius="8" 
+                                            Padding="6,0"/>
+
+                                    <!-- 5. Вариант 7: Агрегированная сводка по категориям грузов (Сложный связывающий SQL JOIN) -->
+                                    <Button Grid.Row="2" Grid.ColumnSpan="2"
+                                            Text="📊 Сводка требований и режимов грузов (SQL JOIN)" 
+                                            Command="{Binding ShowCargoRegulationsSummaryCommand}" 
+                                            IsEnabled="{Binding IsNotBusy}"
+                                            BackgroundColor="#4F46E5" 
                                             TextColor="White" 
                                             FontSize="12" 
                                             FontAttributes="Bold" 
@@ -414,7 +427,7 @@
                                                           CommandParameter="{Binding .}"/>
                                 </Border.GestureRecognizers>
 
-                                <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto" RowSpacing="5">
+                                <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="5">
                                     
                                     <!-- Строка 0: Номер наряда, приоритет, статусы и кнопка меню ⋮ -->
                                     <Grid Grid.Row="0" ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto" ColumnSpacing="6" VerticalOptions="Center">
@@ -500,8 +513,23 @@
                                         </HorizontalStackLayout>
                                     </Grid>
 
-                                    <!-- Строка 4: Примечания / отметки времени / причины отказа -->
-                                    <Border Grid.Row="4" 
+                                    <!-- Строка 4: Вариант 7: Категория и правила перевозки из справочника cargo_categories (SQL JOIN) -->
+                                    <Grid Grid.Row="4" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="6" VerticalOptions="Center">
+                                        <Border Grid.Column="0" StrokeShape="RoundRectangle 4" BackgroundColor="#1E1B4B" Stroke="#4338CA" Padding="6,2">
+                                            <Label Text="{Binding CargoBadgeText}" FontSize="10" TextColor="#A5B4FC" FontAttributes="Bold"/>
+                                        </Border>
+
+                                        <Border Grid.Column="1" StrokeShape="RoundRectangle 4" BackgroundColor="#0F172A" Stroke="#334155" Padding="5,2">
+                                            <Label Text="{Binding CargoHandlingRequirements}" FontSize="9" TextColor="#94A3B8" LineBreakMode="TailTruncation"/>
+                                        </Border>
+
+                                        <Border Grid.Column="2" StrokeShape="RoundRectangle 4" BackgroundColor="#064E3B" Stroke="#059669" Padding="6,2">
+                                            <Label Text="{Binding CargoTemperatureBadge}" FontSize="9" TextColor="#6EE7B7" FontAttributes="Bold"/>
+                                        </Border>
+                                    </Grid>
+
+                                    <!-- Строка 5: Примечания / отметки времени / причины отказа -->
+                                    <Border Grid.Row="5" 
                                             IsVisible="{Binding Notes, Converter={StaticResource StringNotEmptyConverter}}"
                                             BackgroundColor="#0F172A"
                                             Stroke="#334155"

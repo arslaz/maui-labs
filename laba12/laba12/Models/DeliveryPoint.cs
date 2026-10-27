@@ -26,6 +26,35 @@ public partial class DeliveryPoint : ObservableObject
     [JsonPropertyName("cargoDescription")]
     public string CargoDescription { get; set; } = string.Empty;
 
+    // Вариант 7: Внешний ключ жесткой реляционной связи с таблицей cargo_categories (Foreign Key)
+    [JsonPropertyName("cargoCategoryId")]
+    public int CargoCategoryId { get; set; } = 1;
+
+    // Поля, подтягиваемые из справочника категорий через связывающий SQL JOIN
+    [JsonPropertyName("cargoCategoryCode")]
+    public string CargoCategoryCode { get; set; } = string.Empty;
+
+    [JsonPropertyName("cargoCategoryName")]
+    public string CargoCategoryName { get; set; } = string.Empty;
+
+    [JsonPropertyName("cargoTemperatureMode")]
+    public string CargoTemperatureMode { get; set; } = string.Empty;
+
+    [JsonPropertyName("cargoHumidityAndVentilation")]
+    public string CargoHumidityAndVentilation { get; set; } = string.Empty;
+
+    [JsonPropertyName("cargoHandlingRequirements")]
+    public string CargoHandlingRequirements { get; set; } = string.Empty;
+
+    [JsonPropertyName("cargoSafetyClass")]
+    public string CargoSafetyClass { get; set; } = string.Empty;
+
+    [JsonPropertyName("cargoRequiresSeal")]
+    public bool CargoRequiresSeal { get; set; }
+
+    [JsonPropertyName("cargoIconGlyph")]
+    public string CargoIconGlyph { get; set; } = "📦";
+
     [JsonPropertyName("weightKg")]
     public double WeightKg { get; set; }
 
@@ -83,4 +112,23 @@ public partial class DeliveryPoint : ObservableObject
 
     [JsonIgnore]
     public bool IsDelivered => Status == "Доставлен";
+
+    // Вариант 7: Вспомогательные свойства отображения данных справочника правил транспортировки
+    [JsonIgnore]
+    public string CargoBadgeText => !string.IsNullOrEmpty(CargoCategoryName) 
+        ? $"{CargoIconGlyph} {CargoCategoryName}" 
+        : "📦 Стандартный груз";
+
+    [JsonIgnore]
+    public string CargoTemperatureBadge => !string.IsNullOrEmpty(CargoTemperatureMode) 
+        ? $"🌡️ {CargoTemperatureMode}" 
+        : "🌡️ Не регламентирован";
+
+    [JsonIgnore]
+    public string CargoRegulationSummary => !string.IsNullOrEmpty(CargoHandlingRequirements) 
+        ? CargoHandlingRequirements 
+        : "Специальных ограничений не установлено";
+
+    [JsonIgnore]
+    public bool HasSpecialTemperature => !string.IsNullOrEmpty(CargoTemperatureMode) && !CargoTemperatureMode.Contains("Не регламентирован");
 }
