@@ -197,7 +197,7 @@
                                 CornerRadius="{OnPlatform Android='8', iOS='22', Default='12'}"/>
 
                         <!-- Cancel request button (visible when busy) -->
-                        <Button Text="Отменить отправку (CTS)"
+                        <Button Text="Отменить отправку"
                                 Command="{Binding CancelCurrentOperationCommand}"
                                 IsVisible="{Binding IsBusy}"
                                 BackgroundColor="#DC2626"

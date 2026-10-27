@@ -48,12 +48,6 @@
                            FontSize="{OnPlatform Android='13', iOS='14', Default='14'}" 
                            TextColor="#94A3B8" 
                            HorizontalOptions="Center"/>
-
-                    <!-- Платформенный бейдж (OnPlatform) -->
-                    <Border StrokeShape="RoundRectangle 8" BackgroundColor="#0F172A" Stroke="#334155" Padding="8,3" HorizontalOptions="Center">
-                        <Label Text="{OnPlatform Android='🤖 Android Material 3 UI', iOS='🍏 Apple iOS HIG Native UI', Default='💻 Cross-Platform UI'}"
-                               FontSize="10" TextColor="#38BDF8" FontAttributes="Bold"/>
-                    </Border>
                 </VerticalStackLayout>
 
                 <!-- Login Card -->
@@ -113,15 +107,6 @@
                             </Border>
                         </VerticalStackLayout>
 
-                        <!-- Test offline simulation toggle -->
-                        <HorizontalStackLayout Spacing="10" VerticalOptions="Center">
-                            <Switch IsToggled="{Binding SimulateOfflineServer}" />
-                            <VerticalStackLayout>
-                                <Label Text="Симулировать сбой связи (офлайн)" FontSize="13" TextColor="#F87171" />
-                                <Label Text="Проверка обработки ошибок и кэша" FontSize="11" TextColor="#94A3B8" />
-                            </VerticalStackLayout>
-                        </HorizontalStackLayout>
-
                         <!-- Status and Error Messages -->
                         <Border IsVisible="{Binding ErrorMessage, Converter={StaticResource StringNotEmptyConverter}}"
                                 BackgroundColor="#450A0A"
@@ -160,7 +145,7 @@
                                 Margin="0,6,0,0"/>
 
                         <!-- Cancel Request Button (Visible when busy) -->
-                        <Button Text="Отменить запрос (CancellationToken)" 
+                        <Button Text="Отменить запрос" 
                                 Command="{Binding CancelCurrentOperationCommand}" 
                                 IsVisible="{Binding IsBusy}"
                                 BackgroundColor="#DC2626" 
@@ -169,26 +154,11 @@
                                 CornerRadius="{OnPlatform Android='8', iOS='20', Default='12'}" 
                                 HeightRequest="{OnPlatform Android='40', iOS='46', Default='42'}"/>
 
-                        <!-- Token Preview in SecureStorage -->
-                        <Label Text="{Binding SavedTokenPreview}" 
-                               FontSize="11" 
-                               TextColor="#64748B" 
-                               HorizontalOptions="Center" 
-                               LineBreakMode="TailTruncation"
-                               IsVisible="{Binding SavedTokenPreview, Converter={StaticResource StringNotEmptyConverter}}"/>
-
-                        <Button Text="Очистить SecureStorage" 
-                                Command="{Binding ClearCredentialsCommand}" 
-                                BackgroundColor="Transparent" 
-                                TextColor="#94A3B8" 
-                                FontSize="12"
-                                HeightRequest="36"/>
-
                     </VerticalStackLayout>
                 </Border>
 
                 <!-- Footer info -->
-                <Label Text="Лабораторная работа №12 • Вариант 7&#10;MVVM • IHttpClientFactory • OSRM • Caching" 
+                <Label Text="LogiRoute Pro • Система управления доставками&#10;Версия для водителей и экспедиторов" 
                        FontSize="11" 
                        TextColor="#475569" 
                        HorizontalTextAlignment="Center"/>

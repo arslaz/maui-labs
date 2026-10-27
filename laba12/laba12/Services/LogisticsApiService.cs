@@ -17,6 +17,7 @@ public interface ILogisticsApiService
     Task<bool> DeleteDeliveryAsync(string deliveryId, CancellationToken cancellationToken = default);
     Task<FuelReportUploadResult> UploadFuelReportAsync(string driverId, string filePath, CancellationToken cancellationToken = default);
     Task<bool> SendTelemetryAsync(TelemetryData telemetry, CancellationToken cancellationToken = default);
+    Task<bool> SendBatchTelemetryAsync(IEnumerable<TelemetryData> telemetryBatch, CancellationToken cancellationToken = default);
 }
 
 public class LogisticsApiService : ILogisticsApiService
@@ -284,6 +285,24 @@ public class LogisticsApiService : ILogisticsApiService
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"[LogisticsApiService] Сбой отправки телеметрии: {ex.Message}");
+            return false;
+        }
+    }
+
+    public async Task<bool> SendBatchTelemetryAsync(IEnumerable<TelemetryData> telemetryBatch, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var client = await CreateConfiguredClientAsync();
+            var json = JsonSerializer.Serialize(telemetryBatch, _jsonOptions);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            using var response = await client.PostAsync("api/telemetry/batch", content, cancellationToken);
+            return response.IsSuccessStatusCode;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[LogisticsApiService] Сбой отправки пакета телеметрии: {ex.Message}");
             return false;
         }
     }

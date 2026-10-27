@@ -4,6 +4,7 @@ namespace laba12.Models;
 
 /// <summary>
 /// Таблица 1: Путевые листы водителей и профиль смены на текущий день
+/// Общие требования: Индексация ключевых полей и уникальный номер путевого листа [Unique]
 /// </summary>
 [Table("waybills")]
 public class WaybillEntity
@@ -11,7 +12,10 @@ public class WaybillEntity
     [PrimaryKey, AutoIncrement]
     public int Id { get; set; }
 
-    [Indexed, MaxLength(50)]
+    [Unique, NotNull, MaxLength(50)]
+    public string WaybillNumber { get; set; } = string.Empty;
+
+    [Indexed, NotNull, MaxLength(50)]
     public string DriverId { get; set; } = string.Empty;
 
     [MaxLength(100)]
@@ -29,25 +33,28 @@ public class WaybillEntity
     public double FuelConsumedLiters { get; set; } = 9.8;
     public double FuelRemainingLiters { get; set; } = 60.2;
 
-    [MaxLength(50)]
+    [Indexed, MaxLength(50)]
     public string Status { get; set; } = "Активен"; // "Активен", "Завершен"
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }
 
 /// <summary>
-/// Таблица 2: Точки доставки маршрутного листа с флагом отложенной синхронизации
+/// Таблица 2: Точки доставки маршрутного листа
+/// Вариант 7 + Общие требования:
+/// - Уникальный серверный ID [Unique] и уникальный номер наряда [Unique]
+/// - Индексы на координаты путевых точек (Latitude, Longitude) и временные штампы (UpdatedAt, ArrivedAt)
 /// </summary>
 [Table("delivery_points")]
 public class DeliveryPointEntity
 {
-    [PrimaryKey, MaxLength(50)]
+    [PrimaryKey, Unique, NotNull, MaxLength(50)]
     public string Id { get; set; } = string.Empty;
 
-    [Indexed, MaxLength(50)]
+    [Indexed, NotNull, MaxLength(50)]
     public string DriverId { get; set; } = string.Empty;
 
-    [Indexed, MaxLength(50)]
+    [Indexed(Unique = true), Unique, NotNull, MaxLength(50)]
     public string OrderNumber { get; set; } = string.Empty;
 
     [MaxLength(150)]
@@ -74,7 +81,11 @@ public class DeliveryPointEntity
     [Indexed, MaxLength(50)]
     public string Status { get; set; } = "Ожидает"; // "Ожидает", "В пути", "Прибыл", "Отказ", "Доставлен"
 
+    // Вариант 7: Индексы на координаты путевых точек
+    [Indexed]
     public double Latitude { get; set; }
+
+    [Indexed]
     public double Longitude { get; set; }
 
     [MaxLength(50)]
@@ -83,8 +94,11 @@ public class DeliveryPointEntity
     [MaxLength(500)]
     public string Notes { get; set; } = string.Empty;
 
+    // Вариант 7: Индексы на временные штампы
+    [Indexed]
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
+    [Indexed]
     public DateTime? ArrivedAt { get; set; }
 
     [MaxLength(300)]
@@ -107,15 +121,17 @@ public class TripRecordEntity
     [PrimaryKey, AutoIncrement]
     public int Id { get; set; }
 
-    [Indexed, MaxLength(50)]
+    [Indexed, NotNull, MaxLength(50)]
     public string DriverId { get; set; } = string.Empty;
 
-    [MaxLength(50)]
+    [Indexed, MaxLength(50)]
     public string DeliveryPointId { get; set; } = string.Empty;
 
     [MaxLength(50)]
     public string OrderNumber { get; set; } = string.Empty;
 
+    // Вариант 7: Индекс на временные штампы поездки
+    [Indexed]
     public DateTime Timestamp { get; set; } = DateTime.UtcNow;
 
     public double DistanceKm { get; set; }
@@ -124,6 +140,51 @@ public class TripRecordEntity
 
     [MaxLength(250)]
     public string EventDescription { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// Вариант 7 (Таблица 4): Накопленная за время отсутствия сети телеметрия водителя.
+/// «Установить индексы на координаты путевых точек и временные штампы поездки.
+/// Накопленная за время отсутствия сети телеметрия (десятки точек пути водителя) при восстановлении связи
+/// должна считываться из SQLite, отправляться в API и массово помечаться как синхронизированная
+/// в рамках одной транзакции базы данных.»
+/// </summary>
+[Table("driver_waypoints")]
+public class DriverWaypointEntity
+{
+    [PrimaryKey, AutoIncrement]
+    public int Id { get; set; }
+
+    [Indexed, NotNull, MaxLength(50)]
+    public string DriverId { get; set; } = string.Empty;
+
+    // Вариант 7: Индексы на координаты путевых точек
+    [Indexed]
+    public double Latitude { get; set; }
+
+    [Indexed]
+    public double Longitude { get; set; }
+
+    // Вариант 7: Индекс на временные штампы поездки
+    [Indexed]
+    public DateTime Timestamp { get; set; } = DateTime.UtcNow;
+
+    public double SpeedKmh { get; set; }
+    public double HeadingDegrees { get; set; }
+    public int BatteryPercent { get; set; } = 85;
+
+    [MaxLength(50)]
+    public string NetworkStatus { get; set; } = "Offline";
+
+    // Индекс для мгновенной выборки неотправленной телеметрии
+    [Indexed]
+    public bool IsSynced { get; set; } = false;
+
+    [Indexed]
+    public DateTime? SyncedAt { get; set; }
+
+    [MaxLength(64)]
+    public string? ServerBatchId { get; set; }
 }
 
 /// <summary>
@@ -138,4 +199,19 @@ public class TripAggregatedStats
     public double AverageSpeedKmh { get; set; }
     public int DeliveredCount { get; set; }
     public int RejectedCount { get; set; }
+}
+
+/// <summary>
+/// Результат проведения транзакции SQLite для визуальной индикации ACID в UI
+/// </summary>
+public class SqliteTransactionResult
+{
+    public bool IsSuccess { get; set; }
+    public bool IsCommitted { get; set; }
+    public int AffectedRows { get; set; }
+    public long DurationMs { get; set; }
+    public string OperationType { get; set; } = "TRANSACTION";
+    public string Message { get; set; } = string.Empty;
+    public string? ErrorDetails { get; set; }
+    public DateTime ExecutedAt { get; set; } = DateTime.Now;
 }

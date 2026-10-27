@@ -17,7 +17,6 @@
         </ResourceDictionary>
     </ContentPage.Resources>
 
-    <!-- Требование #2: Специфичный для платформ отступ сверху под панель уведомлений и вырезы экрана (Notch / Dynamic Island на iOS) -->
     <ContentPage.Padding>
         <OnPlatform x:TypeArguments="Thickness">
             <On Platform="iOS" Value="0,48,0,0" />
@@ -28,7 +27,7 @@
 
     <Grid RowDefinitions="*,Auto">
 
-        <!-- Весь скроллящийся контент: Header + список -->
+        <!-- Основной список нарядов со скроллом -->
         <RefreshView Grid.Row="0"
                      IsRefreshing="{Binding IsRefreshing}"
                      Command="{Binding RefreshCommand}"
@@ -38,50 +37,51 @@
                             RemainingItemsThresholdReachedCommand="{Binding LoadMoreCommand}"
                             Margin="{OnPlatform Android='10,0', iOS='14,0', Default='12,0'}">
 
-                <!-- ===== ШАПКА (скроллится вместе со списком) ===== -->
+                <!-- ===== ШАПКА ВОДИТЕЛЯ И ПАНЕЛЬ УПРАВЛЕНИЯ ===== -->
                 <CollectionView.Header>
-                    <VerticalStackLayout Spacing="6" Margin="0,8,0,6">
+                    <VerticalStackLayout Spacing="8" Margin="0,6,0,8">
 
-                        <!-- Top Header & Driver Info -->
+                        <!-- Карточка водителя и профиля смены -->
                         <Border BackgroundColor="#1C2541"
                                 Stroke="#3A506B"
                                 StrokeThickness="1"
-                                Padding="{OnPlatform Android='14,10', iOS='18,14', Default='16,12'}"
-                                StrokeShape="{OnPlatform Android='RoundRectangle 12', iOS='RoundRectangle 22', Default='RoundRectangle 16'}">
+                                Padding="{OnPlatform Android='14,10', iOS='16,12', Default='14,10'}"
+                                StrokeShape="{OnPlatform Android='RoundRectangle 12', iOS='RoundRectangle 20', Default='RoundRectangle 14'}">
                             <VerticalStackLayout Spacing="10">
-                                <!-- Driver Info & Logout Row -->
+                                
+                                <!-- Строка водителя -->
                                 <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10" VerticalOptions="Center">
-                                    <!-- Driver Avatar -->
+                                    <!-- Аватар -->
                                     <Border Grid.Column="0"
                                             StrokeShape="RoundRectangle 20"
                                             BackgroundColor="#2563EB"
                                             WidthRequest="42" HeightRequest="42"
                                             HorizontalOptions="Center" VerticalOptions="Center">
-                                        <Label Text="🚛" FontSize="22" HorizontalOptions="Center" VerticalOptions="Center"/>
+                                        <Label Text="🚛" FontSize="20" HorizontalOptions="Center" VerticalOptions="Center"/>
                                     </Border>
 
-                                    <!-- Driver Details -->
+                                    <!-- Имя и автомобиль -->
                                     <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
                                         <Label Text="{Binding DriverName}" 
                                                FontAttributes="Bold" 
                                                FontSize="15" 
                                                TextColor="#F8FAFC"
                                                LineBreakMode="TailTruncation"/>
-                                        <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
-                                            <Label Text="{Binding VehicleNumber}" FontSize="12" TextColor="#94A3B8"/>
-                                            <Border StrokeShape="RoundRectangle 6" BackgroundColor="#0F172A" Padding="5,2">
+                                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="6" VerticalOptions="Center">
+                                            <Border Grid.Column="0" StrokeShape="RoundRectangle 4" BackgroundColor="#0F172A" Padding="5,1">
                                                 <Label Text="{Binding DriverId}" FontSize="10" TextColor="#38BDF8" FontAttributes="Bold"/>
                                             </Border>
-                                        </HorizontalStackLayout>
+                                            <Label Grid.Column="1" Text="{Binding VehicleNumber}" FontSize="11" TextColor="#94A3B8" LineBreakMode="TailTruncation" VerticalOptions="Center"/>
+                                        </Grid>
                                     </VerticalStackLayout>
 
-                                    <!-- Status Badge & Logout -->
-                                    <HorizontalStackLayout Grid.Column="2" Spacing="8" VerticalOptions="Center">
+                                    <!-- Сетевой статус и кнопка выхода -->
+                                    <HorizontalStackLayout Grid.Column="2" Spacing="6" VerticalOptions="Center">
                                         <Border StrokeShape="RoundRectangle 8" 
                                                 BackgroundColor="{Binding NetworkBadgeBgColor}"
-                                                Padding="8,4">
-                                            <HorizontalStackLayout Spacing="5" VerticalOptions="Center">
-                                                <BoxView WidthRequest="7" HeightRequest="7" CornerRadius="3" 
+                                                Padding="7,4">
+                                            <HorizontalStackLayout Spacing="4" VerticalOptions="Center">
+                                                <BoxView WidthRequest="6" HeightRequest="6" CornerRadius="3" 
                                                          Color="{Binding NetworkStatusColor}"/>
                                                 <Label Text="{Binding NetworkStatusBadgeText}" 
                                                        FontSize="10" 
@@ -95,278 +95,280 @@
                                                 BackgroundColor="#334155" 
                                                 TextColor="#CBD5E1" 
                                                 FontSize="11" 
-                                                Padding="10,0" 
-                                                HeightRequest="30"
-                                                CornerRadius="8"/>
+                                                Padding="8,0" 
+                                                HeightRequest="28"
+                                                CornerRadius="6"/>
                                     </HorizontalStackLayout>
                                 </Grid>
 
-                                <!-- Thin separator line -->
+                                <!-- Разделитель -->
                                 <BoxView HeightRequest="1" Color="#283548"/>
 
-                                <!-- Telemetry status text -->
-                                <Grid ColumnDefinitions="*,Auto">
-                                    <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
-                                        <Label Text="📶" FontSize="13" VerticalOptions="Center"/>
-                                        <Label Text="{Binding TelemetryStatusText}" 
+                                <!-- Телеметрия и скорость -->
+                                <Grid ColumnDefinitions="*,Auto" VerticalOptions="Center">
+                                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="6" VerticalOptions="Center">
+                                        <Label Grid.Column="0" Text="📶" FontSize="12" VerticalOptions="Center"/>
+                                        <Label Grid.Column="1" Text="{Binding TelemetryStatusText}" 
                                                FontSize="11" 
                                                TextColor="#94A3B8" 
                                                LineBreakMode="TailTruncation"
                                                VerticalOptions="Center"/>
-                                    </HorizontalStackLayout>
-                                    <Label Grid.Column="1" Text="{Binding VehicleSpeedText}" FontSize="11" TextColor="#38BDF8" FontAttributes="Bold"/>
+                                    </Grid>
+                                    <Label Grid.Column="1" Text="{Binding VehicleSpeedText}" FontSize="12" TextColor="#38BDF8" FontAttributes="Bold" VerticalOptions="Center"/>
                                 </Grid>
 
-                                <!-- Action buttons Grid: 3 rows of 2 columns -->
-                                <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="8" RowSpacing="6">
-                                    <!-- Row 0: Fuel Report & Offline Toggle -->
+                                <!-- Основная панель действий водителя (4 кнопки в 2 ряда) -->
+                                <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="8" RowSpacing="6">
+                                    
+                                    <!-- 1. Маршрут -->
                                     <Button Grid.Row="0" Grid.Column="0"
-                                            Text="📊 Отчет топлива (AES)" 
-                                            Command="{Binding GenerateAndUploadFuelReportCommand}" 
-                                            BackgroundColor="#047857" 
-                                            TextColor="#A7F3D0" 
-                                            FontSize="{OnPlatform Android='11', iOS='12', Default='11'}" 
+                                            Text="🗺️ Маршрут" 
+                                            Command="{Binding PlotRouteCommand}" 
+                                            IsEnabled="{Binding IsNotBusy}"
+                                            BackgroundColor="#2563EB" 
+                                            TextColor="White" 
+                                            FontSize="12" 
                                             FontAttributes="Bold" 
-                                            HeightRequest="{OnPlatform Android='34', iOS='40', Default='36'}" 
-                                            CornerRadius="{OnPlatform Android='6', iOS='16', Default='8'}" 
-                                            Padding="4,0"/>
+                                            HeightRequest="36" 
+                                            CornerRadius="8" 
+                                            Padding="6,0"/>
 
+                                    <!-- 2. Приёмка груза со склада (Реальная операция с ACID Commit/Rollback) -->
                                     <Button Grid.Row="0" Grid.Column="1"
-                                            Text="{Binding SimulateOfflineButtonText}" 
-                                            Command="{Binding ToggleSimulateOfflineCommand}" 
-                                            BackgroundColor="{Binding SimulateOfflineButtonBgColor}"
-                                            TextColor="{Binding SimulateOfflineTextColor}" 
-                                            FontSize="{OnPlatform Android='11', iOS='12', Default='11'}" 
+                                            Text="📦 Приёмка груза" 
+                                            Command="{Binding ReceiveCargoManifestCommand}" 
+                                            IsEnabled="{Binding IsNotBusy}"
+                                            BackgroundColor="#059669" 
+                                            TextColor="White" 
+                                            FontSize="12" 
                                             FontAttributes="Bold" 
-                                            HeightRequest="{OnPlatform Android='34', iOS='40', Default='36'}" 
-                                            CornerRadius="{OnPlatform Android='6', iOS='16', Default='8'}" 
-                                            Padding="4,0"/>
+                                            HeightRequest="36" 
+                                            CornerRadius="8" 
+                                            Padding="6,0"/>
 
-                                    <!-- Row 1: SQLite Database Inspector & DelegatingHandler 401 Refresh test -->
+                                    <!-- 3. Отчёт о расходе топлива -->
                                     <Button Grid.Row="1" Grid.Column="0"
-                                            Text="🗄️ База SQLite" 
-                                            Command="{Binding ViewDatabaseInfoCommand}" 
-                                            BackgroundColor="#0284C7" 
-                                            TextColor="#E0F2FE" 
-                                            FontSize="{OnPlatform Android='11', iOS='12', Default='11'}" 
+                                            Text="⛽ Отчёт топлива" 
+                                            Command="{Binding GenerateAndUploadFuelReportCommand}" 
+                                            IsEnabled="{Binding IsNotBusy}"
+                                            BackgroundColor="#0F766E" 
+                                            TextColor="#CCFBF1" 
+                                            FontSize="12" 
                                             FontAttributes="Bold" 
-                                            HeightRequest="{OnPlatform Android='34', iOS='40', Default='36'}" 
-                                            CornerRadius="{OnPlatform Android='6', iOS='16', Default='8'}" 
-                                            Padding="4,0"/>
+                                            HeightRequest="36" 
+                                            CornerRadius="8" 
+                                            Padding="6,0"/>
 
+                                    <!-- 4. Комплексная синхронизация -->
                                     <Button Grid.Row="1" Grid.Column="1"
-                                            Text="🔑 Тест 401 Refresh" 
-                                            Command="{Binding SimulateTokenExpirationCommand}" 
-                                            BackgroundColor="#4C1D95" 
-                                            TextColor="#DDD6FE" 
-                                            FontSize="{OnPlatform Android='11', iOS='12', Default='11'}" 
+                                            Text="🔄 Синхронизация" 
+                                            Command="{Binding SyncAllDataCommand}" 
+                                            IsEnabled="{Binding IsNotBusy}"
+                                            BackgroundColor="#D97706" 
+                                            TextColor="White" 
+                                            FontSize="12" 
                                             FontAttributes="Bold" 
-                                            HeightRequest="{OnPlatform Android='34', iOS='40', Default='36'}" 
-                                            CornerRadius="{OnPlatform Android='6', iOS='16', Default='8'}" 
-                                            Padding="4,0"/>
-
-                                    <!-- Row 2: Telemetry Ping & JSON Cache View -->
-                                    <Button Grid.Row="2" Grid.Column="0"
-                                            Text="⚡ Отправить пинг" 
-                                            Command="{Binding SendTelemetryNowCommand}" 
-                                            BackgroundColor="#1E293B" 
-                                            TextColor="#38BDF8" 
-                                            FontSize="{OnPlatform Android='11', iOS='12', Default='11'}" 
-                                            FontAttributes="Bold" 
-                                            HeightRequest="{OnPlatform Android='34', iOS='40', Default='36'}" 
-                                            CornerRadius="{OnPlatform Android='6', iOS='16', Default='8'}" 
-                                            Padding="4,0"/>
-
-                                    <Button Grid.Row="2" Grid.Column="1"
-                                            Text="📄 Кэш JSON" 
-                                            Command="{Binding ViewDeliveriesCacheJsonCommand}" 
-                                            BackgroundColor="#1E293B" 
-                                            TextColor="#CBD5E1" 
-                                            FontSize="{OnPlatform Android='11', iOS='12', Default='11'}" 
-                                            FontAttributes="Bold" 
-                                            HeightRequest="{OnPlatform Android='34', iOS='40', Default='36'}" 
-                                            CornerRadius="{OnPlatform Android='6', iOS='16', Default='8'}" 
-                                            Padding="4,0"/>
+                                            HeightRequest="36" 
+                                            CornerRadius="8" 
+                                            Padding="6,0"/>
                                 </Grid>
                             </VerticalStackLayout>
                         </Border>
 
-                        <!-- Deferred Synchronization Banner (Offline JSON Queue) -->
+                        <!-- Индикатор состояния базы данных и транзакций -->
+                        <Border BackgroundColor="#0F172A"
+                                Stroke="{Binding SqliteTransactionStatusColor}"
+                                StrokeThickness="1"
+                                StrokeShape="RoundRectangle 10"
+                                Padding="10,6">
+                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8" VerticalOptions="Center">
+                                <Label Grid.Column="0" Text="🛡️" FontSize="14" VerticalOptions="Center"/>
+                                <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="1">
+                                    <Label Text="{Binding SqliteTransactionBadgeText}"
+                                           TextColor="{Binding SqliteTransactionStatusColor}"
+                                           FontAttributes="Bold"
+                                           FontSize="11"
+                                           LineBreakMode="TailTruncation"/>
+                                    <Label Text="{Binding SqliteTransactionDetails}"
+                                           TextColor="#94A3B8"
+                                           FontSize="10"
+                                           LineBreakMode="TailTruncation"/>
+                                </VerticalStackLayout>
+                            </Grid>
+                        </Border>
+
+                        <!-- Баннер неотправленной телеметрии (Вариант 7) -->
+                        <Border IsVisible="{Binding HasUnsyncedWaypoints}"
+                                BackgroundColor="#14532D"
+                                Stroke="#22C55E"
+                                StrokeThickness="1"
+                                StrokeShape="RoundRectangle 10"
+                                Padding="10,6">
+                            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="6" VerticalOptions="Center">
+                                <Label Grid.Column="0" Text="🛰️" FontSize="15" VerticalOptions="Center"/>
+                                <Label Grid.Column="1" 
+                                       Text="{Binding UnsyncedWaypointsBadgeText}" 
+                                       FontAttributes="Bold" 
+                                       FontSize="11" 
+                                       TextColor="#BBF7D0" 
+                                       VerticalOptions="Center"/>
+                                <Button Grid.Column="2"
+                                        Text="Отправить"
+                                        Command="{Binding SyncOfflineWaypointsCommand}"
+                                        BackgroundColor="#16A34A"
+                                        TextColor="White"
+                                        FontSize="10"
+                                        FontAttributes="Bold"
+                                        HeightRequest="26"
+                                        Padding="8,0"
+                                        CornerRadius="6"/>
+                            </Grid>
+                        </Border>
+
+                        <!-- Баннер очереди офлайн-транзакций -->
                         <Border IsVisible="{Binding HasPendingSyncTransactions}"
                                 BackgroundColor="#451A03"
                                 Stroke="#F59E0B"
                                 StrokeThickness="1"
-                                StrokeShape="RoundRectangle 12"
-                                Padding="12,8">
-                            <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="6">
-                                <Label Text="📦" FontSize="18" VerticalOptions="Center" Margin="0,0,4,0"/>
-                                <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
-                                    <Label Text="{Binding PendingSyncBadgeText}" FontAttributes="Bold" FontSize="12" TextColor="#FDE68A"/>
-                                    <Label Text="Транзакции в локальном логе (offline)" FontSize="10" TextColor="#FEF3C7"/>
-                                </VerticalStackLayout>
+                                StrokeShape="RoundRectangle 10"
+                                Padding="10,6">
+                            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="6" VerticalOptions="Center">
+                                <Label Grid.Column="0" Text="📦" FontSize="15" VerticalOptions="Center"/>
+                                <Label Grid.Column="1" 
+                                       Text="{Binding PendingSyncBadgeText}" 
+                                       FontAttributes="Bold" 
+                                       FontSize="11" 
+                                       TextColor="#FDE68A" 
+                                       VerticalOptions="Center"/>
                                 <Button Grid.Column="2" 
-                                        Text="📄 JSON лог" 
-                                        Command="{Binding ViewPendingQueueJsonCommand}" 
-                                        BackgroundColor="#1E293B" 
-                                        TextColor="#38BDF8" 
-                                        FontSize="11" 
-                                        FontAttributes="Bold"
-                                        HeightRequest="32" 
-                                        Padding="8,0"
-                                        CornerRadius="8"/>
-                                <Button Grid.Column="3" 
-                                        Text="Синхронизировать" 
+                                        Text="Отправить" 
                                         Command="{Binding ProcessSyncQueueCommand}" 
                                         BackgroundColor="#D97706" 
                                         TextColor="White" 
-                                        FontSize="11" 
+                                        FontSize="10" 
                                         FontAttributes="Bold"
-                                        HeightRequest="32" 
+                                        HeightRequest="26" 
                                         Padding="8,0"
-                                        CornerRadius="8"/>
+                                        CornerRadius="6"/>
                             </Grid>
                         </Border>
 
-                        <!-- Status Notice (Feedback from operations) -->
+                        <!-- Уведомление об операции -->
                         <Border IsVisible="{Binding StatusNotice, Converter={StaticResource StringNotEmptyConverter}}"
                                 BackgroundColor="#064E3B"
                                 Stroke="#10B981"
                                 StrokeThickness="1"
-                                StrokeShape="RoundRectangle 10"
-                                Padding="10,6">
-                            <Grid ColumnDefinitions="Auto,*">
-                                <Label Text="✨" FontSize="14" VerticalOptions="Center" Margin="0,0,6,0"/>
+                                StrokeShape="RoundRectangle 8"
+                                Padding="8,5">
+                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="6" VerticalOptions="Center">
+                                <Label Grid.Column="0" Text="✨" FontSize="12" VerticalOptions="Center"/>
                                 <Label Grid.Column="1" Text="{Binding StatusNotice}" TextColor="#A7F3D0" FontSize="11" VerticalOptions="Center" LineBreakMode="WordWrap"/>
                             </Grid>
                         </Border>
 
-                        <!-- Offline alert banner -->
+                        <!-- Предупреждение об автономном режиме -->
                         <Border IsVisible="{Binding IsOffline}"
                                 BackgroundColor="#450A0A"
                                 Stroke="#DC2626"
-                                StrokeShape="RoundRectangle 12"
-                                Padding="12,8">
-                            <Grid ColumnDefinitions="Auto,*,Auto">
-                                <Label Text="⚠️" FontSize="16" VerticalOptions="Center" Margin="0,0,8,0"/>
-                                <VerticalStackLayout Grid.Column="1">
-                                    <Label Text="Автономный режим (Офлайн)" FontAttributes="Bold" FontSize="12" TextColor="#FCA5A5"/>
-                                    <Label Text="{Binding CacheNotice}" FontSize="11" TextColor="#FECACA"/>
-                                </VerticalStackLayout>
+                                StrokeShape="RoundRectangle 8"
+                                Padding="8,6">
+                            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="6" VerticalOptions="Center">
+                                <Label Grid.Column="0" Text="⚠️" FontSize="14" VerticalOptions="Center"/>
+                                <Label Grid.Column="1" Text="Автономный режим (нет сети). Изменения сохраняются локально." FontSize="11" TextColor="#FECACA" VerticalOptions="Center"/>
                                 <Button Grid.Column="2" 
-                                        Text="Повтор сети" 
+                                        Text="Повтор" 
                                         Command="{Binding RefreshCommand}" 
                                         BackgroundColor="#DC2626" 
                                         TextColor="White" 
-                                        FontSize="11" 
-                                        HeightRequest="32" 
-                                        Padding="8,0"/>
+                                        FontSize="10" 
+                                        HeightRequest="24" 
+                                        Padding="6,0"
+                                        CornerRadius="4"/>
                             </Grid>
                         </Border>
 
-                        <!-- Fuel Report Info Pill (if available) -->
-                        <Border IsVisible="{Binding FuelReportStatusText, Converter={StaticResource StringNotEmptyConverter}}"
-                                BackgroundColor="#0F172A"
-                                Stroke="#059669"
-                                StrokeShape="RoundRectangle 8"
-                                Padding="10,4">
-                            <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
-                                <Label Text="⛽" FontSize="12"/>
-                                <Label Text="{Binding FuelReportStatusText}" FontSize="11" TextColor="#6EE7B7" LineBreakMode="TailTruncation"/>
-                            </HorizontalStackLayout>
-                        </Border>
-
-                        <!-- Route Summary Card -->
+                        <!-- Компактная карточка маршрутного плана -->
                         <Border BackgroundColor="#1E293B"
                                 Stroke="#334155"
                                 StrokeThickness="1"
-                                StrokeShape="RoundRectangle 14"
-                                Padding="14,10">
-                            <VerticalStackLayout Spacing="8">
-                                <!-- Title and Status Text -->
-                                <VerticalStackLayout Spacing="2">
-                                    <Label Text="Маршрутный план на сегодня" FontSize="11" TextColor="#94A3B8"/>
-                                    <Label Text="{Binding RouteSummary, FallbackValue='Маршрут не рассчитан (нажмите для прокладки)'}" 
-                                           FontSize="13" 
+                                StrokeShape="RoundRectangle 10"
+                                Padding="10,8">
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8" VerticalOptions="Center">
+                                <VerticalStackLayout Grid.Column="0" Spacing="2" VerticalOptions="Center">
+                                    <Label Text="Маршрутный лист на смену" FontSize="10" TextColor="#94A3B8"/>
+                                    <Label Text="{Binding RouteSummary, FallbackValue='Маршрут не рассчитан'}" 
+                                           FontSize="12" 
                                            FontAttributes="Bold" 
                                            TextColor="#38BDF8" 
                                            LineBreakMode="TailTruncation"/>
                                 </VerticalStackLayout>
 
-                                <!-- Route Buttons -->
-                                <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
-                                    <Button Grid.Column="0"
-                                            Text="🗺️ Проложить OSRM"
-                                            Command="{Binding PlotRouteCommand}"
-                                            IsEnabled="{Binding IsNotBusy}"
-                                            BackgroundColor="#2563EB"
-                                            TextColor="White"
-                                            FontAttributes="Bold"
-                                            FontSize="{OnPlatform Android='12', iOS='13', Default='12'}"
-                                            HeightRequest="{OnPlatform Android='36', iOS='44', Default='38'}"
-                                            CornerRadius="{OnPlatform Android='8', iOS='18', Default='10'}"
-                                            Padding="8,0"/>
-
-                                    <Button Grid.Column="1"
-                                            Text="📍 Открыть карту"
-                                            Command="{Binding OpenMapCommand}"
-                                            BackgroundColor="#059669"
-                                            TextColor="White"
-                                            FontAttributes="Bold"
-                                            FontSize="{OnPlatform Android='12', iOS='13', Default='12'}"
-                                            HeightRequest="{OnPlatform Android='36', iOS='44', Default='38'}"
-                                            CornerRadius="{OnPlatform Android='8', iOS='18', Default='10'}"
-                                            Padding="8,0"/>
-                                </Grid>
-                            </VerticalStackLayout>
+                                <Button Grid.Column="1"
+                                        Text="🗺️ Карта"
+                                        Command="{Binding OpenMapCommand}"
+                                        BackgroundColor="#0284C7"
+                                        TextColor="White"
+                                        FontAttributes="Bold"
+                                        FontSize="11"
+                                        HeightRequest="30"
+                                        CornerRadius="6"
+                                        Padding="8,0"
+                                        VerticalOptions="Center"/>
+                            </Grid>
                         </Border>
 
-                        <!-- Active request cancellation strip -->
+                        <!-- Индикатор загрузки с отменой -->
                         <Border IsVisible="{Binding IsBusy}"
                                 BackgroundColor="#1E293B"
                                 Stroke="#EAB308"
-                                StrokeShape="RoundRectangle 10"
-                                Padding="12,6">
-                            <Grid ColumnDefinitions="Auto,*,Auto">
-                                <ActivityIndicator IsRunning="True" Color="#EAB308" WidthRequest="24" HeightRequest="24" Margin="0,0,8,0"/>
-                                <Label Grid.Column="1" Text="Выполняется сетевой запрос..." TextColor="#FEF08A" FontSize="12" VerticalOptions="Center"/>
+                                StrokeShape="RoundRectangle 8"
+                                Padding="8,4">
+                            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="6" VerticalOptions="Center">
+                                <ActivityIndicator Grid.Column="0" IsRunning="True" Color="#EAB308" WidthRequest="18" HeightRequest="18" VerticalOptions="Center"/>
+                                <Label Grid.Column="1" Text="Выполняется операция..." TextColor="#FEF08A" FontSize="11" VerticalOptions="Center"/>
                                 <Button Grid.Column="2" 
-                                        Text="Отмена (CTS)" 
+                                        Text="Отмена" 
                                         Command="{Binding CancelCurrentOperationCommand}" 
                                         BackgroundColor="#DC2626" 
                                         TextColor="White" 
-                                        FontSize="11" 
-                                        HeightRequest="30" 
-                                        Padding="10,0"/>
+                                        FontSize="10" 
+                                        HeightRequest="24" 
+                                        Padding="8,0"
+                                        CornerRadius="4"/>
                             </Grid>
                         </Border>
 
                     </VerticalStackLayout>
                 </CollectionView.Header>
 
+                <!-- Пустой список -->
                 <CollectionView.EmptyView>
-                    <VerticalStackLayout Spacing="16" HorizontalOptions="Center" VerticalOptions="Center" Padding="32">
-                        <Label Text="📦" FontSize="50" HorizontalOptions="Center"/>
+                    <VerticalStackLayout Spacing="12" HorizontalOptions="Center" VerticalOptions="Center" Padding="28">
+                        <Label Text="📦" FontSize="42" HorizontalOptions="Center"/>
                         <Label Text="Нет запланированных доставок" 
-                               FontSize="16" 
+                               FontSize="15" 
                                FontAttributes="Bold" 
                                TextColor="#94A3B8" 
                                HorizontalOptions="Center"/>
-                        <Label Text="Потяните вниз для обновления списка по сети" 
+                        <Label Text="Потяните вниз для загрузки путевого листа" 
                                FontSize="12" 
                                TextColor="#64748B" 
                                HorizontalOptions="Center"/>
-                        <Button Text="Загрузить доставку" 
+                        <Button Text="Обновить список" 
                                 Command="{Binding RefreshCommand}" 
                                 BackgroundColor="#2563EB" 
                                 TextColor="White" 
-                                CornerRadius="10"/>
+                                CornerRadius="8"
+                                HeightRequest="36"
+                                Padding="14,0"/>
                     </VerticalStackLayout>
                 </CollectionView.EmptyView>
 
+                <!-- Шаблон карточки наряда -->
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="models:DeliveryPoint">
-                        <!-- Контекстное меню через SwipeView (свайп влево для команд) -->
-                        <SwipeView Margin="0,5">
+                        <SwipeView Margin="0,4">
+                            <!-- Свайп влево для быстрых действий -->
                             <SwipeView.RightItems>
                                 <SwipeItems Mode="Reveal">
                                     <SwipeItem Text="Прибытие"
@@ -384,24 +386,24 @@
                                 </SwipeItems>
                             </SwipeView.RightItems>
 
-                            <!-- Основная карточка точки доставки (адаптивная верстка OnPlatform) -->
-                            <Border StrokeShape="{OnPlatform Android='RoundRectangle 10', iOS='RoundRectangle 18', Default='RoundRectangle 14'}"
+                            <!-- Карточка точки доставки -->
+                            <Border StrokeShape="{OnPlatform Android='RoundRectangle 10', iOS='RoundRectangle 16', Default='RoundRectangle 12'}"
                                     BackgroundColor="#1E293B"
                                     Stroke="#334155"
                                     StrokeThickness="1"
-                                    Padding="{OnPlatform Android='12,10', iOS='16,14', Default='14,12'}">
+                                    Padding="{OnPlatform Android='12,10', iOS='14,12', Default='12,10'}">
                                 
-                                <!-- Контекстное меню по правому клику (ПКМ / Long Press) -->
+                                <!-- Контекстное меню (ПКМ / Долгое нажатие) -->
                                 <FlyoutBase.ContextFlyout>
                                     <MenuFlyout>
-                                        <MenuFlyoutItem Text="📍 Отметить прибытие (PATCH)"
+                                        <MenuFlyoutItem Text="📍 Отметить прибытие"
                                                         Command="{Binding Source={RelativeSource AncestorType={x:Type vm:DeliveriesViewModel}}, Path=MarkArrivalCommand}"
                                                         CommandParameter="{Binding .}"/>
-                                        <MenuFlyoutItem Text="❌ Зафиксировать отказ от груза (PUT)"
+                                        <MenuFlyoutItem Text="❌ Зафиксировать отказ от груза"
                                                         Command="{Binding Source={RelativeSource AncestorType={x:Type vm:DeliveriesViewModel}}, Path=RejectCargoCommand}"
                                                         CommandParameter="{Binding .}"/>
                                         <MenuFlyoutSeparator />
-                                        <MenuFlyoutItem Text="🗑️ Удалить наряд (DELETE)"
+                                        <MenuFlyoutItem Text="🗑️ Удалить наряд"
                                                         Command="{Binding Source={RelativeSource AncestorType={x:Type vm:DeliveriesViewModel}}, Path=DeleteDeliveryCommand}"
                                                         CommandParameter="{Binding .}"/>
                                     </MenuFlyout>
@@ -412,95 +414,104 @@
                                                           CommandParameter="{Binding .}"/>
                                 </Border.GestureRecognizers>
 
-                                <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto" RowSpacing="6">
-                                    <!-- Row 0: Order Number, Priority, Status Chip, and ⋯ Context Menu Button -->
-                                    <Grid Grid.Row="0" ColumnDefinitions="Auto,Auto,*,Auto,Auto" ColumnSpacing="6" VerticalOptions="Center">
-                                        <Border Grid.Column="0" StrokeShape="{OnPlatform Android='RoundRectangle 4', iOS='RoundRectangle 10', Default='RoundRectangle 6'}" BackgroundColor="#0F172A" Padding="8,3">
-                                            <Label Text="{Binding OrderNumber}" FontAttributes="Bold" FontSize="{OnPlatform Android='11', iOS='13', Default='12'}" TextColor="#38BDF8"/>
+                                <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto" RowSpacing="5">
+                                    
+                                    <!-- Строка 0: Номер наряда, приоритет, статусы и кнопка меню ⋮ -->
+                                    <Grid Grid.Row="0" ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto" ColumnSpacing="6" VerticalOptions="Center">
+                                        <Border Grid.Column="0" StrokeShape="RoundRectangle 4" BackgroundColor="#0F172A" Padding="6,2">
+                                            <Label Text="{Binding OrderNumber}" FontAttributes="Bold" FontSize="11" TextColor="#38BDF8"/>
                                         </Border>
                                         
-                                        <Border Grid.Column="1" StrokeShape="{OnPlatform Android='RoundRectangle 4', iOS='RoundRectangle 8', Default='RoundRectangle 6'}" BackgroundColor="#374151" Padding="6,3">
+                                        <Border Grid.Column="1" StrokeShape="RoundRectangle 4" BackgroundColor="#374151" Padding="5,2">
                                             <Label Text="{Binding Priority}" FontSize="10" TextColor="#F3F4F6"/>
                                         </Border>
 
-                                        <!-- SQLite IsSyncPending Badge -->
-                                        <Border Grid.Column="2" 
+                                        <!-- Индикатор очереди офлайн-синхронизации -->
+                                        <Border Grid.Column="3" 
                                                 IsVisible="{Binding IsSyncPending}"
-                                                StrokeShape="RoundRectangle 6" 
-                                                BackgroundColor="#7C2D12" 
-                                                Padding="6,2"
-                                                HorizontalOptions="Start">
-                                            <Label Text="💾 SQLite: офлайн" FontSize="9" TextColor="#FED7AA" FontAttributes="Bold"/>
+                                                StrokeShape="RoundRectangle 4" 
+                                                BackgroundColor="#78350F" 
+                                                Padding="5,2"
+                                                VerticalOptions="Center">
+                                            <Label Text="⏳ В очереди" FontSize="9" TextColor="#FDE68A" FontAttributes="Bold"/>
                                         </Border>
 
-                                        <!-- Status Chip -->
-                                        <Border Grid.Column="3" 
-                                                StrokeShape="{OnPlatform Android='RoundRectangle 8', iOS='RoundRectangle 16', Default='RoundRectangle 12'}" 
+                                        <!-- Статус наряда -->
+                                        <Border Grid.Column="4" 
+                                                StrokeShape="RoundRectangle 8" 
                                                 BackgroundColor="{Binding Status, Converter={StaticResource StatusColorConverter}}" 
-                                                Padding="{OnPlatform Android='8,3', iOS='12,4', Default='10,4'}">
+                                                Padding="8,3"
+                                                VerticalOptions="Center">
                                             <Label Text="{Binding Status}" 
-                                                   FontSize="{OnPlatform Android='10', iOS='12', Default='11'}" 
+                                                   FontSize="10" 
                                                    FontAttributes="Bold" 
                                                    TextColor="White"/>
                                         </Border>
 
                                         <!-- Кнопка вызова контекстного меню (⋮) -->
-                                        <Button Grid.Column="4"
+                                        <Button Grid.Column="5"
                                                 Text="⋮"
-                                                FontSize="{OnPlatform Android='15', iOS='18', Default='16'}"
+                                                FontSize="16"
                                                 FontAttributes="Bold"
                                                 TextColor="#CBD5E1"
                                                 BackgroundColor="#0F172A"
-                                                WidthRequest="{OnPlatform Android='30', iOS='36', Default='32'}"
-                                                HeightRequest="{OnPlatform Android='26', iOS='32', Default='28'}"
+                                                WidthRequest="28"
+                                                HeightRequest="26"
                                                 Padding="0"
-                                                CornerRadius="{OnPlatform Android='4', iOS='12', Default='6'}"
+                                                CornerRadius="5"
                                                 Command="{Binding Source={RelativeSource AncestorType={x:Type vm:DeliveriesViewModel}}, Path=ShowItemContextMenuCommand}"
                                                 CommandParameter="{Binding .}"/>
                                     </Grid>
 
-                                    <!-- Row 1: Client Name -->
+                                    <!-- Строка 1: Имя клиента (с переносом строки при необходимости) -->
                                     <Label Grid.Row="1" 
                                            Text="{Binding ClientName}" 
-                                           FontSize="15" 
+                                           FontSize="14" 
                                            FontAttributes="Bold" 
-                                           TextColor="#F8FAFC"/>
+                                           TextColor="#F8FAFC"
+                                           LineBreakMode="WordWrap"/>
 
-                                    <!-- Row 2: Address -->
-                                    <HorizontalStackLayout Grid.Row="2" Spacing="6">
-                                        <Label Text="📍" FontSize="13"/>
-                                        <Label Text="{Binding Address}" FontSize="13" TextColor="#CBD5E1"/>
-                                    </HorizontalStackLayout>
-
-                                    <!-- Row 3: Cargo info & Time -->
-                                    <Grid Grid.Row="3" ColumnDefinitions="*,Auto" Margin="0,2,0,0">
-                                        <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
-                                            <Label Text="📦" FontSize="12"/>
-                                            <Label Text="{Binding CargoDescription}" FontSize="12" TextColor="#94A3B8"/>
-                                            <Label Text="•" TextColor="#64748B" FontSize="12"/>
-                                            <Label Text="{Binding WeightKg, StringFormat='{0} кг'}" FontSize="12" TextColor="#94A3B8"/>
-                                        </HorizontalStackLayout>
-
-                                        <Border Grid.Column="1" StrokeShape="RoundRectangle 6" BackgroundColor="#0F172A" Padding="6,2">
-                                            <HorizontalStackLayout Spacing="4">
-                                                <Label Text="⏱️" FontSize="10"/>
-                                                <Label Text="{Binding EstimatedTime}" FontSize="11" TextColor="#E2E8F0"/>
-                                            </HorizontalStackLayout>
-                                        </Border>
+                                    <!-- Строка 2: Адрес (с гарантированным переносом строки) -->
+                                    <Grid Grid.Row="2" ColumnDefinitions="Auto,*" ColumnSpacing="6" VerticalOptions="Center">
+                                        <Label Grid.Column="0" Text="📍" FontSize="12" VerticalOptions="Start"/>
+                                        <Label Grid.Column="1" Text="{Binding Address}" FontSize="12" TextColor="#CBD5E1" LineBreakMode="WordWrap"/>
                                     </Grid>
 
-                                    <!-- Row 4: Notes / Rejection Reason / Arrival stamp (if present) -->
+                                    <!-- Строка 3: Характеристика груза, вес и время -->
+                                    <Grid Grid.Row="3" ColumnDefinitions="*,Auto" ColumnSpacing="6" VerticalOptions="Center">
+                                        <Grid Grid.Column="0" ColumnDefinitions="Auto,*" ColumnSpacing="4" VerticalOptions="Center">
+                                            <Label Grid.Column="0" Text="📦" FontSize="11" VerticalOptions="Center"/>
+                                            <Label Grid.Column="1" 
+                                                   Text="{Binding CargoDescription, StringFormat='{0}'}" 
+                                                   FontSize="11" 
+                                                   TextColor="#94A3B8" 
+                                                   LineBreakMode="TailTruncation"
+                                                   VerticalOptions="Center"/>
+                                        </Grid>
+
+                                        <HorizontalStackLayout Grid.Column="1" Spacing="6" VerticalOptions="Center">
+                                            <Label Text="{Binding WeightKg, StringFormat='{0} кг'}" FontSize="11" TextColor="#94A3B8" VerticalOptions="Center"/>
+                                            <Border StrokeShape="RoundRectangle 4" BackgroundColor="#0F172A" Padding="5,2" VerticalOptions="Center">
+                                                <HorizontalStackLayout Spacing="3" VerticalOptions="Center">
+                                                    <Label Text="⏱️" FontSize="9"/>
+                                                    <Label Text="{Binding EstimatedTime}" FontSize="10" TextColor="#E2E8F0" FontAttributes="Bold"/>
+                                                </HorizontalStackLayout>
+                                            </Border>
+                                        </HorizontalStackLayout>
+                                    </Grid>
+
+                                    <!-- Строка 4: Примечания / отметки времени / причины отказа -->
                                     <Border Grid.Row="4" 
                                             IsVisible="{Binding Notes, Converter={StaticResource StringNotEmptyConverter}}"
                                             BackgroundColor="#0F172A"
                                             Stroke="#334155"
                                             StrokeShape="RoundRectangle 6"
-                                            Padding="8,4"
+                                            Padding="6,3"
                                             Margin="0,2,0,0">
-                                        <HorizontalStackLayout Spacing="6">
-                                            <Label Text="📝" FontSize="11" VerticalOptions="Center"/>
-                                            <Label Text="{Binding Notes}" FontSize="11" TextColor="#94A3B8" LineBreakMode="TailTruncation"/>
-                                        </HorizontalStackLayout>
+                                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="6" VerticalOptions="Center">
+                                            <Label Grid.Column="0" Text="📝" FontSize="10" VerticalOptions="Start"/>
+                                            <Label Grid.Column="1" Text="{Binding Notes}" FontSize="11" TextColor="#94A3B8" LineBreakMode="WordWrap"/>
+                                        </Grid>
                                     </Border>
                                 </Grid>
                             </Border>
@@ -508,42 +519,46 @@
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
 
-                <!-- Footer for pagination loader -->
+                <!-- Индикатор дозагрузки при пагинации -->
                 <CollectionView.Footer>
-                    <VerticalStackLayout Padding="12" HorizontalOptions="Center" IsVisible="{Binding IsLoadingMore}">
-                        <ActivityIndicator IsRunning="{Binding IsLoadingMore}" Color="#38BDF8" WidthRequest="28" HeightRequest="28"/>
-                        <Label Text="Загрузка следующей страницы..." FontSize="11" TextColor="#94A3B8" HorizontalOptions="Center" Margin="0,4,0,0"/>
+                    <VerticalStackLayout Padding="10" HorizontalOptions="Center" IsVisible="{Binding IsLoadingMore}">
+                        <ActivityIndicator IsRunning="{Binding IsLoadingMore}" Color="#38BDF8" WidthRequest="24" HeightRequest="24"/>
+                        <Label Text="Загрузка следующей страницы..." FontSize="11" TextColor="#94A3B8" HorizontalOptions="Center" Margin="0,3,0,0"/>
                     </VerticalStackLayout>
                 </CollectionView.Footer>
             </CollectionView>
         </RefreshView>
 
-        <!-- Bottom Status Bar (закреплён снизу) -->
+        <!-- Нижняя статусная панель (закреплена внизу экрана) -->
         <Border Grid.Row="1"
                 BackgroundColor="#0F172A"
                 Stroke="#1E293B"
                 StrokeThickness="1"
-                StrokeShape="{OnPlatform Android='Rectangle', iOS='RoundRectangle 16 16 0 0', Default='Rectangle'}"
-                Padding="{OnPlatform Android='14,6', iOS='18,12', Default='16,8'}">
-            <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
-                <Label Text="{Binding LastUpdatedText, FallbackValue='Готово к работе'}" 
+                StrokeShape="Rectangle"
+                Padding="12,6">
+            <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10" VerticalOptions="Center">
+                <Label Grid.Column="0"
+                       Text="{Binding LastUpdatedText, FallbackValue='Готово к работе'}" 
                        FontSize="11" 
                        TextColor="#64748B" 
+                       LineBreakMode="TailTruncation"
                        VerticalOptions="Center"/>
 
+                <!-- Кнопка сведений о смене / Путевой лист (для демонстрации БД преподавателю) -->
                 <Button Grid.Column="1"
-                        Text="📄 Кэш JSON"
-                        Command="{Binding ViewDeliveriesCacheJsonCommand}"
+                        Text="📋 Путевой лист"
+                        Command="{Binding ViewDatabaseInfoCommand}"
                         BackgroundColor="#1E293B"
-                        TextColor="#94A3B8"
-                        FontSize="10"
-                        HeightRequest="{OnPlatform Android='28', iOS='32', Default='28'}"
-                        Padding="6,0"
-                        CornerRadius="{OnPlatform Android='6', iOS='12', Default='6'}"
+                        TextColor="#38BDF8"
+                        FontSize="11"
+                        FontAttributes="Bold"
+                        HeightRequest="28"
+                        Padding="8,0"
+                        CornerRadius="6"
                         VerticalOptions="Center"/>
 
-                <HorizontalStackLayout Grid.Column="2" Spacing="6" VerticalOptions="Center">
-                    <Label Text="Всего заявок:" FontSize="11" TextColor="#94A3B8" VerticalOptions="Center"/>
+                <HorizontalStackLayout Grid.Column="2" Spacing="4" VerticalOptions="Center">
+                    <Label Text="Нарядов:" FontSize="11" TextColor="#94A3B8" VerticalOptions="Center"/>
                     <Label Text="{Binding TotalCount}" FontSize="11" FontAttributes="Bold" TextColor="#F8FAFC" VerticalOptions="Center"/>
                 </HorizontalStackLayout>
             </Grid>

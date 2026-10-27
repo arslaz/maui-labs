@@ -446,6 +446,34 @@ public class MockBackendServer : IDisposable
                 return;
             }
 
+            // 8b. ВАРИАНТ 7: ПАКЕТНАЯ ТЕЛЕМЕТРИЯ (POST /api/telemetry/batch)
+            if (path == "/api/telemetry/batch" && method == "POST")
+            {
+                using var reader = new StreamReader(request.InputStream, Encoding.UTF8);
+                var body = await reader.ReadToEndAsync();
+                var batch = JsonSerializer.Deserialize<List<TelemetryData>>(body, _jsonOptions);
+
+                if (batch != null && batch.Any())
+                {
+                    _telemetryLogs.AddRange(batch);
+                    while (_telemetryLogs.Count > 200) _telemetryLogs.RemoveAt(0);
+
+                    System.Diagnostics.Debug.WriteLine($"[MockBackendServer] POST /api/telemetry/batch: Получено {batch.Count} накопленных точек телеметрии");
+
+                    await SendJsonResponseAsync(response, HttpStatusCode.OK, new
+                    {
+                        success = true,
+                        batchId = Guid.NewGuid().ToString("N"),
+                        processedCount = batch.Count,
+                        serverTimestamp = DateTime.UtcNow
+                    });
+                    return;
+                }
+
+                await SendJsonResponseAsync(response, HttpStatusCode.BadRequest, new { error = "Пакет телеметрии пуст или имеет неверный формат" });
+                return;
+            }
+
             // 9. HEALTH CHECK: GET /api/health
             if (path == "/api/health" && method == "GET")
             {
