@@ -8,8 +8,14 @@ public interface ILocalDatabaseService
 {
     string DatabasePath { get; }
     Task InitAsync();
+    Task EnsureDatabaseInitializedAsync();
+    Task<bool> ResetDatabaseFromPackageAsync();
     Task<bool> MigrateFromLegacyJsonAsync(string driverId);
     Task<List<DeliveryPoint>> GetDeliveryPointsAsync(string driverId);
+    Task<List<DeliveryPoint>> GetDeliveryPointsWithRegulationsAsync(string driverId);
+    Task<List<CargoCategoryAggregatedReport>> GetCargoAggregatedReportAsync(string driverId);
+    Task<DeliveryPointWithRegulationDto?> GetDeliveryPointRegulationDetailAsync(string deliveryId);
+    Task<List<CargoCategoryEntity>> GetAllCargoCategoriesAsync();
     Task<SqliteTransactionResult> SaveOrUpdateDeliveriesFromApiAsync(string driverId, IEnumerable<DeliveryPoint> points);
     Task MarkArrivalAsync(string deliveryId, DateTime arrivalTime, bool isOffline);
     Task MarkRejectAsync(string deliveryId, string reason, bool isOffline);
@@ -18,7 +24,7 @@ public interface ILocalDatabaseService
     Task ClearSyncPendingFlagAsync(string deliveryId);
     Task<WaybillEntity> GetOrCreateWaybillAsync(string driverId, string driverName, string vehicleNumber);
     Task<TripAggregatedStats> GetAggregatedTripStatisticsAsync(string driverId);
-    Task<(int WaybillCount, int DeliveriesCount, int PendingSyncCount, int TripRecordsCount, int WaypointsCount, int UnsyncedWaypointsCount, string DbPath)> GetDatabaseSummaryAsync(string driverId);
+    Task<(int WaybillCount, int DeliveriesCount, int PendingSyncCount, int TripRecordsCount, int WaypointsCount, int UnsyncedWaypointsCount, int CategoriesCount, string DbPath)> GetDatabaseSummaryAsync(string driverId);
 
     // Вариант 7: Методы работы с путевыми точками телеметрии в SQLite
     Task SaveOfflineWaypointAsync(DriverWaypointEntity waypoint);
@@ -43,6 +49,119 @@ public class LocalDatabaseService : ILocalDatabaseService
 
     public string DatabasePath => Path.Combine(FileSystem.AppDataDirectory, "app_local_storage.db3");
 
+    /// <summary>
+    /// ОБЯЗАТЕЛЬНОЕ ТРЕБОВАНИЕ: Асинхронный алгоритм проверки наличия рабочей БД и копирования
+    /// файла базы данных со стартовым справочником из ресурсов пакета (Resources/Raw).
+    /// Выполняется при первом старте приложения или при явном сбросе.
+    /// </summary>
+    public async Task EnsureDatabaseInitializedAsync()
+    {
+        await InitAsync();
+    }
+
+    private async Task EnsureDatabaseInitializedInternalAsync()
+    {
+        var targetPath = DatabasePath;
+        bool shouldCopyFromPackage = false;
+
+        if (!File.Exists(targetPath) || new FileInfo(targetPath).Length == 0)
+        {
+            shouldCopyFromPackage = true;
+        }
+        else
+        {
+            // Проверяем, содержит ли существующий файл базу данных со справочником cargo_categories
+            try
+            {
+                using var conn = new SQLiteConnection(targetPath, SQLiteOpenFlags.ReadOnly);
+                var tableCount = conn.ExecuteScalar<int>("SELECT count(*) FROM sqlite_master WHERE type='table' AND name='cargo_categories';");
+                if (tableCount == 0)
+                {
+                    shouldCopyFromPackage = true;
+                }
+                else
+                {
+                    var catRows = conn.ExecuteScalar<int>("SELECT count(*) FROM cargo_categories;");
+                    if (catRows == 0)
+                    {
+                        shouldCopyFromPackage = true;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[LocalDatabaseService] Тест существующей БД выявил необходимость обновления: {ex.Message}");
+                shouldCopyFromPackage = true;
+            }
+        }
+
+        if (shouldCopyFromPackage)
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine($"[LocalDatabaseService] Первый старт приложения: копирование рабочей БД из Resources/Raw...");
+                if (File.Exists(targetPath))
+                {
+                    try { File.Delete(targetPath); } catch { }
+                }
+
+                using var sourceStream = await FileSystem.OpenAppPackageFileAsync("app_local_storage.db3");
+                using var destStream = File.Create(targetPath);
+                await sourceStream.CopyToAsync(destStream);
+                System.Diagnostics.Debug.WriteLine($"[LocalDatabaseService] Стартовая БД успешно скопирована из ресурсов пакета в {targetPath}");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[LocalDatabaseService] Ошибка копирования стартовой БД из пакета: {ex.Message}");
+            }
+        }
+        else
+        {
+            System.Diagnostics.Debug.WriteLine($"[LocalDatabaseService] Рабочая база данных уже присутствует и актуальна: {targetPath}");
+        }
+    }
+
+    /// <summary>
+    /// Сброс рабочей базы данных с повторным копированием из ресурсов пакета Resources/Raw.
+    /// Позволяет преподавателю протестировать алгоритм первого старта приложения в один клик.
+    /// </summary>
+    public async Task<bool> ResetDatabaseFromPackageAsync()
+    {
+        await _semaphore.WaitAsync();
+        try
+        {
+            if (_database != null)
+            {
+                await _database.CloseAsync();
+                _database = null;
+            }
+
+            var targetPath = DatabasePath;
+            if (File.Exists(targetPath))
+            {
+                File.Delete(targetPath);
+            }
+
+            using var sourceStream = await FileSystem.OpenAppPackageFileAsync("app_local_storage.db3");
+            using var destStream = File.Create(targetPath);
+            await sourceStream.CopyToAsync(destStream);
+
+            System.Diagnostics.Debug.WriteLine($"[LocalDatabaseService] База данных успешно сброшена и перекопирована из дистрибутива!");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[LocalDatabaseService] Ошибка сброса БД: {ex.Message}");
+            return false;
+        }
+        finally
+        {
+            _semaphore.Release();
+        }
+
+        await InitAsync();
+        return true;
+    }
+
     public async Task InitAsync()
     {
         if (_database != null) return;
@@ -52,27 +171,154 @@ public class LocalDatabaseService : ILocalDatabaseService
         {
             if (_database != null) return;
 
-            // Инициализация пула соединений SQLite (Singleton pattern)
+            // 1. Асинхронная проверка наличия файла рабочей БД и копирование из дистрибутива Resources/Raw
+            await EnsureDatabaseInitializedInternalAsync();
+
+            // 2. Инициализация пула соединений SQLite (Singleton pattern)
             _database = new SQLiteAsyncConnection(DatabasePath, SQLiteOpenFlags.ReadWrite | SQLiteOpenFlags.Create | SQLiteOpenFlags.SharedCache);
 
-            // Создание реляционных таблиц с декларативными атрибутами ORM
+            // 3. Включение жесткого контроля целостности реляционных связей (Foreign Key Constraints)
+            await _database.ExecuteAsync("PRAGMA foreign_keys = ON;");
+
+            // 4. Создание реляционных таблиц с декларативными атрибутами ORM
+            await _database.CreateTableAsync<CargoCategoryEntity>(); // Вариант 7: статический справочник категорий грузов
             await _database.CreateTableAsync<WaybillEntity>();
             await _database.CreateTableAsync<DeliveryPointEntity>();
             await _database.CreateTableAsync<TripRecordEntity>();
             await _database.CreateTableAsync<DriverWaypointEntity>(); // Вариант 7: путевые точки телеметрии
 
-            // Принудительное создание уникальных индексов на уровне ядра SQLite (защита от дубликатов на старых схемах)
-            await _database.ExecuteAsync("CREATE UNIQUE INDEX IF NOT EXISTS idx_delivery_points_order_num ON delivery_points(OrderNumber);");
-            await _database.ExecuteAsync("CREATE UNIQUE INDEX IF NOT EXISTS idx_waybills_number ON waybills(WaybillNumber);");
-            await _database.ExecuteAsync("CREATE INDEX IF NOT EXISTS idx_waypoints_driver_sync ON driver_waypoints(DriverId, IsSynced);");
-            await _database.ExecuteAsync("CREATE INDEX IF NOT EXISTS idx_waypoints_coords ON driver_waypoints(Latitude, Longitude);");
-            await _database.ExecuteAsync("CREATE INDEX IF NOT EXISTS idx_waypoints_timestamp ON driver_waypoints(Timestamp);");
+            // 5. Обеспечение наличия столбца внешнего ключа в delivery_points
+            try
+            {
+                var cols = await _database.QueryScalarsAsync<string>("SELECT name FROM pragma_table_info('delivery_points');");
+                if (!cols.Any(c => string.Equals(c, "CargoCategoryId", StringComparison.OrdinalIgnoreCase)))
+                {
+                    await _database.ExecuteAsync("ALTER TABLE delivery_points ADD COLUMN CargoCategoryId INTEGER NOT NULL DEFAULT 1;");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[LocalDatabaseService] Column CargoCategoryId check notice: {ex.Message}");
+            }
+
+            // 6. Принудительное создание индексов на уровне ядра SQLite
+            try { await _database.ExecuteAsync("CREATE UNIQUE INDEX IF NOT EXISTS idx_cargo_categories_code ON cargo_categories(CategoryCode);"); } catch { }
+            try { await _database.ExecuteAsync("CREATE UNIQUE INDEX IF NOT EXISTS idx_delivery_points_order_num ON delivery_points(OrderNumber);"); } catch { }
+            try { await _database.ExecuteAsync("CREATE INDEX IF NOT EXISTS idx_delivery_points_category ON delivery_points(CargoCategoryId);"); } catch { }
+            try { await _database.ExecuteAsync("CREATE UNIQUE INDEX IF NOT EXISTS idx_waybills_number ON waybills(WaybillNumber);"); } catch { }
+            try { await _database.ExecuteAsync("CREATE INDEX IF NOT EXISTS idx_waypoints_driver_sync ON driver_waypoints(DriverId, IsSynced);"); } catch { }
+            try { await _database.ExecuteAsync("CREATE INDEX IF NOT EXISTS idx_waypoints_coords ON driver_waypoints(Latitude, Longitude);"); } catch { }
+            try { await _database.ExecuteAsync("CREATE INDEX IF NOT EXISTS idx_waypoints_timestamp ON driver_waypoints(Timestamp);"); } catch { }
+
+            // 7. Проверка наполненности справочника категорий грузов
+            try
+            {
+                var catCount = await _database.Table<CargoCategoryEntity>().CountAsync();
+                if (catCount == 0)
+                {
+                    await SeedDefaultCargoCategoriesAsync(_database);
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[LocalDatabaseService] SeedDefaultCargoCategories check notice: {ex.Message}");
+            }
 
             System.Diagnostics.Debug.WriteLine($"[LocalDatabaseService] SQLite база данных инициализирована: {DatabasePath}");
         }
         finally
         {
             _semaphore.Release();
+        }
+    }
+
+    private static async Task SeedDefaultCargoCategoriesAsync(SQLiteAsyncConnection db)
+    {
+        var categories = new List<CargoCategoryEntity>
+        {
+            new()
+            {
+                CategoryId = 1,
+                CategoryCode = "CAT-PERISH",
+                CategoryName = "Скоропортящиеся продукты питания",
+                TemperatureMode = "+2°C...+6°C (Рефрижератор)",
+                HumidityAndVentilation = "Влажность 60-70%, принудительная циркуляция",
+                HandlingRequirements = "Обязательное опломбирование отсека; непрерывный мониторинг терморегистратором; санитарный паспорт ТС",
+                SafetyClass = "Класс 2 (Терморежим СПС/ATP)",
+                RequiresSeal = true,
+                MaxStackTiers = 3,
+                IconGlyph = "❄️"
+            },
+            new()
+            {
+                CategoryId = 2,
+                CategoryCode = "CAT-PHARMA",
+                CategoryName = "Термолабильные медикаменты и вакцины",
+                TemperatureMode = "+2°C...+8°C (Фарм-термобокс)",
+                HumidityAndVentilation = "Герметичный термоконтейнер, влажность до 50%",
+                HandlingRequirements = "Опломбирование термоконтейнера; запрещено вскрывать в пути; сертификат холодовой цепи GDP",
+                SafetyClass = "Класс 1 (Критический терморежим GDP)",
+                RequiresSeal = true,
+                MaxStackTiers = 2,
+                IconGlyph = "💊"
+            },
+            new()
+            {
+                CategoryId = 3,
+                CategoryCode = "CAT-FRAGILE",
+                CategoryName = "Хрупкая электроника и точные приборы",
+                TemperatureMode = "+10°C...+30°C (Теплый контур)",
+                HumidityAndVentilation = "Сухой отсек, защита от конденсата и влажности",
+                HandlingRequirements = "Не кантовать; строго вертикальное положение; демпферные ремни к рымам кузова",
+                SafetyClass = "Класс 3 (Хрупкий груз / Амортизация)",
+                RequiresSeal = false,
+                MaxStackTiers = 2,
+                IconGlyph = "📺"
+            },
+            new()
+            {
+                CategoryId = 4,
+                CategoryCode = "CAT-INDUSTRY",
+                CategoryName = "Промышленное оборудование и комплектующие",
+                TemperatureMode = "Не регламентирован (-30°C...+40°C)",
+                HumidityAndVentilation = "Стандартная вентиляция кузова",
+                HandlingRequirements = "Фиксация противооткатными упорами, стяжными цепями и храповыми лентами",
+                SafetyClass = "Класс 4 (Тяжеловес / Оборудование)",
+                RequiresSeal = false,
+                MaxStackTiers = 1,
+                IconGlyph = "⚙️"
+            },
+            new()
+            {
+                CategoryId = 5,
+                CategoryCode = "CAT-GROCERY",
+                CategoryName = "Сухая бакалея, напитки и упаковка",
+                TemperatureMode = "+12°C...+20°C (Сухой фургон)",
+                HumidityAndVentilation = "Влажность до 75%, чистый проветриваемый отсек",
+                HandlingRequirements = "Штабелирование на деревянных европоддонах в термоусадочной пленке; беречь от влаги",
+                SafetyClass = "Класс 5 (Пищевой стандарт)",
+                RequiresSeal = false,
+                MaxStackTiers = 4,
+                IconGlyph = "🥫"
+            },
+            new()
+            {
+                CategoryId = 6,
+                CategoryCode = "CAT-HEAVY",
+                CategoryName = "Строительные смеси и тяжелые материалы",
+                TemperatureMode = "Не регламентирован",
+                HumidityAndVentilation = "Влагонепроницаемый тент, защита от осадков",
+                HandlingRequirements = "Крепление стяжными ремнями по центру грузовой платформы; распределение по осям",
+                SafetyClass = "Класс 6 (Тяжеловесный строительный)",
+                RequiresSeal = false,
+                MaxStackTiers = 2,
+                IconGlyph = "🏗️"
+            }
+        };
+
+        foreach (var c in categories)
+        {
+            await db.InsertOrReplaceAsync(c);
         }
     }
 
@@ -196,16 +442,197 @@ public class LocalDatabaseService : ILocalDatabaseService
 
     /// <summary>
     /// Мгновенная загрузка данных из локальной базы данных SQLite для MVVM
+    /// Выполняет связывающий SQL JOIN с таблицей справочника категорий cargo_categories.
     /// </summary>
     public async Task<List<DeliveryPoint>> GetDeliveryPointsAsync(string driverId)
     {
-        await InitAsync();
-        var entities = await _database!.Table<DeliveryPointEntity>()
-            .Where(x => x.DriverId == driverId)
-            .OrderBy(x => x.EstimatedTime)
-            .ToListAsync();
+        return await GetDeliveryPointsWithRegulationsAsync(driverId);
+    }
 
-        return entities.Select(MapToModel).ToList();
+    /// <summary>
+    /// Вариант 7: Связывающий SQL-запрос (JOIN), объединяющий ID точки доставки с описанием
+    /// требований к грузу из таблицы ограничений и температурного режима (cargo_categories).
+    /// Полностью исключает вложенные циклы и повторные обращения к СУБД на стороне C#-кода.
+    /// </summary>
+    public async Task<List<DeliveryPoint>> GetDeliveryPointsWithRegulationsAsync(string driverId)
+    {
+        await InitAsync();
+
+        try
+        {
+            const string sql = @"
+                SELECT 
+                    d.Id,
+                    d.DriverId,
+                    d.OrderNumber,
+                    d.ClientName,
+                    d.Address,
+                    d.City,
+                    d.Phone,
+                    d.CargoDescription,
+                    d.CargoCategoryId,
+                    d.WeightKg,
+                    d.VolumeM3,
+                    d.Priority,
+                    d.Status,
+                    d.Latitude,
+                    d.Longitude,
+                    d.EstimatedTime,
+                    d.Notes,
+                    d.UpdatedAt,
+                    d.ArrivedAt,
+                    d.RejectionReason,
+                    d.IsSyncPending,
+                    d.PendingOperation,
+                    c.CategoryCode AS CargoCategoryCode,
+                    c.CategoryName AS CargoCategoryName,
+                    c.TemperatureMode AS CargoTemperatureMode,
+                    c.HumidityAndVentilation AS CargoHumidityAndVentilation,
+                    c.HandlingRequirements AS CargoHandlingRequirements,
+                    c.SafetyClass AS CargoSafetyClass,
+                    c.RequiresSeal AS CargoRequiresSeal,
+                    c.IconGlyph AS CargoIconGlyph
+                FROM delivery_points d
+                INNER JOIN cargo_categories c ON d.CargoCategoryId = c.CategoryId
+                WHERE d.DriverId = ? AND (d.PendingOperation IS NULL OR d.PendingOperation != 'DELETE')
+                ORDER BY d.EstimatedTime ASC;";
+
+            var dtoList = await _database!.QueryAsync<DeliveryPointWithRegulationDto>(sql, driverId);
+
+            if (dtoList.Count > 0)
+            {
+                return dtoList.Select(MapDtoToModel).ToList();
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[LocalDatabaseService] GetDeliveryPointsWithRegulationsAsync JOIN query notice: {ex.Message}");
+        }
+
+        try
+        {
+            // Резервная выборка, если связи еще не были установлены
+            var entities = await _database!.Table<DeliveryPointEntity>()
+                .Where(x => x.DriverId == driverId && (x.PendingOperation == null || x.PendingOperation != "DELETE"))
+                .OrderBy(x => x.EstimatedTime)
+                .ToListAsync();
+
+            return entities.Select(MapToModel).ToList();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[LocalDatabaseService] Fallback to Table<DeliveryPointEntity> notice: {ex.Message}");
+            return new List<DeliveryPoint>();
+        }
+    }
+
+    /// <summary>
+    /// ОБЯЗАТЕЛЬНОЕ ТРЕБОВАНИЕ: Отображение агрегированных данных, извлеченных из СУБД с помощью
+    /// сложного связывающего SQL-запроса (JOIN), объединяющего данные справочника (cargo_categories),
+    /// путевые наряды (delivery_points) и пользовательские транзакции (trip_records).
+    /// Извлекает агрегированные данные (COUNT, SUM, CASE WHEN, COALESCE) внутри ядра SQLite,
+    /// полностью исключая выполнение вложенных циклов и повторных запросов на стороне C#.
+    /// </summary>
+    public async Task<List<CargoCategoryAggregatedReport>> GetCargoAggregatedReportAsync(string driverId)
+    {
+        await InitAsync();
+
+        try
+        {
+            const string sql = @"
+                SELECT 
+                    c.CategoryId,
+                    c.CategoryCode,
+                    c.CategoryName,
+                    c.TemperatureMode,
+                    c.HandlingRequirements,
+                    c.SafetyClass,
+                    c.IconGlyph,
+                    COUNT(DISTINCT d.Id) AS TotalOrdersCount,
+                    ROUND(SUM(d.WeightKg), 1) AS TotalWeightKg,
+                    ROUND(SUM(d.VolumeM3), 2) AS TotalVolumeM3,
+                    COUNT(DISTINCT CASE WHEN d.Status = 'Доставлен' OR d.Status = 'Прибыл' THEN d.Id END) AS CompletedOrdersCount,
+                    COUNT(DISTINCT CASE WHEN d.Status = 'Отказ' THEN d.Id END) AS RejectedOrdersCount,
+                    COUNT(DISTINCT CASE WHEN d.Status = 'В пути' THEN d.Id END) AS InTransitOrdersCount,
+                    COUNT(DISTINCT CASE WHEN d.Status = 'Ожидает' THEN d.Id END) AS PendingOrdersCount,
+                    ROUND(COALESCE(SUM(t.DistanceKm), 0.0), 1) AS TotalDistanceKm,
+                    ROUND(COALESCE(SUM(t.FuelLiters), 0.0), 2) AS TotalFuelLiters
+                FROM cargo_categories c
+                INNER JOIN delivery_points d ON d.CargoCategoryId = c.CategoryId
+                LEFT JOIN trip_records t ON t.DeliveryPointId = d.Id
+                WHERE d.DriverId = ? AND (d.PendingOperation IS NULL OR d.PendingOperation != 'DELETE')
+                GROUP BY c.CategoryId, c.CategoryCode, c.CategoryName, c.TemperatureMode, c.HandlingRequirements, c.SafetyClass, c.IconGlyph
+                ORDER BY TotalOrdersCount DESC;";
+
+            return await _database!.QueryAsync<CargoCategoryAggregatedReport>(sql, driverId);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[LocalDatabaseService] GetCargoAggregatedReportAsync notice: {ex.Message}");
+            return new List<CargoCategoryAggregatedReport>();
+        }
+    }
+
+    /// <summary>
+    /// Вариант 7: Связывающий запрос для карточки детальной информации наряда (DeliveryDetailPage)
+    /// </summary>
+    public async Task<DeliveryPointWithRegulationDto?> GetDeliveryPointRegulationDetailAsync(string deliveryId)
+    {
+        await InitAsync();
+
+        try
+        {
+            const string sql = @"
+                SELECT 
+                    d.Id,
+                    d.DriverId,
+                    d.OrderNumber,
+                    d.ClientName,
+                    d.Address,
+                    d.City,
+                    d.Phone,
+                    d.CargoDescription,
+                    d.CargoCategoryId,
+                    d.WeightKg,
+                    d.VolumeM3,
+                    d.Priority,
+                    d.Status,
+                    d.Latitude,
+                    d.Longitude,
+                    d.EstimatedTime,
+                    d.Notes,
+                    d.UpdatedAt,
+                    d.ArrivedAt,
+                    d.RejectionReason,
+                    d.IsSyncPending,
+                    d.PendingOperation,
+                    c.CategoryCode AS CargoCategoryCode,
+                    c.CategoryName AS CargoCategoryName,
+                    c.TemperatureMode AS CargoTemperatureMode,
+                    c.HumidityAndVentilation AS CargoHumidityAndVentilation,
+                    c.HandlingRequirements AS CargoHandlingRequirements,
+                    c.SafetyClass AS CargoSafetyClass,
+                    c.RequiresSeal AS CargoRequiresSeal,
+                    c.IconGlyph AS CargoIconGlyph
+                FROM delivery_points d
+                INNER JOIN cargo_categories c ON d.CargoCategoryId = c.CategoryId
+                WHERE d.Id = ?
+                LIMIT 1;";
+
+            var list = await _database!.QueryAsync<DeliveryPointWithRegulationDto>(sql, deliveryId);
+            return list.FirstOrDefault();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[LocalDatabaseService] GetDeliveryPointRegulationDetailAsync notice: {ex.Message}");
+            return null;
+        }
+    }
+
+    public async Task<List<CargoCategoryEntity>> GetAllCargoCategoriesAsync()
+    {
+        await InitAsync();
+        return await _database!.Table<CargoCategoryEntity>().OrderBy(x => x.CategoryId).ToListAsync();
     }
 
     /// <summary>
@@ -265,6 +692,7 @@ public class LocalDatabaseService : ILocalDatabaseService
                         existing.City = p.City;
                         existing.Phone = p.Phone;
                         existing.CargoDescription = p.CargoDescription;
+                        if (p.CargoCategoryId > 0) existing.CargoCategoryId = p.CargoCategoryId;
                         existing.WeightKg = p.WeightKg;
                         existing.VolumeM3 = p.VolumeM3;
                         existing.Priority = p.Priority;
@@ -694,7 +1122,7 @@ public class LocalDatabaseService : ILocalDatabaseService
         };
     }
 
-    public async Task<(int WaybillCount, int DeliveriesCount, int PendingSyncCount, int TripRecordsCount, int WaypointsCount, int UnsyncedWaypointsCount, string DbPath)> GetDatabaseSummaryAsync(string driverId)
+    public async Task<(int WaybillCount, int DeliveriesCount, int PendingSyncCount, int TripRecordsCount, int WaypointsCount, int UnsyncedWaypointsCount, int CategoriesCount, string DbPath)> GetDatabaseSummaryAsync(string driverId)
     {
         await InitAsync();
         int waybills = await _database!.Table<WaybillEntity>().Where(x => x.DriverId == driverId).CountAsync();
@@ -703,8 +1131,9 @@ public class LocalDatabaseService : ILocalDatabaseService
         int trips = await _database.Table<TripRecordEntity>().Where(x => x.DriverId == driverId).CountAsync();
         int waypoints = await _database.Table<DriverWaypointEntity>().Where(x => x.DriverId == driverId).CountAsync();
         int unsyncedWaypoints = await _database.Table<DriverWaypointEntity>().Where(x => x.DriverId == driverId && !x.IsSynced).CountAsync();
+        int categories = await _database.Table<CargoCategoryEntity>().CountAsync();
 
-        return (waybills, deliveries, pending, trips, waypoints, unsyncedWaypoints, DatabasePath);
+        return (waybills, deliveries, pending, trips, waypoints, unsyncedWaypoints, categories, DatabasePath);
     }
 
     #region ВАРИАНТ 7: ТЕЛЕМЕТРИЯ И ПУТЕВЫЕ ТОЧКИ В SQLITE
@@ -833,6 +1262,7 @@ public class LocalDatabaseService : ILocalDatabaseService
         City = m.City,
         Phone = m.Phone,
         CargoDescription = m.CargoDescription,
+        CargoCategoryId = m.CargoCategoryId > 0 ? m.CargoCategoryId : 1, // Внешний ключ жесткой реляционной связи
         WeightKg = m.WeightKg,
         VolumeM3 = m.VolumeM3,
         Priority = m.Priority,
@@ -854,6 +1284,7 @@ public class LocalDatabaseService : ILocalDatabaseService
         City = e.City,
         Phone = e.Phone,
         CargoDescription = e.CargoDescription,
+        CargoCategoryId = e.CargoCategoryId > 0 ? e.CargoCategoryId : 1,
         WeightKg = e.WeightKg,
         VolumeM3 = e.VolumeM3,
         Priority = e.Priority,
@@ -864,5 +1295,36 @@ public class LocalDatabaseService : ILocalDatabaseService
         Notes = e.Notes,
         UpdatedAt = e.UpdatedAt,
         IsSyncPending = e.IsSyncPending
+    };
+
+    private static DeliveryPoint MapDtoToModel(DeliveryPointWithRegulationDto dto) => new()
+    {
+        Id = dto.Id,
+        OrderNumber = dto.OrderNumber,
+        ClientName = dto.ClientName,
+        Address = dto.Address,
+        City = dto.City,
+        Phone = dto.Phone,
+        CargoDescription = dto.CargoDescription,
+        CargoCategoryId = dto.CargoCategoryId > 0 ? dto.CargoCategoryId : 1,
+        WeightKg = dto.WeightKg,
+        VolumeM3 = dto.VolumeM3,
+        Priority = dto.Priority,
+        Status = dto.Status,
+        Latitude = dto.Latitude,
+        Longitude = dto.Longitude,
+        EstimatedTime = dto.EstimatedTime,
+        Notes = dto.Notes,
+        UpdatedAt = dto.UpdatedAt,
+        IsSyncPending = dto.IsSyncPending,
+        // Поля, присоединенные через SQL JOIN из таблицы cargo_categories
+        CargoCategoryCode = dto.CargoCategoryCode,
+        CargoCategoryName = dto.CargoCategoryName,
+        CargoTemperatureMode = dto.CargoTemperatureMode,
+        CargoHumidityAndVentilation = dto.CargoHumidityAndVentilation,
+        CargoHandlingRequirements = dto.CargoHandlingRequirements,
+        CargoSafetyClass = dto.CargoSafetyClass,
+        CargoRequiresSeal = dto.CargoRequiresSeal,
+        CargoIconGlyph = dto.CargoIconGlyph
     };
 }

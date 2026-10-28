@@ -98,6 +98,15 @@ public partial class DeliveriesViewModel : BaseViewModel
     [NotifyPropertyChangedFor(nameof(UnsyncedWaypointsBadgeText))]
     private int unsyncedWaypointsCount;
 
+    // Вариант 7: Агрегированная визуальная сводка требований и режимов грузов (SQL JOIN)
+    [ObservableProperty]
+    private bool isRegulationsSummaryVisible;
+
+    [ObservableProperty]
+    private string regulationsSummaryButtonText = "📊 Сводка требований и режимов грузов (SQL JOIN)";
+
+    public ObservableCollection<CargoCategoryAggregatedReport> CargoCategoryReports { get; } = new();
+
     public bool HasUnsyncedWaypoints => UnsyncedWaypointsCount > 0;
     public string UnsyncedWaypointsBadgeText => $"Точки пути в SQLite: {UnsyncedWaypointsCount}";
 
@@ -199,33 +208,44 @@ public partial class DeliveriesViewModel : BaseViewModel
 
     public async Task InitializeAsync()
     {
-        var savedDriver = await _secureStorageService.GetDriverIdAsync();
-        if (!string.IsNullOrEmpty(savedDriver))
+        try
         {
-            DriverId = savedDriver;
-        }
+            var savedDriver = await _secureStorageService.GetDriverIdAsync();
+            if (!string.IsNullOrEmpty(savedDriver))
+            {
+                DriverId = savedDriver;
+            }
 
-        var savedName = await _secureStorageService.GetDriverNameAsync();
-        if (!string.IsNullOrEmpty(savedName))
+            var savedName = await _secureStorageService.GetDriverNameAsync();
+            if (!string.IsNullOrEmpty(savedName))
+            {
+                DriverName = savedName;
+            }
+
+            var savedVehicle = await _secureStorageService.GetVehicleNumberAsync();
+            if (!string.IsNullOrEmpty(savedVehicle))
+            {
+                VehicleNumber = savedVehicle;
+            }
+
+            // Первоначальная проверка наличия БД и копирование файла справочника из ресурсов (Resources/Raw)
+            await _databaseService.EnsureDatabaseInitializedAsync();
+
+            // Автоматическая миграция legacy JSON в реляционные таблицы SQLite при открытии
+            await _databaseService.MigrateFromLegacyJsonAsync(DriverId);
+            await _databaseService.GetOrCreateWaybillAsync(DriverId, DriverName, VehicleNumber);
+
+            PendingSyncCount = await _syncQueueService.GetPendingCountAsync();
+            await UpdateDatabaseCountsAsync();
+            UpdateTelemetryUI();
+
+            await LoadDeliveriesAsync(refresh: true);
+        }
+        catch (Exception ex)
         {
-            DriverName = savedName;
+            System.Diagnostics.Debug.WriteLine($"[DeliveriesViewModel] InitializeAsync error: {ex}");
+            ErrorMessage = $"Ошибка загрузки путевого листа: {ex.Message}";
         }
-
-        var savedVehicle = await _secureStorageService.GetVehicleNumberAsync();
-        if (!string.IsNullOrEmpty(savedVehicle))
-        {
-            VehicleNumber = savedVehicle;
-        }
-
-        // Автоматическая миграция legacy JSON в реляционные таблицы SQLite при открытии
-        await _databaseService.MigrateFromLegacyJsonAsync(DriverId);
-        await _databaseService.GetOrCreateWaybillAsync(DriverId, DriverName, VehicleNumber);
-
-        PendingSyncCount = await _syncQueueService.GetPendingCountAsync();
-        await UpdateDatabaseCountsAsync();
-        UpdateTelemetryUI();
-
-        await LoadDeliveriesAsync(refresh: true);
     }
 
     private void UpdateTelemetryUI()
@@ -256,31 +276,38 @@ public partial class DeliveriesViewModel : BaseViewModel
         }
 
         // ШАГ 1: МГНОВЕННАЯ ЗАГРУЗКА ИЗ ЛОКАЛЬНОЙ БАЗЫ ДАННЫХ SQLITE (таблица delivery_points)
-        var localPoints = await _databaseService.GetDeliveryPointsAsync(DriverId);
-        if (localPoints.Any())
+        try
         {
-            Deliveries.Clear();
-            foreach (var item in localPoints)
-            {
-                Deliveries.Add(item);
-            }
-            TotalCount = Deliveries.Count;
-            LastUpdatedText = $"БД SQLite (app_local_storage.db3): {DateTime.Now:HH:mm:ss}";
-        }
-        else
-        {
-            // Резервный фолбэк на legacy JSON-кэш, если SQLite еще не заполнен
-            var cached = await _cacheService.GetCachedDeliveriesAsync(DriverId);
-            if (cached != null && cached.Any())
+            var localPoints = await _databaseService.GetDeliveryPointsAsync(DriverId);
+            if (localPoints.Any())
             {
                 Deliveries.Clear();
-                foreach (var item in cached)
+                foreach (var item in localPoints)
                 {
                     Deliveries.Add(item);
                 }
                 TotalCount = Deliveries.Count;
-                LastUpdatedText = $"Локальный JSON кэш: {DateTime.Now:HH:mm:ss}";
+                LastUpdatedText = $"БД SQLite (app_local_storage.db3): {DateTime.Now:HH:mm:ss}";
             }
+            else
+            {
+                // Резервный фолбэк на legacy JSON-кэш, если SQLite еще не заполнен
+                var cached = await _cacheService.GetCachedDeliveriesAsync(DriverId);
+                if (cached != null && cached.Any())
+                {
+                    Deliveries.Clear();
+                    foreach (var item in cached)
+                    {
+                        Deliveries.Add(item);
+                    }
+                    TotalCount = Deliveries.Count;
+                    LastUpdatedText = $"Локальный JSON кэш: {DateTime.Now:HH:mm:ss}";
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[DeliveriesViewModel] Step 1 DB load notice: {ex.Message}");
         }
 
         await UpdateDatabaseCountsAsync();
@@ -336,6 +363,13 @@ public partial class DeliveriesViewModel : BaseViewModel
             // Резервное дублирование в legacy JSON
             await _cacheService.SaveDeliveriesAsync(DriverId, Deliveries.ToList());
             await UpdateDatabaseCountsAsync();
+
+            if (IsRegulationsSummaryVisible)
+            {
+                var reports = await _databaseService.GetCargoAggregatedReportAsync(DriverId);
+                CargoCategoryReports.Clear();
+                foreach (var r in reports) CargoCategoryReports.Add(r);
+            }
         }
         catch (OperationCanceledException)
         {
@@ -801,11 +835,143 @@ public partial class DeliveriesViewModel : BaseViewModel
             var summary = await _databaseService.GetDatabaseSummaryAsync(DriverId);
             PendingSqliteSyncCount = summary.PendingSyncCount;
             UnsyncedWaypointsCount = summary.UnsyncedWaypointsCount;
-            DatabaseStatusText = $"SQLite: {summary.DeliveriesCount} нарядов | {summary.WaypointsCount} точек пути (несинхр: {summary.UnsyncedWaypointsCount})";
+            DatabaseStatusText = $"SQLite: {summary.DeliveriesCount} нарядов | {summary.CategoriesCount} категорий грузов | {summary.WaypointsCount} точек пути";
         }
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"[DeliveriesViewModel] UpdateDatabaseCounts error: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// ОБЯЗАТЕЛЬНОЕ ТРЕБОВАНИЕ: Отображение агрегированных данных, извлеченных из СУБД с помощью
+    /// сложного связывающего SQL-запроса (JOIN), объединяющего справочник cargo_categories,
+    /// наряды delivery_points и транзакции trip_records. Исключает вложенные циклы в C#.
+    /// </summary>
+    [RelayCommand]
+    public async Task ShowCargoRegulationsSummaryAsync()
+    {
+        if (IsRegulationsSummaryVisible)
+        {
+            IsRegulationsSummaryVisible = false;
+            RegulationsSummaryButtonText = "📊 Сводка требований и режимов грузов (SQL JOIN)";
+            return;
+        }
+
+        IsBusy = true;
+        try
+        {
+            var reports = await _databaseService.GetCargoAggregatedReportAsync(DriverId);
+            CargoCategoryReports.Clear();
+            foreach (var r in reports)
+            {
+                CargoCategoryReports.Add(r);
+            }
+
+            if (!CargoCategoryReports.Any())
+            {
+                await Shell.Current.DisplayAlertAsync("Сводка грузов", "В путевом листе отсутствуют наряды для формирования сводки.", "OK");
+                return;
+            }
+
+            IsRegulationsSummaryVisible = true;
+            RegulationsSummaryButtonText = "🔼 Скрыть сводку требований и режимов";
+            await _nativeFeedbackService.TriggerClickFeedbackAsync();
+        }
+        catch (Exception ex)
+        {
+            await Shell.Current.DisplayAlertAsync("Ошибка сводки", ex.Message, "OK");
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    [RelayCommand]
+    public void HideRegulationsSummary()
+    {
+        IsRegulationsSummaryVisible = false;
+        RegulationsSummaryButtonText = "📊 Сводка требований и режимов грузов (SQL JOIN)";
+    }
+
+    private async Task ShowCargoRegulationsAlertSummaryAsync()
+    {
+        IsBusy = true;
+        try
+        {
+            var reports = await _databaseService.GetCargoAggregatedReportAsync(DriverId);
+            if (!reports.Any())
+            {
+                await Shell.Current.DisplayAlertAsync("Сводка грузов", "В путевом листе отсутствуют наряды для формирования сводки.", "OK");
+                return;
+            }
+
+            var sb = new System.Text.StringBuilder();
+            sb.AppendLine("📊 Агрегированная сводка грузов и требований");
+            sb.AppendLine("SQL JOIN: cargo_categories ⨝ delivery_points ⨝ trip_records");
+            sb.AppendLine("─────────────────────────────────────");
+
+            foreach (var r in reports)
+            {
+                sb.AppendLine($"{r.IconGlyph} {r.CategoryName} [{r.CategoryCode}]");
+                sb.AppendLine($"  • Темп. режим: {r.TemperatureMode}");
+                sb.AppendLine($"  • Требования: {r.HandlingRequirements}");
+                sb.AppendLine($"  • Нарядов: {r.TotalOrdersCount} (Готово: {r.CompletedOrdersCount}, В пути: {r.InTransitOrdersCount}, Ожидает: {r.PendingOrdersCount})");
+                sb.AppendLine($"  • Масса: {r.TotalWeightKg:F1} кг | Объём: {r.TotalVolumeM3:F2} м³");
+                if (r.TotalDistanceKm > 0 || r.TotalFuelLiters > 0)
+                {
+                    sb.AppendLine($"  • Рейсы: {r.TotalDistanceKm:F1} км | Топливо: {r.TotalFuelLiters:F2} л");
+                }
+                sb.AppendLine("─────────────────────────────────────");
+            }
+
+            await Shell.Current.DisplayAlertAsync("Сводка по категориям грузов (JOIN)", sb.ToString(), "Закрыть");
+        }
+        catch (Exception ex)
+        {
+            await Shell.Current.DisplayAlertAsync("Ошибка сводки", ex.Message, "OK");
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    /// <summary>
+    /// ОБЯЗАТЕЛЬНОЕ ТРЕБОВАНИЕ: Асинхронный алгоритм проверки наличия рабочей БД и копирования
+    /// файла справочника из ресурсов пакета Resources/Raw.
+    /// Метод демонстрации сброса рабочей БД и повторного копирования из дистрибутива.
+    /// </summary>
+    [RelayCommand]
+    public async Task ResetDatabaseFromPackageAsync()
+    {
+        bool confirm = await Shell.Current.DisplayAlertAsync(
+            "Сброс базы данных",
+            "Перезаписать рабочую базу данных app_local_storage.db3 оригинальным файлом со статическим справочником из ресурсов пакета (Resources/Raw)?",
+            "Сбросить и восстановить",
+            "Отмена");
+
+        if (!confirm) return;
+
+        IsBusy = true;
+        try
+        {
+            bool ok = await _databaseService.ResetDatabaseFromPackageAsync();
+            if (ok)
+            {
+                await LoadDeliveriesAsync(refresh: true);
+                await _nativeFeedbackService.TriggerSuccessFeedbackAsync();
+                await Shell.Current.DisplayAlertAsync("Успешно", "Рабочая база данных переинициализирована из пакета Resources/Raw со стартовым справочником категорий!", "OK");
+            }
+        }
+        catch (Exception ex)
+        {
+            await Shell.Current.DisplayAlertAsync("Ошибка", ex.Message, "OK");
+        }
+        finally
+        {
+            IsBusy = false;
         }
     }
 
@@ -821,25 +987,44 @@ public partial class DeliveriesViewModel : BaseViewModel
 
         string message =
             $"📂 ФАЙЛ БАЗЫ ДАННЫХ SQLITE:\n{summary.DbPath}\n\n" +
-            $"📋 ТАБЛИЦА 1: waybills (Путевые листы водителей)\n" +
+            $"📑 ТАБЛИЦА 1: cargo_categories (Вариант 7 - Справочник правил перевозок)\n" +
+            $"• Категорий грузов: {summary.CategoriesCount} (Рефрижератор, Фармацевтика, Хрупкое, Оборудование...)\n" +
+            $"• Жесткая реляционная связь: FOREIGN KEY (CargoCategoryId) REFERENCES cargo_categories(CategoryId)\n" +
+            $"• Источник: Дистрибутив пакета (Resources/Raw/app_local_storage.db3)\n\n" +
+            $"📋 ТАБЛИЦА 2: waybills (Путевые листы водителей)\n" +
             $"• Записей: {summary.WaybillCount} | Активный путевой лист: #{waybill.Id} ({waybill.Status})\n" +
-            $"• Дата смены: {waybill.WaybillDate:dd.MM.yyyy} | Водитель: {waybill.DriverName}\n" +
-            $"• Ограничения: [Unique] на номер путевого листа, [Indexed] на дату и статус\n\n" +
-            $"📦 ТАБЛИЦА 2: delivery_points (Точки маршрутного листа)\n" +
+            $"• Дата смены: {waybill.WaybillDate:dd.MM.yyyy} | Водитель: {waybill.DriverName}\n\n" +
+            $"📦 ТАБЛИЦА 3: delivery_points (Точки маршрутного листа)\n" +
             $"• Всего точек в SQLite: {summary.DeliveriesCount}\n" +
             $"• Ожидают синхронизации (IsSyncPending): {summary.PendingSyncCount}\n" +
-            $"• Ограничения: [Unique] на OrderNumber и Server ID, [Indexed] на координаты и время\n\n" +
-            $"🚚 ТАБЛИЦА 3: trip_records (Рейсы и расход топлива ДУТ)\n" +
+            $"• Внешний ключ: [Indexed] CargoCategoryId -> cargo_categories(CategoryId)\n\n" +
+            $"🚚 ТАБЛИЦА 4: trip_records (Рейсы и расход топлива ДУТ)\n" +
             $"• Зарегистрировано рейсов: {summary.TripRecordsCount}\n" +
-            $"• Агрегированный пробег: {stats.TotalDistanceKm:F1} км | Израсходовано: {stats.TotalFuelConsumedLiters:F2} л\n" +
-            $"• Средний расход: {stats.AverageConsumptionPer100Km:F1} л/100 км\n\n" +
-            $"📡 ТАБЛИЦА 4: driver_waypoints (Вариант 7 - Путевые точки телеметрии)\n" +
-            $"• Всего точек в таблице: {summary.WaypointsCount}\n" +
-            $"• Накоплено за время отсутствия сети (IsSynced=false): {summary.UnsyncedWaypointsCount}\n" +
-            $"• Индексы: [Indexed] на Latitude, Longitude, Timestamp и IsSynced\n\n" +
-            $"🛡️ АТОМАРНОСТЬ: Все массовые операции выполняются через RunInTransactionAsync (ACID).";
+            $"• Агрегированный пробег: {stats.TotalDistanceKm:F1} км | Израсходовано: {stats.TotalFuelConsumedLiters:F2} л\n\n" +
+            $"📡 ТАБЛИЦА 5: driver_waypoints (Путевые точки телеметрии)\n" +
+            $"• Всего точек в таблице: {summary.WaypointsCount} (несинхр: {summary.UnsyncedWaypointsCount})\n\n" +
+            $"🛡️ АТОМАРНОСТЬ: Все операции выполняются через единые транзакции RunInTransactionAsync (ACID).";
 
-        await Shell.Current.DisplayAlertAsync("Путевой лист и данные смены", message, "Закрыть");
+        string action = await Shell.Current.DisplayActionSheetAsync(
+            "Путевой лист и СУБД SQLite",
+            "Закрыть",
+            null,
+            "📊 Показать сводку грузов (SQL JOIN)",
+            "ℹ️ Подробная структура БД",
+            "🔄 Восстановить БД из Resources/Raw");
+
+        if (action == "📊 Показать сводку грузов (SQL JOIN)")
+        {
+            await ShowCargoRegulationsAlertSummaryAsync();
+        }
+        else if (action == "ℹ️ Подробная структура БД")
+        {
+            await Shell.Current.DisplayAlertAsync("Схема и таблицы SQLite", message, "Закрыть");
+        }
+        else if (action == "🔄 Восстановить БД из Resources/Raw")
+        {
+            await ResetDatabaseFromPackageAsync();
+        }
     }
 
     /// <summary>
@@ -901,6 +1086,7 @@ public partial class DeliveriesViewModel : BaseViewModel
                 City = "Минск",
                 Phone = "+375 17 220-44-55",
                 CargoDescription = "Стеклянная тара в паллетах",
+                CargoCategoryId = 5,
                 WeightKg = 60.0,
                 VolumeM3 = 0.4,
                 Priority = "Обычный",
@@ -920,6 +1106,7 @@ public partial class DeliveriesViewModel : BaseViewModel
                 City = "Минск",
                 Phone = "+375 29 111-22-33",
                 CargoDescription = "Строительные смеси и грунтовка",
+                CargoCategoryId = 6,
                 WeightKg = 30.0,
                 VolumeM3 = 0.2,
                 Priority = "Срочный",
@@ -939,6 +1126,7 @@ public partial class DeliveriesViewModel : BaseViewModel
                 City = "Минск",
                 Phone = "+375 17 309-81-81",
                 CargoDescription = "Товары розничной торговли",
+                CargoCategoryId = 5,
                 WeightKg = 25.0,
                 VolumeM3 = 0.2,
                 Priority = "Обычный",
@@ -963,6 +1151,7 @@ public partial class DeliveriesViewModel : BaseViewModel
                 City = "Минск",
                 Phone = "+375 29 440-11-22",
                 CargoDescription = "Комплект автошин R17 (4 шт.)",
+                CargoCategoryId = 4,
                 WeightKg = 120.0,
                 VolumeM3 = 0.8,
                 Priority = "Обычный",
@@ -982,6 +1171,7 @@ public partial class DeliveriesViewModel : BaseViewModel
                 City = "Минск",
                 Phone = "+375 29 771-33-44",
                 CargoDescription = "Запчасти и расходные материалы",
+                CargoCategoryId = 4,
                 WeightKg = 45.0,
                 VolumeM3 = 0.3,
                 Priority = "Срочный",
@@ -1001,6 +1191,7 @@ public partial class DeliveriesViewModel : BaseViewModel
                 City = "Минск",
                 Phone = "+375 44 882-55-66",
                 CargoDescription = "Инструменты и крепеж",
+                CargoCategoryId = 4,
                 WeightKg = 80.0,
                 VolumeM3 = 0.5,
                 Priority = "Обычный",
@@ -1135,6 +1326,7 @@ public partial class DeliveriesViewModel : BaseViewModel
             City = "Минск",
             Phone = "+375 29 600-11-22",
             CargoDescription = "Сборный розничный груз",
+            CargoCategoryId = 5,
             WeightKg = 35.0,
             VolumeM3 = 0.25,
             Priority = "Обычный",

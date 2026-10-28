@@ -117,8 +117,8 @@
                                     <Label Grid.Column="1" Text="{Binding VehicleSpeedText}" FontSize="12" TextColor="#38BDF8" FontAttributes="Bold" VerticalOptions="Center"/>
                                 </Grid>
 
-                                <!-- Основная панель действий водителя (4 кнопки в 2 ряда) -->
-                                <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="8" RowSpacing="6">
+                                <!-- Основная панель действий водителя (5 кнопок) -->
+                                <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="8" RowSpacing="6">
                                     
                                     <!-- 1. Маршрут -->
                                     <Button Grid.Row="0" Grid.Column="0"
@@ -171,7 +171,165 @@
                                             HeightRequest="36" 
                                             CornerRadius="8" 
                                             Padding="6,0"/>
+
+                                    <!-- 5. Вариант 7: Агрегированная сводка по категориям грузов (Сложный связывающий SQL JOIN) -->
+                                    <Button Grid.Row="2" Grid.ColumnSpan="2"
+                                            Text="{Binding RegulationsSummaryButtonText}" 
+                                            Command="{Binding ShowCargoRegulationsSummaryCommand}" 
+                                            IsEnabled="{Binding IsNotBusy}"
+                                            BackgroundColor="#4F46E5" 
+                                            TextColor="White" 
+                                            FontSize="12" 
+                                            FontAttributes="Bold" 
+                                            HeightRequest="36" 
+                                            CornerRadius="8" 
+                                            Padding="6,0"/>
                                 </Grid>
+                            </VerticalStackLayout>
+                        </Border>
+
+                        <!-- Вариант 7: Красивая визуальная панель агрегированной сводки категорий грузов (SQL JOIN) -->
+                        <Border IsVisible="{Binding IsRegulationsSummaryVisible}"
+                                BackgroundColor="#131B38"
+                                Stroke="#4F46E5"
+                                StrokeThickness="1.5"
+                                StrokeShape="RoundRectangle 12"
+                                Padding="12,10"
+                                Margin="0,2,0,4">
+                            <VerticalStackLayout Spacing="8">
+                                <!-- Шапка блока сводки -->
+                                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="6" VerticalOptions="Center">
+                                    <Label Grid.Column="0" Text="📊" FontSize="16" VerticalOptions="Center"/>
+                                    <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="1">
+                                        <Label Text="Сводка требований и режимов грузов" 
+                                               FontAttributes="Bold" 
+                                               FontSize="13" 
+                                               TextColor="#F8FAFC"/>
+                                        <Label Text="Сложный запрос: INNER JOIN cargo_categories + delivery_points" 
+                                               FontSize="9" 
+                                               TextColor="#A5B4FC"/>
+                                    </VerticalStackLayout>
+                                    <Button Grid.Column="2" 
+                                            Text="✕ Скрыть" 
+                                            Command="{Binding HideRegulationsSummaryCommand}" 
+                                            BackgroundColor="#312E81" 
+                                            TextColor="#C7D2FE" 
+                                            FontSize="10" 
+                                            HeightRequest="26" 
+                                            Padding="8,0" 
+                                            CornerRadius="6"/>
+                                </Grid>
+
+                                <BoxView HeightRequest="1" Color="#3730A3"/>
+
+                                <!-- Карточки категорий грузов -->
+                                <VerticalStackLayout BindableLayout.ItemsSource="{Binding CargoCategoryReports}" Spacing="8">
+                                    <BindableLayout.ItemTemplate>
+                                        <DataTemplate x:DataType="models:CargoCategoryAggregatedReport">
+                                            <Border BackgroundColor="#0F172A"
+                                                    Stroke="#1E293B"
+                                                    StrokeThickness="1"
+                                                    StrokeShape="RoundRectangle 8"
+                                                    Padding="10,8">
+                                                <VerticalStackLayout Spacing="6">
+                                                    <!-- Верхняя строка: Иконка + Категория + Код -->
+                                                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="6" VerticalOptions="Center">
+                                                        <Label Grid.Column="0" Text="{Binding IconGlyph}" FontSize="15" VerticalOptions="Center"/>
+                                                        <Label Grid.Column="1" 
+                                                               Text="{Binding CategoryName}" 
+                                                               FontAttributes="Bold" 
+                                                               FontSize="12" 
+                                                               TextColor="#E2E8F0" 
+                                                               LineBreakMode="TailTruncation"
+                                                               VerticalOptions="Center"/>
+                                                        <Border Grid.Column="2" 
+                                                                StrokeShape="RoundRectangle 4" 
+                                                                BackgroundColor="#1E1B4B" 
+                                                                Stroke="#4338CA" 
+                                                                Padding="5,1">
+                                                            <Label Text="{Binding CategoryCode}" FontSize="9" TextColor="#C7D2FE" FontAttributes="Bold"/>
+                                                        </Border>
+                                                    </Grid>
+
+                                                    <!-- Температурный режим (изумрудный акцент) -->
+                                                    <Border StrokeShape="RoundRectangle 6" 
+                                                            BackgroundColor="#064E3B" 
+                                                            Stroke="#059669" 
+                                                            Padding="8,4">
+                                                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="6" VerticalOptions="Center">
+                                                            <Label Grid.Column="0" Text="🌡️" FontSize="11" VerticalOptions="Center"/>
+                                                            <Label Grid.Column="1" 
+                                                                   Text="{Binding TemperatureMode}" 
+                                                                   FontSize="11" 
+                                                                   TextColor="#6EE7B7" 
+                                                                   FontAttributes="Bold"/>
+                                                        </Grid>
+                                                    </Border>
+
+                                                    <!-- Правила транспортировки -->
+                                                    <Border StrokeShape="RoundRectangle 6" 
+                                                            BackgroundColor="#1E293B" 
+                                                            Stroke="#334155" 
+                                                            Padding="8,4">
+                                                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="6" VerticalOptions="Center">
+                                                            <Label Grid.Column="0" Text="📋" FontSize="10" VerticalOptions="Start"/>
+                                                            <Label Grid.Column="1" 
+                                                                   Text="{Binding HandlingRequirements}" 
+                                                                   FontSize="10" 
+                                                                   TextColor="#CBD5E1" 
+                                                                   LineBreakMode="WordWrap"/>
+                                                        </Grid>
+                                                    </Border>
+
+                                                    <!-- Метрики в смене: Наряды, Масса, Объем -->
+                                                    <Grid ColumnDefinitions="*,*,*" ColumnSpacing="4">
+                                                        <!-- Нарядов всего -->
+                                                        <Border Grid.Column="0" StrokeShape="RoundRectangle 4" BackgroundColor="#1E293B" Padding="4,4">
+                                                            <VerticalStackLayout Spacing="1" HorizontalOptions="Center">
+                                                                <Label Text="Нарядов" FontSize="9" TextColor="#64748B" HorizontalOptions="Center"/>
+                                                                <Label Text="{Binding TotalOrdersCount, StringFormat='{0} шт'}" 
+                                                                       FontSize="11" 
+                                                                       FontAttributes="Bold" 
+                                                                       TextColor="#38BDF8" 
+                                                                       HorizontalOptions="Center"/>
+                                                            </VerticalStackLayout>
+                                                        </Border>
+
+                                                        <!-- Суммарный вес -->
+                                                        <Border Grid.Column="1" StrokeShape="RoundRectangle 4" BackgroundColor="#1E293B" Padding="4,4">
+                                                            <VerticalStackLayout Spacing="1" HorizontalOptions="Center">
+                                                                <Label Text="Масса" FontSize="9" TextColor="#64748B" HorizontalOptions="Center"/>
+                                                                <Label Text="{Binding TotalWeightKg, StringFormat='{0:F1} кг'}" 
+                                                                       FontSize="11" 
+                                                                       FontAttributes="Bold" 
+                                                                       TextColor="#F8FAFC" 
+                                                                       HorizontalOptions="Center"/>
+                                                            </VerticalStackLayout>
+                                                        </Border>
+
+                                                        <!-- Суммарный объем -->
+                                                        <Border Grid.Column="2" StrokeShape="RoundRectangle 4" BackgroundColor="#1E293B" Padding="4,4">
+                                                            <VerticalStackLayout Spacing="1" HorizontalOptions="Center">
+                                                                <Label Text="Объём" FontSize="9" TextColor="#64748B" HorizontalOptions="Center"/>
+                                                                <Label Text="{Binding TotalVolumeM3, StringFormat='{0:F2} м³'}" 
+                                                                       FontSize="11" 
+                                                                       FontAttributes="Bold" 
+                                                                       TextColor="#F8FAFC" 
+                                                                       HorizontalOptions="Center"/>
+                                                            </VerticalStackLayout>
+                                                        </Border>
+                                                    </Grid>
+
+                                                    <!-- Детализация статусов нарядов -->
+                                                    <Label Text="{Binding OrdersBreakdownText}" 
+                                                           FontSize="9" 
+                                                           TextColor="#94A3B8" 
+                                                           HorizontalOptions="Center"/>
+                                                </VerticalStackLayout>
+                                            </Border>
+                                        </DataTemplate>
+                                    </BindableLayout.ItemTemplate>
+                                </VerticalStackLayout>
                             </VerticalStackLayout>
                         </Border>
 
@@ -414,7 +572,7 @@
                                                           CommandParameter="{Binding .}"/>
                                 </Border.GestureRecognizers>
 
-                                <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto" RowSpacing="5">
+                                <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="5">
                                     
                                     <!-- Строка 0: Номер наряда, приоритет, статусы и кнопка меню ⋮ -->
                                     <Grid Grid.Row="0" ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto" ColumnSpacing="6" VerticalOptions="Center">
@@ -500,8 +658,84 @@
                                         </HorizontalStackLayout>
                                     </Grid>
 
-                                    <!-- Строка 4: Примечания / отметки времени / причины отказа -->
-                                    <Border Grid.Row="4" 
+                                    <!-- Строка 4: Вариант 7: Категория, температурный режим и регламент (SQL JOIN) -->
+                                    <Border Grid.Row="4"
+                                            StrokeShape="RoundRectangle 8"
+                                            BackgroundColor="#0F172A"
+                                            Stroke="#1E293B"
+                                            StrokeThickness="1"
+                                            Padding="8,6"
+                                            Margin="0,2,0,0">
+                                        <VerticalStackLayout Spacing="5">
+                                            <!-- Верхняя строка: Категория слева (50%), Температурный режим справа (50%) -->
+                                            <Grid ColumnDefinitions="*,*" ColumnSpacing="6" VerticalOptions="Center">
+                                                <!-- Плашка категории груза -->
+                                                <Border Grid.Column="0"
+                                                        StrokeShape="RoundRectangle 6"
+                                                        BackgroundColor="#1E1B4B"
+                                                        Stroke="#4338CA"
+                                                        StrokeThickness="1"
+                                                        Padding="6,4"
+                                                        HorizontalOptions="Fill">
+                                                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="4" VerticalOptions="Center">
+                                                        <Label Grid.Column="0" 
+                                                               Text="{Binding CargoIconGlyph}" 
+                                                               FontSize="11" 
+                                                               VerticalOptions="Center"/>
+                                                        <Label Grid.Column="1" 
+                                                               Text="{Binding CargoCategoryName}" 
+                                                               FontSize="10" 
+                                                               TextColor="#C7D2FE" 
+                                                               FontAttributes="Bold" 
+                                                               LineBreakMode="TailTruncation"
+                                                               VerticalOptions="Center"/>
+                                                    </Grid>
+                                                </Border>
+
+                                                <!-- Плашка температурного режима -->
+                                                <Border Grid.Column="1"
+                                                        StrokeShape="RoundRectangle 6"
+                                                        BackgroundColor="#064E3B"
+                                                        Stroke="#059669"
+                                                        StrokeThickness="1"
+                                                        Padding="6,4"
+                                                        HorizontalOptions="Fill">
+                                                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="4" VerticalOptions="Center">
+                                                        <Label Grid.Column="0" 
+                                                               Text="🌡️" 
+                                                               FontSize="10" 
+                                                               VerticalOptions="Center"/>
+                                                        <Label Grid.Column="1" 
+                                                               Text="{Binding CargoTemperatureMode}" 
+                                                               FontSize="10" 
+                                                               TextColor="#6EE7B7" 
+                                                               FontAttributes="Bold" 
+                                                               LineBreakMode="TailTruncation"
+                                                               VerticalOptions="Center"/>
+                                                    </Grid>
+                                                </Border>
+                                            </Grid>
+
+                                            <!-- Нижняя строка: Регламент перевозки (справочник ограничений) -->
+                                            <Border StrokeShape="RoundRectangle 6"
+                                                    BackgroundColor="#131C31"
+                                                    Stroke="#1E293B"
+                                                    StrokeThickness="1"
+                                                    Padding="6,3">
+                                                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="5" VerticalOptions="Center">
+                                                    <Label Grid.Column="0" Text="📋" FontSize="10" VerticalOptions="Start"/>
+                                                    <Label Grid.Column="1" 
+                                                           Text="{Binding CargoHandlingRequirements}" 
+                                                           FontSize="10" 
+                                                           TextColor="#94A3B8" 
+                                                           LineBreakMode="TailTruncation"/>
+                                                </Grid>
+                                            </Border>
+                                        </VerticalStackLayout>
+                                    </Border>
+
+                                    <!-- Строка 5: Примечания / отметки времени / причины отказа -->
+                                    <Border Grid.Row="5" 
                                             IsVisible="{Binding Notes, Converter={StaticResource StringNotEmptyConverter}}"
                                             BackgroundColor="#0F172A"
                                             Stroke="#334155"

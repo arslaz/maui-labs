@@ -131,6 +131,82 @@
                     </VerticalStackLayout>
                 </Border>
 
+                <!-- Вариант 7: Карточка требований к перевозке груза (Справочник СУБД SQLite via SQL JOIN) -->
+                <Border StrokeShape="RoundRectangle 16"
+                        BackgroundColor="#1E1B4B"
+                        Stroke="#4338CA"
+                        StrokeThickness="1.5"
+                        Padding="16">
+                    <VerticalStackLayout Spacing="10">
+                        <!-- Заголовок карточки -->
+                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8" VerticalOptions="Center">
+                            <Label Grid.Column="0" Text="{Binding Delivery.CargoIconGlyph}" FontSize="20" VerticalOptions="Center"/>
+                            <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="1">
+                                <Label Text="Требования к перевозке (Вариант 7)" FontSize="11" TextColor="#A5B4FC" FontAttributes="Bold"/>
+                                <Label Text="{Binding Delivery.CargoCategoryName}" FontSize="14" FontAttributes="Bold" TextColor="#F8FAFC"/>
+                            </VerticalStackLayout>
+                            <Border Grid.Column="2" StrokeShape="RoundRectangle 6" BackgroundColor="#312E81" Padding="6,3" VerticalOptions="Center">
+                                <Label Text="{Binding Delivery.CargoCategoryCode}" FontSize="10" TextColor="#C7D2FE" FontAttributes="Bold"/>
+                            </Border>
+                        </Grid>
+
+                        <BoxView HeightRequest="1" Color="#3730A3"/>
+
+                        <!-- Температурный режим -->
+                        <Border BackgroundColor="#064E3B" Stroke="#059669" StrokeShape="RoundRectangle 8" Padding="10,8">
+                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10" VerticalOptions="Center">
+                                <Label Grid.Column="0" Text="🌡️" FontSize="18" VerticalOptions="Center"/>
+                                <VerticalStackLayout Grid.Column="1" Spacing="2">
+                                    <Label Text="Температурный режим транспортировки:" FontSize="10" TextColor="#A7F3D0"/>
+                                    <Label Text="{Binding Delivery.CargoTemperatureMode}" FontSize="13" FontAttributes="Bold" TextColor="#ECFDF5"/>
+                                </VerticalStackLayout>
+                            </Grid>
+                        </Border>
+
+                        <!-- Правила транспортировки и регламент -->
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="Правила транспортировки и ограничения:" FontSize="11" TextColor="#94A3B8"/>
+                            <Border BackgroundColor="#0F172A" Stroke="#334155" StrokeShape="RoundRectangle 8" Padding="10,8">
+                                <Label Text="{Binding Delivery.CargoHandlingRequirements}" FontSize="12" TextColor="#E2E8F0" LineBreakMode="WordWrap"/>
+                            </Border>
+                        </VerticalStackLayout>
+
+                        <!-- Влажность и вентиляция -->
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="Вентиляция и микроклимат кузова:" FontSize="11" TextColor="#94A3B8"/>
+                            <Label Text="{Binding Delivery.CargoHumidityAndVentilation}" FontSize="12" TextColor="#CBD5E1"/>
+                        </VerticalStackLayout>
+
+                        <!-- Класс безопасности и пломба -->
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8" VerticalOptions="Center">
+                            <Label Grid.Column="0" Text="{Binding Delivery.CargoSafetyClass, StringFormat='Безопасность: {0}'}" FontSize="11" TextColor="#94A3B8" VerticalOptions="Center"/>
+                            <Border Grid.Column="1" 
+                                    IsVisible="{Binding Delivery.CargoRequiresSeal}"
+                                    StrokeShape="RoundRectangle 6" 
+                                    BackgroundColor="#7F1D1D" 
+                                    Padding="6,3">
+                                <Label Text="🔒 Номерная пломба обязательна" FontSize="10" TextColor="#FCA5A5" FontAttributes="Bold"/>
+                            </Border>
+                        </Grid>
+
+                        <!-- Агрегированные данные смены водителя по данной категории (сложный JOIN-запрос) -->
+                        <Border BackgroundColor="#0F172A" Stroke="#4F46E5" StrokeThickness="1" StrokeShape="RoundRectangle 10" Padding="12,10" Margin="0,4,0,0">
+                            <VerticalStackLayout Spacing="5">
+                                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="6" VerticalOptions="Center">
+                                    <Label Grid.Column="0" Text="📊" FontSize="14" VerticalOptions="Center"/>
+                                    <Label Grid.Column="1" Text="Агрегированная сводка категории (SQL JOIN)" FontSize="11" TextColor="#A5B4FC" FontAttributes="Bold"/>
+                                    <Border Grid.Column="2" StrokeShape="RoundRectangle 4" BackgroundColor="#1E1B4B" Padding="5,1">
+                                        <Label Text="СУБД" FontSize="9" TextColor="#C7D2FE" FontAttributes="Bold"/>
+                                    </Border>
+                                </Grid>
+                                <BoxView HeightRequest="1" Color="#1E293B"/>
+                                <Label Text="{Binding CategoryOrdersSummary}" FontSize="12" TextColor="#F8FAFC" FontAttributes="Bold"/>
+                                <Label Text="{Binding CategoryAggregatedShiftStats}" FontSize="11" TextColor="#94A3B8"/>
+                            </VerticalStackLayout>
+                        </Border>
+                    </VerticalStackLayout>
+                </Border>
+
                 <!-- Update Status and Notes Card -->
                 <Border StrokeShape="RoundRectangle 16"
                         BackgroundColor="#1E293B"

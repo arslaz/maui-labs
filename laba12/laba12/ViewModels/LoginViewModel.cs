@@ -146,6 +146,9 @@ public partial class LoginViewModel : BaseViewModel
                 // Запуск службы телеметрии
                 _telemetryService.Start(result.DriverId);
 
+                // Асинхронная проверка наличия БД и копирование файла справочника из ресурсов (Resources/Raw)
+                await _databaseService.EnsureDatabaseInitializedAsync();
+
                 // Автоматическая миграция legacy JSON-кэша в реляционные таблицы SQLite
                 await _databaseService.MigrateFromLegacyJsonAsync(result.DriverId);
                 await _databaseService.GetOrCreateWaybillAsync(result.DriverId, result.DriverName, result.VehicleNumber);

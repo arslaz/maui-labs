@@ -40,8 +40,46 @@ public class WaybillEntity
 }
 
 /// <summary>
+/// Вариант 7 (Таблица справочника): Статический справочник категорий грузов и правил их транспортировки.
+/// Поставляется в дистрибутиве приложения в папке Resources/Raw/app_local_storage.db3.
+/// Жесткая реляционная связь «один-ко-многим» с таблицей delivery_points через внешний ключ CargoCategoryId.
+/// </summary>
+[Table("cargo_categories")]
+public class CargoCategoryEntity
+{
+    [PrimaryKey, AutoIncrement]
+    public int CategoryId { get; set; }
+
+    [Unique, NotNull, MaxLength(50)]
+    public string CategoryCode { get; set; } = string.Empty;
+
+    [NotNull, MaxLength(100)]
+    public string CategoryName { get; set; } = string.Empty;
+
+    [NotNull, MaxLength(100)]
+    public string TemperatureMode { get; set; } = "Не регламентирован";
+
+    [MaxLength(200)]
+    public string HumidityAndVentilation { get; set; } = "Стандартная вентиляция";
+
+    [MaxLength(500)]
+    public string HandlingRequirements { get; set; } = string.Empty;
+
+    [MaxLength(100)]
+    public string SafetyClass { get; set; } = "Стандарт";
+
+    public bool RequiresSeal { get; set; } = false;
+
+    public int MaxStackTiers { get; set; } = 1;
+
+    [MaxLength(20)]
+    public string IconGlyph { get; set; } = "📦";
+}
+
+/// <summary>
 /// Таблица 2: Точки доставки маршрутного листа
 /// Вариант 7 + Общие требования:
+/// - Жесткая реляционная связь с таблицей cargo_categories по внешнему ключу CargoCategoryId
 /// - Уникальный серверный ID [Unique] и уникальный номер наряда [Unique]
 /// - Индексы на координаты путевых точек (Latitude, Longitude) и временные штампы (UpdatedAt, ArrivedAt)
 /// </summary>
@@ -56,6 +94,10 @@ public class DeliveryPointEntity
 
     [Indexed(Unique = true), Unique, NotNull, MaxLength(50)]
     public string OrderNumber { get; set; } = string.Empty;
+
+    // Вариант 7: Внешний ключ жесткой реляционной связи с таблицей cargo_categories (Foreign Key)
+    [Indexed, NotNull]
+    public int CargoCategoryId { get; set; } = 1;
 
     [MaxLength(150)]
     public string ClientName { get; set; } = string.Empty;
@@ -214,4 +256,84 @@ public class SqliteTransactionResult
     public string Message { get; set; } = string.Empty;
     public string? ErrorDetails { get; set; }
     public DateTime ExecutedAt { get; set; } = DateTime.Now;
+}
+
+/// <summary>
+/// Вариант 7: DTO результата выполнения связывающего SQL-запроса (JOIN)
+/// между таблицей точек доставки delivery_points и справочником категорий cargo_categories.
+/// Полностью исключает выполнение вложенных циклов и повторных запросов на стороне C#.
+/// </summary>
+public class DeliveryPointWithRegulationDto
+{
+    public string Id { get; set; } = string.Empty;
+    public string DriverId { get; set; } = string.Empty;
+    public string OrderNumber { get; set; } = string.Empty;
+    public string ClientName { get; set; } = string.Empty;
+    public string Address { get; set; } = string.Empty;
+    public string City { get; set; } = "Минск";
+    public string Phone { get; set; } = string.Empty;
+    public string CargoDescription { get; set; } = string.Empty;
+    public int CargoCategoryId { get; set; }
+    public double WeightKg { get; set; }
+    public double VolumeM3 { get; set; }
+    public string Priority { get; set; } = "Обычный";
+    public string Status { get; set; } = "Ожидает";
+    public double Latitude { get; set; }
+    public double Longitude { get; set; }
+    public string EstimatedTime { get; set; } = string.Empty;
+    public string Notes { get; set; } = string.Empty;
+    public DateTime UpdatedAt { get; set; }
+    public DateTime? ArrivedAt { get; set; }
+    public string? RejectionReason { get; set; }
+    public bool IsSyncPending { get; set; }
+    public string? PendingOperation { get; set; }
+
+    // Поля, присоединенные через SQL JOIN из таблицы cargo_categories
+    public string CargoCategoryCode { get; set; } = string.Empty;
+    public string CargoCategoryName { get; set; } = string.Empty;
+    public string CargoTemperatureMode { get; set; } = string.Empty;
+    public string CargoHumidityAndVentilation { get; set; } = string.Empty;
+    public string CargoHandlingRequirements { get; set; } = string.Empty;
+    public string CargoSafetyClass { get; set; } = string.Empty;
+    public bool CargoRequiresSeal { get; set; }
+    public string CargoIconGlyph { get; set; } = "📦";
+}
+
+/// <summary>
+/// Вариант 7: DTO агрегированных данных, извлеченных из СУБД с помощью сложного связывающего
+/// SQL-запроса (JOIN), объединяющего данные справочника (cargo_categories),
+/// маршрутного листа (delivery_points) и пользовательских транзакций (trip_records).
+/// </summary>
+public class CargoCategoryAggregatedReport
+{
+    public int CategoryId { get; set; }
+    public string CategoryCode { get; set; } = string.Empty;
+    public string CategoryName { get; set; } = string.Empty;
+    public string TemperatureMode { get; set; } = string.Empty;
+    public string HandlingRequirements { get; set; } = string.Empty;
+    public string SafetyClass { get; set; } = string.Empty;
+    public string IconGlyph { get; set; } = "📦";
+    public int TotalOrdersCount { get; set; }
+    public double TotalWeightKg { get; set; }
+    public double TotalVolumeM3 { get; set; }
+    public int CompletedOrdersCount { get; set; }
+    public int RejectedOrdersCount { get; set; }
+    public int InTransitOrdersCount { get; set; }
+    public int PendingOrdersCount { get; set; }
+    public double TotalDistanceKm { get; set; }
+    public double TotalFuelLiters { get; set; }
+
+    [SQLite.Ignore]
+    public string OrdersBreakdownText => $"Выполнено: {CompletedOrdersCount} • В пути: {InTransitOrdersCount} • Ожидает: {PendingOrdersCount}" + (RejectedOrdersCount > 0 ? $" • Отказ: {RejectedOrdersCount}" : "");
+
+    [SQLite.Ignore]
+    public string WeightVolumeSummaryText => $"{TotalWeightKg:F1} кг • {TotalVolumeM3:F2} м³";
+
+    [SQLite.Ignore]
+    public string? TelemetryStatsText => (TotalDistanceKm > 0 || TotalFuelLiters > 0)
+        ? $"Пробег: {TotalDistanceKm:F1} км • Расход: {TotalFuelLiters:F2} л"
+        : null;
+
+    [SQLite.Ignore]
+    public bool HasTelemetryStats => TotalDistanceKm > 0 || TotalFuelLiters > 0;
 }

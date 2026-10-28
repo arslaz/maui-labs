@@ -16,6 +16,13 @@ public partial class DeliveriesPage : ContentPage
     protected override async void OnAppearing()
     {
         base.OnAppearing();
-        await _viewModel.InitializeAsync();
+        try
+        {
+            await _viewModel.InitializeAsync();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[DeliveriesPage] OnAppearing exception: {ex}");
+        }
     }
 }
