@@ -14,6 +14,13 @@ public class MockBackendServer : IDisposable
     private readonly List<string> _uploadedFuelReports = new();
     private readonly JsonSerializerOptions _jsonOptions = new() { PropertyNameCaseInsensitive = true };
 
+    private readonly Dictionary<string, (string Password, string Email, string Name, string Vehicle, string Phone)> _registeredDrivers = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["DRV-104"] = ("1234", "sokolov@logistics.by", "Алексей Соколов (Водитель 1 класса)", "АВ 7412-7 (ГАЗель NEXT РБ)", "+375 (29) 104-00-11"),
+        ["DRV-105"] = ("4321", "kovalev@logistics.by", "Дмитрий Ковалев (Водитель 2 класса)", "ВК 3829-7 (МАЗ-Купава РБ)", "+375 (29) 105-00-22"),
+        ["DRV-106"] = ("5678", "vasiliev@logistics.by", "Максим Васильев (Экспедитор)", "ЕН 1102-7 (ГАЗон Next РБ)", "+375 (29) 106-00-33")
+    };
+
     public string BaseUrl { get; private set; } = "http://127.0.0.1:5055";
     public bool IsRunning => _listener?.IsListening ?? false;
     public bool SimulateOffline { get; set; } = false;
@@ -176,7 +183,59 @@ public class MockBackendServer : IDisposable
 
         try
         {
-            // 1. АУТЕНТИФИКАЦИЯ: POST /api/auth/login
+            // 1. РЕГИСТРАЦИЯ: POST /api/auth/register
+            if (path == "/api/auth/register" && method == "POST")
+            {
+                using var reader = new StreamReader(request.InputStream, Encoding.UTF8);
+                var body = await reader.ReadToEndAsync();
+                var regReq = JsonSerializer.Deserialize<RegisterRequest>(body, _jsonOptions);
+
+                var reqDriverId = regReq?.DriverId?.Trim() ?? string.Empty;
+                var reqPassword = regReq?.Password?.Trim() ?? string.Empty;
+                var reqEmail = regReq?.Email?.Trim() ?? string.Empty;
+                var reqName = regReq?.DriverName?.Trim() ?? "Водитель";
+                var reqVehicle = regReq?.VehicleNumber?.Trim() ?? "ГАЗель NEXT";
+                var reqPhone = regReq?.Phone?.Trim() ?? "+375 (29) 000-00-00";
+
+                if (string.IsNullOrWhiteSpace(reqDriverId) || string.IsNullOrWhiteSpace(reqPassword))
+                {
+                    await SendJsonResponseAsync(response, HttpStatusCode.BadRequest, new AuthResponse
+                    {
+                        Success = false,
+                        ErrorMessage = "Табельный номер водителя и пароль обязательны."
+                    });
+                    return;
+                }
+
+                if (_registeredDrivers.ContainsKey(reqDriverId))
+                {
+                    await SendJsonResponseAsync(response, HttpStatusCode.Conflict, new AuthResponse
+                    {
+                        Success = false,
+                        ErrorMessage = $"Водитель с табельным номером {reqDriverId} уже зарегистрирован в системе компании."
+                    });
+                    return;
+                }
+
+                _registeredDrivers[reqDriverId] = (reqPassword, reqEmail, reqName, reqVehicle, reqPhone);
+
+                var authRes = new AuthResponse
+                {
+                    Success = true,
+                    Token = $"jwt-access-reg-{Guid.NewGuid():N}",
+                    RefreshToken = $"refresh-token-reg-{Guid.NewGuid():N}",
+                    DriverId = reqDriverId.ToUpperInvariant(),
+                    DriverName = reqName,
+                    VehicleNumber = reqVehicle,
+                    ExpiresAt = DateTime.UtcNow.AddMinutes(15)
+                };
+
+                System.Diagnostics.Debug.WriteLine($"[MockBackendServer] Успешная регистрация нового водителя: {reqName} ({reqDriverId})");
+                await SendJsonResponseAsync(response, HttpStatusCode.Created, authRes);
+                return;
+            }
+
+            // 2. АУТЕНТИФИКАЦИЯ: POST /api/auth/login
             if (path == "/api/auth/login" && method == "POST")
             {
                 using var reader = new StreamReader(request.InputStream, Encoding.UTF8);
@@ -186,28 +245,38 @@ public class MockBackendServer : IDisposable
                 var reqDriverId = loginReq?.DriverId?.Trim() ?? string.Empty;
                 var reqPassword = loginReq?.Password?.Trim() ?? string.Empty;
 
-                // База зарегистрированных водителей транспортной компании
-                var registeredDrivers = new Dictionary<string, (string Password, string Name, string Vehicle)>(StringComparer.OrdinalIgnoreCase)
+                // Поиск по табельному номеру (ID) или email
+                string? matchedKey = null;
+                if (_registeredDrivers.ContainsKey(reqDriverId))
                 {
-                    ["DRV-104"] = ("1234", "Алексей Соколов (Водитель 1 класса)", "АВ 7412-7 (ГАЗель NEXT РБ)"),
-                    ["DRV-105"] = ("4321", "Дмитрий Ковалев (Водитель 2 класса)", "ВК 3829-7 (МАЗ-Купава РБ)"),
-                    ["DRV-106"] = ("5678", "Максим Васильев (Экспедитор)", "ЕН 1102-7 (ГАЗон Next РБ)")
-                };
+                    matchedKey = reqDriverId;
+                }
+                else
+                {
+                    foreach (var kvp in _registeredDrivers)
+                    {
+                        if (string.Equals(kvp.Value.Email, reqDriverId, StringComparison.OrdinalIgnoreCase))
+                        {
+                            matchedKey = kvp.Key;
+                            break;
+                        }
+                    }
+                }
 
-                if (registeredDrivers.TryGetValue(reqDriverId, out var driverInfo) && driverInfo.Password == reqPassword)
+                if (matchedKey != null && _registeredDrivers.TryGetValue(matchedKey, out var driverInfo) && driverInfo.Password == reqPassword)
                 {
                     var authRes = new AuthResponse
                     {
                         Success = true,
                         Token = $"jwt-access-{Guid.NewGuid():N}",
                         RefreshToken = $"refresh-token-{Guid.NewGuid():N}",
-                        DriverId = reqDriverId.ToUpperInvariant(),
+                        DriverId = matchedKey.ToUpperInvariant(),
                         DriverName = driverInfo.Name,
                         VehicleNumber = driverInfo.Vehicle,
                         ExpiresAt = DateTime.UtcNow.AddMinutes(15)
                     };
 
-                    System.Diagnostics.Debug.WriteLine($"[MockBackendServer] Успешный вход: {driverInfo.Name} ({reqDriverId})");
+                    System.Diagnostics.Debug.WriteLine($"[MockBackendServer] Успешный вход: {driverInfo.Name} ({matchedKey})");
                     await SendJsonResponseAsync(response, HttpStatusCode.OK, authRes);
                     return;
                 }

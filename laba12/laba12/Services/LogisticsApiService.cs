@@ -9,6 +9,7 @@ namespace laba12.Services;
 public interface ILogisticsApiService
 {
     Task<AuthResponse> LoginAsync(string driverId, string password, CancellationToken cancellationToken = default);
+    Task<AuthResponse> RegisterAsync(RegisterRequest request, CancellationToken cancellationToken = default);
     Task<AuthResponse?> RefreshTokenAsync(string refreshToken, CancellationToken cancellationToken = default);
     Task<DeliveryListResponse> GetDeliveriesAsync(string driverId, int page = 1, int pageSize = 5, CancellationToken cancellationToken = default);
     Task<DeliveryPoint?> UpdateDeliveryStatusAsync(string deliveryId, DeliveryPoint updatedPoint, CancellationToken cancellationToken = default);
@@ -120,6 +121,49 @@ public class LogisticsApiService : ILogisticsApiService
         }
 
         return new AuthResponse { Success = false, ErrorMessage = "Не удалось подключиться к серверу после нескольких попыток." };
+    }
+
+    public async Task<AuthResponse> RegisterAsync(RegisterRequest request, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var client = await CreateConfiguredClientAsync();
+            var jsonContent = new StringContent(JsonSerializer.Serialize(request, _jsonOptions), Encoding.UTF8, "application/json");
+
+            using var response = await client.PostAsync("api/auth/register", jsonContent, cancellationToken);
+            var responseJson = await response.Content.ReadAsStringAsync(cancellationToken);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var authResult = JsonSerializer.Deserialize<AuthResponse>(responseJson, _jsonOptions);
+                if (authResult != null && authResult.Success)
+                {
+                    await _secureStorageService.SaveTokenAsync(authResult.Token);
+                    if (!string.IsNullOrEmpty(authResult.RefreshToken))
+                    {
+                        await _secureStorageService.SaveRefreshTokenAsync(authResult.RefreshToken);
+                    }
+                    await _secureStorageService.SaveDriverIdAsync(authResult.DriverId);
+                    await _secureStorageService.SaveDriverNameAsync(authResult.DriverName);
+                    await _secureStorageService.SaveVehicleNumberAsync(authResult.VehicleNumber);
+                    return authResult;
+                }
+            }
+
+            try
+            {
+                var errRes = JsonSerializer.Deserialize<AuthResponse>(responseJson, _jsonOptions);
+                return errRes ?? new AuthResponse { Success = false, ErrorMessage = $"Ошибка регистрации (HTTP {response.StatusCode})" };
+            }
+            catch
+            {
+                return new AuthResponse { Success = false, ErrorMessage = $"Ошибка сервера: {responseJson}" };
+            }
+        }
+        catch (Exception ex)
+        {
+            return new AuthResponse { Success = false, ErrorMessage = $"Сетевой сбой при регистрации: {ex.Message}" };
+        }
     }
 
     public async Task<AuthResponse?> RefreshTokenAsync(string refreshToken, CancellationToken cancellationToken = default)

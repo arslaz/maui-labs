@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:laba12.ViewModels"
+             xmlns:conv="clr-namespace:laba12.Converters"
+             x:Class="laba12.Views.ProfilePage"
+             x:DataType="vm:ProfileViewModel"
+             Title="{Binding Title}"
+             BackgroundColor="#0F172A">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <conv:BoolToInvertedConverter x:Key="InvertedBoolConverter" />
+            <conv:StringNotEmptyToBoolConverter x:Key="StringNotEmptyConverter" />
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+    <ContentPage.Padding>
+        <OnPlatform x:TypeArguments="Thickness">
+            <On Platform="iOS" Value="0,44,0,0" />
+            <On Platform="Android" Value="0,12,0,0" />
+            <On Platform="Default" Value="0,0,0,0" />
+        </OnPlatform>
+    </ContentPage.Padding>
+
+    <Grid>
+        <ScrollView>
+            <VerticalStackLayout Spacing="20" Padding="{OnPlatform Android='16,16', iOS='20,24', Default='18,20'}" MaximumWidthRequest="540" HorizontalOptions="Center">
+                
+                <!-- Шапка / Навигация назад -->
+                <Grid ColumnDefinitions="Auto,*,Auto" VerticalOptions="Center">
+                    <Button Text="⬅️ Назад" 
+                            Command="{Binding NavigateBackCommand}" 
+                            BackgroundColor="#1E293B" 
+                            TextColor="#94A3B8" 
+                            CornerRadius="8" 
+                            HeightRequest="36" 
+                            Padding="12,0"/>
+                    
+                    <Label Grid.Column="1" 
+                           Text="Личный кабинет" 
+                           FontSize="18" 
+                           FontAttributes="Bold" 
+                           TextColor="#F8FAFC" 
+                           HorizontalOptions="Center" 
+                           VerticalOptions="Center"/>
+
+                    <Button Grid.Column="2" 
+                            Text="🔄" 
+                            Command="{Binding LoadProfileCommand}" 
+                            BackgroundColor="#1E293B" 
+                            TextColor="#94A3B8" 
+                            CornerRadius="8" 
+                            HeightRequest="36" 
+                            WidthRequest="40"/>
+                </Grid>
+
+                <!-- Карточка профиля водителя -->
+                <Border StrokeShape="{OnPlatform Android='RoundRectangle 12', iOS='RoundRectangle 20', Default='RoundRectangle 16'}"
+                        BackgroundColor="#1E293B"
+                        Stroke="#334155"
+                        StrokeThickness="1"
+                        Padding="18">
+                    <VerticalStackLayout Spacing="14">
+                        
+                        <!-- Аватар и статус сессии -->
+                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="14" VerticalOptions="Center">
+                            <Border StrokeShape="RoundRectangle 16"
+                                    BackgroundColor="#0F172A"
+                                    Stroke="#38BDF8"
+                                    StrokeThickness="1.5"
+                                    WidthRequest="56"
+                                    HeightRequest="56"
+                                    HorizontalOptions="Center"
+                                    VerticalOptions="Center">
+                                <Label Text="👤" FontSize="26" HorizontalOptions="Center" VerticalOptions="Center"/>
+                            </Border>
+
+                            <VerticalStackLayout Grid.Column="1" Spacing="4" VerticalOptions="Center">
+                                <Label Text="{Binding FullName}" FontSize="16" FontAttributes="Bold" TextColor="#F8FAFC" LineBreakMode="WordWrap"/>
+                                <HorizontalStackLayout Spacing="8">
+                                    <Border BackgroundColor="#0F172A" Stroke="#334155" StrokeShape="RoundRectangle 6" Padding="6,2">
+                                        <Label Text="{Binding DriverId}" FontSize="12" FontAttributes="Bold" TextColor="#38BDF8"/>
+                                    </Border>
+                                    
+                                    <Border BackgroundColor="#064E3B" Stroke="{Binding SessionStatusColor}" StrokeShape="RoundRectangle 6" Padding="6,2">
+                                        <Label Text="{Binding SessionStatusText}" FontSize="11" FontAttributes="Bold" TextColor="{Binding SessionStatusColor}"/>
+                                    </Border>
+                                </HorizontalStackLayout>
+                            </VerticalStackLayout>
+                        </Grid>
+
+                        <BoxView HeightRequest="1" Color="#334155"/>
+
+                        <!-- Сведения профиля -->
+                        <Grid RowDefinitions="Auto,Auto,Auto,Auto" ColumnDefinitions="Auto,*" RowSpacing="10" ColumnSpacing="12">
+                            <Label Text="Автомобиль:" FontSize="13" TextColor="#94A3B8" Grid.Row="0" Grid.Column="0"/>
+                            <Label Text="{Binding VehicleNumber}" FontSize="13" FontAttributes="Bold" TextColor="#E2E8F0" Grid.Row="0" Grid.Column="1"/>
+
+                            <Label Text="Email:" FontSize="13" TextColor="#94A3B8" Grid.Row="1" Grid.Column="0"/>
+                            <Label Text="{Binding Email}" FontSize="13" TextColor="#E2E8F0" Grid.Row="1" Grid.Column="1"/>
+
+                            <Label Text="Телефон:" FontSize="13" TextColor="#94A3B8" Grid.Row="2" Grid.Column="0"/>
+                            <Label Text="{Binding Phone}" FontSize="13" TextColor="#E2E8F0" Grid.Row="2" Grid.Column="1"/>
+
+                            <Label Text="Посл. вход:" FontSize="13" TextColor="#94A3B8" Grid.Row="3" Grid.Column="0"/>
+                            <Label Text="{Binding LastLoginFormatted}" FontSize="13" TextColor="#E2E8F0" Grid.Row="3" Grid.Column="1"/>
+                        </Grid>
+
+                        <BoxView HeightRequest="1" Color="#334155"/>
+
+                        <!-- Статус безопасности профиля -->
+                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10" VerticalOptions="Center">
+                            <Label Grid.Column="0" Text="🔒" FontSize="16" VerticalOptions="Center"/>
+                            <VerticalStackLayout Grid.Column="1" Spacing="2">
+                                <Label Text="Безопасность профиля" FontSize="12" FontAttributes="Bold" TextColor="#E2E8F0"/>
+                                <Label Text="Локальный доступ защищен аппаратным шифрованием" FontSize="11" TextColor="#94A3B8"/>
+                            </VerticalStackLayout>
+                        </Grid>
+
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Карточка путевого листа смены (Вариант 7) -->
+                <Border StrokeShape="{OnPlatform Android='RoundRectangle 12', iOS='RoundRectangle 20', Default='RoundRectangle 16'}"
+                        BackgroundColor="#1E293B"
+                        Stroke="#334155"
+                        StrokeThickness="1"
+                        Padding="18">
+                    <VerticalStackLayout Spacing="12">
+                        <HorizontalStackLayout Spacing="8" VerticalOptions="Center">
+                            <Label Text="📋" FontSize="18"/>
+                            <Label Text="Путевой лист текущей смены" FontSize="15" FontAttributes="Bold" TextColor="#F8FAFC"/>
+                        </HorizontalStackLayout>
+
+                        <Grid RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="Auto,*" RowSpacing="8" ColumnSpacing="12">
+                            <Label Text="Номер листа:" FontSize="12" TextColor="#94A3B8" Grid.Row="0" Grid.Column="0"/>
+                            <Label Text="{Binding WaybillNumber}" FontSize="12" FontAttributes="Bold" TextColor="#38BDF8" Grid.Row="0" Grid.Column="1"/>
+
+                            <Label Text="Статус смены:" FontSize="12" TextColor="#94A3B8" Grid.Row="1" Grid.Column="0"/>
+                            <Label Text="{Binding WaybillStatus}" FontSize="12" FontAttributes="Bold" TextColor="#10B981" Grid.Row="1" Grid.Column="1"/>
+
+                            <Label Text="Одометр / Топливо:" FontSize="12" TextColor="#94A3B8" Grid.Row="2" Grid.Column="0"/>
+                            <Label FontSize="12" TextColor="#E2E8F0" Grid.Row="2" Grid.Column="1">
+                                <Label.FormattedText>
+                                    <FormattedString>
+                                        <Span Text="{Binding OdometerKm, StringFormat='{0:F1} км'}"/>
+                                        <Span Text="  |  "/>
+                                        <Span Text="{Binding FuelRemainingLiters, StringFormat='{0:F1} л остаток'}"/>
+                                    </FormattedString>
+                                </Label.FormattedText>
+                            </Label>
+                        </Grid>
+
+                        <BoxView HeightRequest="1" Color="#334155"/>
+
+                        <!-- Статус авторизованной сессии -->
+                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10" VerticalOptions="Center">
+                            <Label Grid.Column="0" Text="🛡️" FontSize="16" VerticalOptions="Center"/>
+                            <VerticalStackLayout Grid.Column="1" Spacing="2">
+                                <Label Text="Сессия авторизации" FontSize="12" FontAttributes="Bold" TextColor="#E2E8F0"/>
+                                <Label Text="Защищенная рабочая сессия активна" FontSize="11" TextColor="#94A3B8"/>
+                            </VerticalStackLayout>
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Ошибки -->
+                <Border IsVisible="{Binding ErrorMessage, Converter={StaticResource StringNotEmptyConverter}}"
+                        BackgroundColor="#450A0A"
+                        Stroke="#EF4444"
+                        StrokeShape="RoundRectangle 8"
+                        Padding="12">
+                    <Label Text="{Binding ErrorMessage}" TextColor="#FCA5A5" FontSize="12"/>
+                </Border>
+
+                <!-- Кнопка завершения смены и выхода -->
+                <VerticalStackLayout Spacing="8">
+                    <Button Text="🚪 Завершить смену и выйти" 
+                            Command="{Binding LogoutCommand}" 
+                            IsEnabled="{Binding IsNotBusy}"
+                            BackgroundColor="#DC2626" 
+                            TextColor="#FFFFFF" 
+                            FontAttributes="Bold" 
+                            CornerRadius="12" 
+                            HeightRequest="48"
+                            FontSize="15"/>
+                    
+                    <Label Text="Завершает текущую смену и останавливает фоновую навигацию." 
+                           FontSize="11" 
+                           TextColor="#64748B" 
+                           HorizontalTextAlignment="Center"/>
+                </VerticalStackLayout>
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- Loading Overlay -->
+        <Grid BackgroundColor="#CC000000" IsVisible="{Binding IsBusy}">
+            <VerticalStackLayout Spacing="16" HorizontalOptions="Center" VerticalOptions="Center">
+                <ActivityIndicator IsRunning="{Binding IsBusy}" Color="#EF4444" WidthRequest="50" HeightRequest="50"/>
+                <Label Text="Завершение сессии..." TextColor="#F8FAFC" FontSize="14" HorizontalOptions="Center"/>
+            </VerticalStackLayout>
+        </Grid>
+    </Grid>
+</ContentPage>

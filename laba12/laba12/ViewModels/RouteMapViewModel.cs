@@ -75,7 +75,7 @@ public partial class RouteMapViewModel : BaseViewModel, IQueryAttributable
         _nativeTelemetryService = nativeTelemetryService;
         _nativeFeedbackService = nativeFeedbackService;
 
-        Title = "Карта и навигация OSRM";
+        Title = "Карта маршрута";
     }
 
     public void ApplyQueryAttributes(IDictionary<string, object> query)
@@ -546,7 +546,7 @@ public partial class RouteMapViewModel : BaseViewModel, IQueryAttributable
                 pill.innerText = '📍 Позиция: ' + newLat.toFixed(4) + ', ' + newLon.toFixed(4);
             }}
 
-            showToast('🔄 Пересчет маршрута OSRM...');
+            showToast('🔄 Пересчет маршрута...');
 
             var coords = [newLon.toFixed(6) + ',' + newLat.toFixed(6)];
             deliveries.forEach(function(d) {{
@@ -580,7 +580,7 @@ public partial class RouteMapViewModel : BaseViewModel, IQueryAttributable
                 }})
                 .catch(function(err) {{
                     console.error('OSRM route fetch failed:', err);
-                    showToast('⚠️ Ошибка гео-сервера OSRM');
+                    showToast('⚠️ Ошибка расчета маршрута');
                 }});
         }}
 

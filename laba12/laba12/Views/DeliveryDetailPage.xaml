@@ -78,9 +78,9 @@
                                     BackgroundColor="#10B981" 
                                     TextColor="White" 
                                     FontAttributes="Bold"
-                                    FontSize="{OnPlatform Android='11', iOS='13', Default='12'}" 
-                                    HeightRequest="{OnPlatform Android='38', iOS='46', Default='40'}" 
-                                    CornerRadius="{OnPlatform Android='6', iOS='16', Default='10'}"/>
+                                    FontSize="13" 
+                                    HeightRequest="42" 
+                                    CornerRadius="10"/>
 
                             <Button Grid.Column="1" 
                                     Text="🗺️ На карте" 
@@ -88,9 +88,9 @@
                                     BackgroundColor="#3B82F6" 
                                     TextColor="White" 
                                     FontAttributes="Bold"
-                                    FontSize="{OnPlatform Android='11', iOS='13', Default='12'}" 
-                                    HeightRequest="{OnPlatform Android='38', iOS='46', Default='40'}" 
-                                    CornerRadius="{OnPlatform Android='6', iOS='16', Default='10'}"/>
+                                    FontSize="13" 
+                                    HeightRequest="42" 
+                                    CornerRadius="10"/>
                         </Grid>
                     </VerticalStackLayout>
                 </Border>
@@ -142,7 +142,7 @@
                         <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8" VerticalOptions="Center">
                             <Label Grid.Column="0" Text="{Binding Delivery.CargoIconGlyph}" FontSize="20" VerticalOptions="Center"/>
                             <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="1">
-                                <Label Text="Требования к перевозке (Вариант 7)" FontSize="11" TextColor="#A5B4FC" FontAttributes="Bold"/>
+                                <Label Text="Требования к перевозке" FontSize="11" TextColor="#A5B4FC" FontAttributes="Bold"/>
                                 <Label Text="{Binding Delivery.CargoCategoryName}" FontSize="14" FontAttributes="Bold" TextColor="#F8FAFC"/>
                             </VerticalStackLayout>
                             <Border Grid.Column="2" StrokeShape="RoundRectangle 6" BackgroundColor="#312E81" Padding="6,3" VerticalOptions="Center">
@@ -194,7 +194,7 @@
                             <VerticalStackLayout Spacing="3">
                                 <Grid ColumnDefinitions="Auto,*" ColumnSpacing="6" VerticalOptions="Center">
                                     <Label Grid.Column="0" Text="📊" FontSize="12" VerticalOptions="Center"/>
-                                    <Label Grid.Column="1" Text="Агрегированная сводка категории в смене (SQL JOIN):" FontSize="10" TextColor="#A5B4FC" FontAttributes="Bold"/>
+                                    <Label Grid.Column="1" Text="Сводка по категории в смене:" FontSize="10" TextColor="#A5B4FC" FontAttributes="Bold"/>
                                 </Grid>
                                 <Label Text="{Binding CategoryOrdersSummary}" FontSize="11" TextColor="#F8FAFC" FontAttributes="Bold"/>
                                 <Label Text="{Binding CategoryAggregatedShiftStats}" FontSize="10" TextColor="#94A3B8"/>
@@ -258,33 +258,33 @@
                         </Border>
 
                         <!-- Save button -->
-                        <Button Text="💾 Отправить изменения на сервер"
+                        <Button Text="💾 Сохранить изменения"
                                 Command="{Binding SaveChangesCommand}"
                                 IsEnabled="{Binding IsNotBusy}"
                                 BackgroundColor="#2563EB"
                                 TextColor="White"
                                 FontAttributes="Bold"
-                                FontSize="{OnPlatform Android='13', iOS='15', Default='14'}"
-                                HeightRequest="{OnPlatform Android='46', iOS='52', Default='48'}"
-                                CornerRadius="{OnPlatform Android='8', iOS='22', Default='12'}"/>
+                                FontSize="14"
+                                HeightRequest="46"
+                                CornerRadius="10"/>
 
                         <!-- Cancel request button (visible when busy) -->
-                        <Button Text="Отменить отправку"
+                        <Button Text="Отменить"
                                 Command="{Binding CancelCurrentOperationCommand}"
                                 IsVisible="{Binding IsBusy}"
                                 BackgroundColor="#DC2626"
                                 TextColor="White"
                                 FontAttributes="Bold"
-                                FontSize="{OnPlatform Android='12', iOS='14', Default='13'}"
-                                HeightRequest="{OnPlatform Android='38', iOS='46', Default='40'}"
-                                CornerRadius="{OnPlatform Android='8', iOS='18', Default='10'}"/>
+                                FontSize="13"
+                                HeightRequest="40"
+                                CornerRadius="10"/>
 
                         <!-- Back button -->
-                        <Button Text="← Вернуться к списку"
+                        <Button Text="← Назад к списку нарядов"
                                 Command="{Binding GoBackCommand}"
                                 BackgroundColor="Transparent"
                                 TextColor="#94A3B8"
-                                HeightRequest="36"/>
+                                HeightRequest="38"/>
 
                     </VerticalStackLayout>
                 </Border>
@@ -296,7 +296,7 @@
         <Grid BackgroundColor="#B3000000" IsVisible="{Binding IsBusy}">
             <VerticalStackLayout Spacing="16" HorizontalOptions="Center" VerticalOptions="Center">
                 <ActivityIndicator IsRunning="{Binding IsBusy}" Color="#38BDF8" WidthRequest="44" HeightRequest="44"/>
-                <Label Text="Отправка обновления на REST сервер..." TextColor="#F8FAFC" FontSize="13"/>
+                <Label Text="Сохранение изменений..." TextColor="#F8FAFC" FontSize="13"/>
                 <Button Text="Отмена" Command="{Binding CancelCurrentOperationCommand}" BackgroundColor="#EF4444" TextColor="White" CornerRadius="8"/>
             </VerticalStackLayout>
         </Grid>

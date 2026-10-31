@@ -147,31 +147,31 @@ public class AndroidNativeTelemetryService : INativeTelemetryService
         {
             // Питание от авто: максимальная частота для точной навигации
             t.RecommendedTelemetryIntervalSeconds = 10;
-            t.OptimizationDescription = "Питание от бортовой сети ТС: максимальная точность GPS (интервал: 10 сек).";
+            t.OptimizationDescription = "Питание от бортовой сети ТС: максимальная точность навигации.";
         }
         else if (t.BatteryPercent <= 20.0)
         {
             // Критический заряд: максимальная экономия батареи
             t.RecommendedTelemetryIntervalSeconds = 60;
-            t.OptimizationDescription = $"Критический заряд АКБ ({t.BatteryPercent:F0}%): режим жесткой экономии (интервал: 60 сек).";
+            t.OptimizationDescription = $"Низкий заряд батареи ({t.BatteryPercent:F0}%): режим экономии энергии.";
         }
         else if (t.BatteryPercent <= 45.0)
         {
             // Средний заряд
             t.RecommendedTelemetryIntervalSeconds = 35;
-            t.OptimizationDescription = $"Заряд АКБ ({t.BatteryPercent:F0}%): умеренный интервал GPS (35 сек).";
+            t.OptimizationDescription = $"Заряд батареи ({t.BatteryPercent:F0}%): стандартный режим энергопотребления.";
         }
         else if (t.IsCellular)
         {
             // Сотовая сеть: бережем мобильный трафик и радиомодем
             t.RecommendedTelemetryIntervalSeconds = 20;
-            t.OptimizationDescription = "Сотовая сеть (Cellular): баланс трафика 4G и заряда (интервал: 20 сек).";
+            t.OptimizationDescription = "Мобильная сеть: баланс мобильного трафика и расхода заряда.";
         }
         else
         {
             // Wi-Fi и хороший заряд
             t.RecommendedTelemetryIntervalSeconds = 12;
-            t.OptimizationDescription = "Wi-Fi соединение: повышенная точность маршрутизации (интервал: 12 сек).";
+            t.OptimizationDescription = "Wi-Fi подключение: повышенная точность маршрутизации.";
         }
     }
 }

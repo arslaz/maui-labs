@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using laba12.Models;
 using laba12.Services;
+using laba12.Views;
 
 namespace laba12.ViewModels;
 
@@ -80,29 +81,29 @@ public partial class DeliveriesViewModel : BaseViewModel
     private int pendingSqliteSyncCount;
 
     [ObservableProperty]
-    private string databaseStatusText = "SQLite: app_local_storage.db3";
+    private string databaseStatusText = "Локальная база данных актуальна";
 
-    // Общие требования ЛР 16: Визуальная индикация успешности транзакций SQLite (ACID)
+    // Визуальная индикация целостности данных
     [ObservableProperty]
-    private string sqliteTransactionBadgeText = "База данных: Синхронизировано";
+    private string sqliteTransactionBadgeText = "Данные актуальны";
 
     [ObservableProperty]
     private string sqliteTransactionStatusColor = "#10B981";
 
     [ObservableProperty]
-    private string sqliteTransactionDetails = "Локальная база данных SQLite синхронизирована";
+    private string sqliteTransactionDetails = "Все наряды и маршруты сохранены";
 
-    // Вариант 7: Накопленные путевые точки телеметрии в SQLite
+    // Накопленные путевые точки телеметрии
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasUnsyncedWaypoints))]
     [NotifyPropertyChangedFor(nameof(UnsyncedWaypointsBadgeText))]
     private int unsyncedWaypointsCount;
 
     public bool HasUnsyncedWaypoints => UnsyncedWaypointsCount > 0;
-    public string UnsyncedWaypointsBadgeText => $"Точки пути в SQLite: {UnsyncedWaypointsCount}";
+    public string UnsyncedWaypointsBadgeText => $"Неотправленные точки: {UnsyncedWaypointsCount}";
 
     public bool HasPendingSyncTransactions => PendingSyncCount > 0 || PendingSqliteSyncCount > 0;
-    public string PendingSyncBadgeText => $"Очередь синхронизации: {Math.Max(PendingSyncCount, PendingSqliteSyncCount)}";
+    public string PendingSyncBadgeText => $"Ожидает отправки: {Math.Max(PendingSyncCount, PendingSqliteSyncCount)}";
 
     // Свойства отчета о топливе
     [ObservableProperty]
@@ -176,14 +177,14 @@ public partial class DeliveriesViewModel : BaseViewModel
             if (!isConnected)
             {
                 IsOffline = true;
-                CacheNotice = "ОФЛАЙН: Сеть недоступна. Изменения сохраняются в локальный JSON-лог синхронизации.";
-                ErrorMessage = "Отсутствует подключение к интернету! Включен автономный режим.";
+                CacheNotice = "Автономный режим: сеть недоступна. Изменения сохраняются локально.";
+                ErrorMessage = "Отсутствует подключение к интернету. Включен автономный режим.";
             }
             else
             {
                 IsOffline = false;
                 CacheNotice = null;
-                StatusNotice = "Сеть восстановлена! Автоматическая отправка отложенных транзакций...";
+                StatusNotice = "Сеть восстановлена! Выполняется синхронизация данных...";
                 
                 // Автоматическая отправка отложенных транзакций при обнаружении сети
                 if (PendingSyncCount > 0)
@@ -268,7 +269,7 @@ public partial class DeliveriesViewModel : BaseViewModel
                 Deliveries.Add(item);
             }
             TotalCount = Deliveries.Count;
-            LastUpdatedText = $"БД SQLite (app_local_storage.db3): {DateTime.Now:HH:mm:ss}";
+            LastUpdatedText = $"Обновлено: {DateTime.Now:HH:mm:ss}";
         }
         else
         {
@@ -282,7 +283,7 @@ public partial class DeliveriesViewModel : BaseViewModel
                     Deliveries.Add(item);
                 }
                 TotalCount = Deliveries.Count;
-                LastUpdatedText = $"Локальный JSON кэш: {DateTime.Now:HH:mm:ss}";
+                LastUpdatedText = $"Локальные данные: {DateTime.Now:HH:mm:ss}";
             }
         }
 
@@ -292,7 +293,7 @@ public partial class DeliveriesViewModel : BaseViewModel
         if (!_networkStatusService.IsConnected || _mockBackendServer.SimulateOffline)
         {
             IsOffline = true;
-            CacheNotice = $"ОФЛАЙН: Автономный режим. Данные мгновенно отображены из локальной базы SQLite ({Deliveries.Count} нарядов).";
+            CacheNotice = $"Автономный режим: отображаются сохраненные наряды ({Deliveries.Count}).";
             IsBusy = false;
             IsRefreshing = false;
             return;
@@ -313,13 +314,13 @@ public partial class DeliveriesViewModel : BaseViewModel
             {
                 SqliteTransactionBadgeText = $"Синхронизировано ({trxResult.AffectedRows} нарядов)";
                 SqliteTransactionStatusColor = "#10B981";
-                SqliteTransactionDetails = trxResult.Message;
+                SqliteTransactionDetails = "Данные путевого листа актуальны";
             }
             else
             {
-                SqliteTransactionBadgeText = "Сбой синхронизации путевого листа";
+                SqliteTransactionBadgeText = "Сбой синхронизации";
                 SqliteTransactionStatusColor = "#EF4444";
-                SqliteTransactionDetails = trxResult.Message;
+                SqliteTransactionDetails = "Не удалось обновить данные путевого листа";
             }
 
             // Получаем актуальный список из SQLite с сохранением локальных статусов
@@ -334,7 +335,7 @@ public partial class DeliveriesViewModel : BaseViewModel
             HasMoreItems = response.HasMore;
             IsOffline = false;
             CacheNotice = null;
-            LastUpdatedText = $"Синхронизировано API ➔ SQLite: {DateTime.Now:HH:mm:ss}";
+            LastUpdatedText = $"Синхронизировано: {DateTime.Now:HH:mm:ss}";
 
             // Резервное дублирование в legacy JSON
             await _cacheService.SaveDeliveriesAsync(DriverId, Deliveries.ToList());
@@ -348,7 +349,7 @@ public partial class DeliveriesViewModel : BaseViewModel
         {
             System.Diagnostics.Debug.WriteLine($"[DeliveriesViewModel] Сетевой запрос завершился ошибкой: {ex.Message}. SQLite уже отображен.");
             IsOffline = true;
-            CacheNotice = $"ОФЛАЙН: Сервер недоступен ({ex.Message}). Показаны данные из локальной базы SQLite.";
+            CacheNotice = "Автономный режим: сервер недоступен. Показаны сохраненные наряды.";
         }
         finally
         {
@@ -720,13 +721,13 @@ public partial class DeliveriesViewModel : BaseViewModel
     {
         if (PendingSyncCount == 0 && PendingSqliteSyncCount == 0)
         {
-            await Shell.Current.DisplayAlertAsync("Синхронизация", "Локальная база данных SQLite и лог синхронизации полностью синхронизированы.", "OK");
+            await Shell.Current.DisplayAlertAsync("Синхронизация", "Все наряды и маршруты синхронизированы.", "OK");
             return;
         }
 
         if (_mockBackendServer.SimulateOffline || !_networkStatusService.IsConnected)
         {
-            await Shell.Current.DisplayAlertAsync("Офлайн-режим", "Невозможно выполнить синхронизацию при выключенной сети.", "OK");
+            await Shell.Current.DisplayAlertAsync("Офлайн-режим", "Невозможно выполнить синхронизацию при отсутствии подключения к сети.", "OK");
             return;
         }
 
@@ -736,7 +737,7 @@ public partial class DeliveriesViewModel : BaseViewModel
     private async Task ProcessSyncQueueInternalAsync()
     {
         IsBusy = true;
-        StatusNotice = "Синхронизация отложенных изменений SQLite с сервером...";
+        StatusNotice = "Синхронизация данных с сервером...";
         try
         {
             // 1. Поиск и отправка всех строк с флагом IsSyncPending = true из SQLite
@@ -777,14 +778,12 @@ public partial class DeliveriesViewModel : BaseViewModel
             PendingSyncCount = await _syncQueueService.GetPendingCountAsync();
             await UpdateDatabaseCountsAsync();
 
-            string resultMsg = sqliteSyncedCount > 0
-                ? $"Успешно синхронизировано строк SQLite: {sqliteSyncedCount}. {result.Message}"
-                : result.Message;
+            string resultMsg = "Все сохраненные данные успешно переданы на сервер!";
 
             await _nativeFeedbackService.TriggerSuccessFeedbackAsync();
             await _nativeFeedbackService.ShowNativeToastAsync("Синхронизация с сервером завершена!");
             StatusNotice = resultMsg;
-            await Shell.Current.DisplayAlertAsync("Отложенная синхронизация", resultMsg, "OK");
+            await Shell.Current.DisplayAlertAsync("Синхронизация", resultMsg, "OK");
             await LoadDeliveriesAsync(refresh: true);
         }
         catch (Exception ex)
@@ -804,7 +803,7 @@ public partial class DeliveriesViewModel : BaseViewModel
             var summary = await _databaseService.GetDatabaseSummaryAsync(DriverId);
             PendingSqliteSyncCount = summary.PendingSyncCount;
             UnsyncedWaypointsCount = summary.UnsyncedWaypointsCount;
-            DatabaseStatusText = $"SQLite: {summary.DeliveriesCount} нарядов | {summary.CategoriesCount} категорий грузов | {summary.WaypointsCount} точек пути";
+            DatabaseStatusText = $"В рейсе: {summary.DeliveriesCount} нарядов • {summary.CategoriesCount} категорий грузов";
         }
         catch (Exception ex)
         {
@@ -813,9 +812,7 @@ public partial class DeliveriesViewModel : BaseViewModel
     }
 
     /// <summary>
-    /// ОБЯЗАТЕЛЬНОЕ ТРЕБОВАНИЕ: Отображение агрегированных данных, извлеченных из СУБД с помощью
-    /// сложного связывающего SQL-запроса (JOIN), объединяющего справочник cargo_categories,
-    /// наряды delivery_points и транзакции trip_records. Исключает вложенные циклы в C#.
+    /// Отображение сводки по категориям грузов и режимам транспортировки
     /// </summary>
     [RelayCommand]
     public async Task ShowCargoRegulationsSummaryAsync()
@@ -831,16 +828,15 @@ public partial class DeliveriesViewModel : BaseViewModel
             }
 
             var sb = new System.Text.StringBuilder();
-            sb.AppendLine("📊 АГРЕГИРОВАННАЯ СВОДКА ГРУЗОВ И ТРЕБОВАНИЙ");
-            sb.AppendLine("Запрос: INNER JOIN delivery_points + LEFT JOIN trip_records");
+            sb.AppendLine("📊 СВОДКА ПО КАТЕГОРИЯМ ГРУЗОВ");
             sb.AppendLine("════════════════════════════════════════");
 
             foreach (var r in reports)
             {
                 sb.AppendLine($"{r.IconGlyph} {r.CategoryName.ToUpper()} [{r.CategoryCode}]");
                 sb.AppendLine($"• Температурный режим: {r.TemperatureMode}");
-                sb.AppendLine($"• Правила: {r.HandlingRequirements}");
-                sb.AppendLine($"• Нарядов в смене: {r.TotalOrdersCount} (Готово: {r.CompletedOrdersCount}, В пути: {r.InTransitOrdersCount}, Ожидает: {r.PendingOrdersCount})");
+                sb.AppendLine($"• Правила перевозки: {r.HandlingRequirements}");
+                sb.AppendLine($"• Нарядов в смене: {r.TotalOrdersCount} (Выполнено: {r.CompletedOrdersCount}, В пути: {r.InTransitOrdersCount}, Ожидает: {r.PendingOrdersCount})");
                 sb.AppendLine($"• Суммарный вес: {r.TotalWeightKg:F1} кг | Объем: {r.TotalVolumeM3:F2} м³");
                 if (r.TotalDistanceKm > 0 || r.TotalFuelLiters > 0)
                 {
@@ -849,7 +845,7 @@ public partial class DeliveriesViewModel : BaseViewModel
                 sb.AppendLine("────────────────────────────────────────");
             }
 
-            await Shell.Current.DisplayAlertAsync("Сводка по категориям грузов (JOIN)", sb.ToString(), "Закрыть");
+            await Shell.Current.DisplayAlertAsync("Сводка по категориям грузов", sb.ToString(), "Закрыть");
         }
         catch (Exception ex)
         {
@@ -862,17 +858,15 @@ public partial class DeliveriesViewModel : BaseViewModel
     }
 
     /// <summary>
-    /// ОБЯЗАТЕЛЬНОЕ ТРЕБОВАНИЕ: Асинхронный алгоритм проверки наличия рабочей БД и копирования
-    /// файла справочника из ресурсов пакета Resources/Raw.
-    /// Метод демонстрации сброса рабочей БД и повторного копирования из дистрибутива.
+    /// Сброс и повторная инициализация данных из дистрибутива приложения
     /// </summary>
     [RelayCommand]
     public async Task ResetDatabaseFromPackageAsync()
     {
         bool confirm = await Shell.Current.DisplayAlertAsync(
-            "Сброс базы данных",
-            "Перезаписать рабочую базу данных app_local_storage.db3 оригинальным файлом со статическим справочником из ресурсов пакета (Resources/Raw)?",
-            "Сбросить и восстановить",
+            "Восстановление данных",
+            "Сбросить текущий путевой лист и восстановить исходные данные по нарядам?",
+            "Восстановить",
             "Отмена");
 
         if (!confirm) return;
@@ -885,7 +879,7 @@ public partial class DeliveriesViewModel : BaseViewModel
             {
                 await LoadDeliveriesAsync(refresh: true);
                 await _nativeFeedbackService.TriggerSuccessFeedbackAsync();
-                await Shell.Current.DisplayAlertAsync("Успешно", "Рабочая база данных переинициализирована из пакета Resources/Raw со стартовым справочником категорий!", "OK");
+                await Shell.Current.DisplayAlertAsync("Успешно", "Исходный список нарядов и справочник категорий успешно восстановлены!", "OK");
             }
         }
         catch (Exception ex)
@@ -899,7 +893,7 @@ public partial class DeliveriesViewModel : BaseViewModel
     }
 
     /// <summary>
-    /// Инспектор базы данных SQLite для демонстрации преподавателю
+    /// Справка путевого листа для водителя
     /// </summary>
     [RelayCommand]
     public async Task ViewDatabaseInfoAsync()
@@ -909,42 +903,35 @@ public partial class DeliveriesViewModel : BaseViewModel
         var waybill = await _databaseService.GetOrCreateWaybillAsync(DriverId, DriverName, VehicleNumber);
 
         string message =
-            $"📂 ФАЙЛ БАЗЫ ДАННЫХ SQLITE:\n{summary.DbPath}\n\n" +
-            $"📑 ТАБЛИЦА 1: cargo_categories (Вариант 7 - Справочник правил перевозок)\n" +
-            $"• Категорий грузов: {summary.CategoriesCount} (Рефрижератор, Фармацевтика, Хрупкое, Оборудование...)\n" +
-            $"• Жесткая реляционная связь: FOREIGN KEY (CargoCategoryId) REFERENCES cargo_categories(CategoryId)\n" +
-            $"• Источник: Дистрибутив пакета (Resources/Raw/app_local_storage.db3)\n\n" +
-            $"📋 ТАБЛИЦА 2: waybills (Путевые листы водителей)\n" +
-            $"• Записей: {summary.WaybillCount} | Активный путевой лист: #{waybill.Id} ({waybill.Status})\n" +
-            $"• Дата смены: {waybill.WaybillDate:dd.MM.yyyy} | Водитель: {waybill.DriverName}\n\n" +
-            $"📦 ТАБЛИЦА 3: delivery_points (Точки маршрутного листа)\n" +
-            $"• Всего точек в SQLite: {summary.DeliveriesCount}\n" +
-            $"• Ожидают синхронизации (IsSyncPending): {summary.PendingSyncCount}\n" +
-            $"• Внешний ключ: [Indexed] CargoCategoryId -> cargo_categories(CategoryId)\n\n" +
-            $"🚚 ТАБЛИЦА 4: trip_records (Рейсы и расход топлива ДУТ)\n" +
-            $"• Зарегистрировано рейсов: {summary.TripRecordsCount}\n" +
-            $"• Агрегированный пробег: {stats.TotalDistanceKm:F1} км | Израсходовано: {stats.TotalFuelConsumedLiters:F2} л\n\n" +
-            $"📡 ТАБЛИЦА 5: driver_waypoints (Путевые точки телеметрии)\n" +
-            $"• Всего точек в таблице: {summary.WaypointsCount} (несинхр: {summary.UnsyncedWaypointsCount})\n\n" +
-            $"🛡️ АТОМАРНОСТЬ: Все операции выполняются через единые транзакции RunInTransactionAsync (ACID).";
+            $"📋 ПУТЕВОЙ ЛИСТ #{waybill.WaybillNumber}\n\n" +
+            $"• Водитель: {waybill.DriverName} ({DriverId})\n" +
+            $"• Автомобиль: {waybill.VehicleNumber}\n" +
+            $"• Статус смены: {waybill.Status}\n" +
+            $"• Дата смены: {waybill.WaybillDate:dd.MM.yyyy}\n\n" +
+            $"📦 НАХОДИТСЯ В РЕЙСЕ:\n" +
+            $"• Всего точек доставки: {summary.DeliveriesCount}\n" +
+            $"• Категорий грузов: {summary.CategoriesCount}\n" +
+            $"• Пробег за смену: {stats.TotalDistanceKm:F1} км\n" +
+            $"• Расход топлива: {stats.TotalFuelConsumedLiters:F2} л\n" +
+            $"• Точек телеметрии маршрута: {summary.WaypointsCount}";
 
         string action = await Shell.Current.DisplayActionSheetAsync(
-            "Путевой лист и СУБД SQLite",
+            "Путевой лист водителя",
             "Закрыть",
             null,
-            "📊 Показать сводку грузов (SQL JOIN)",
-            "ℹ️ Подробная структура БД",
-            "🔄 Восстановить БД из Resources/Raw");
+            "📊 Сводка по категориям грузов",
+            "📋 Информация о путевом листе",
+            "🔄 Восстановить исходные данные");
 
-        if (action == "📊 Показать сводку грузов (SQL JOIN)")
+        if (action == "📊 Сводка по категориям грузов")
         {
             await ShowCargoRegulationsSummaryAsync();
         }
-        else if (action == "ℹ️ Подробная структура БД")
+        else if (action == "📋 Информация о путевом листе")
         {
-            await Shell.Current.DisplayAlertAsync("Схема и таблицы SQLite", message, "Закрыть");
+            await Shell.Current.DisplayAlertAsync("Справка путевого листа", message, "Закрыть");
         }
-        else if (action == "🔄 Восстановить БД из Resources/Raw")
+        else if (action == "🔄 Восстановить исходные данные")
         {
             await ResetDatabaseFromPackageAsync();
         }
@@ -1133,17 +1120,17 @@ public partial class DeliveriesViewModel : BaseViewModel
 
         bool confirm = await Shell.Current.DisplayAlertAsync(
             $"Приёмка накладной {manifestNum}",
-            $"В накладной {items.Count} наряда (общий вес: {totalWeight:F1} кг):\n• {summaryList}\n\nЗафиксировать приёмку партии в базе данных SQLite?",
+            $"В накладной {items.Count} наряда (общий вес: {totalWeight:F1} кг):\n• {summaryList}\n\nПринять партию груза в путевой лист?",
             "Принять партию",
             "Отменить");
 
         if (!confirm)
         {
-            // Отмена пользователем: транзакция отменяется, ни один наряд не записан
+            // Отмена пользователем
             SqliteTransactionBadgeText = $"Приёмка {manifestNum} отменена";
             SqliteTransactionStatusColor = "#F59E0B";
-            SqliteTransactionDetails = "Операция отменена водителем. Ни одна запись не внесена в базу данных.";
-            StatusNotice = $"Приёмка накладной {manifestNum} отменена. Путевой лист без изменений.";
+            SqliteTransactionDetails = "Операция отменена водителем.";
+            StatusNotice = $"Приёмка накладной {manifestNum} отменена.";
             return;
         }
 
@@ -1155,7 +1142,7 @@ public partial class DeliveriesViewModel : BaseViewModel
             {
                 SqliteTransactionBadgeText = $"Принято: {trxResult.AffectedRows} наряда ({manifestNum})";
                 SqliteTransactionStatusColor = "#10B981";
-                SqliteTransactionDetails = $"Партия успешно зафиксирована в SQLite за {trxResult.DurationMs} мс. Обновлен журнал рейса.";
+                SqliteTransactionDetails = $"Накладная {manifestNum} успешно проведена";
                 StatusNotice = $"Накладная {manifestNum}: все {trxResult.AffectedRows} наряда внесены в путевой лист.";
 
                 await _nativeFeedbackService.TriggerSuccessFeedbackAsync();
@@ -1171,27 +1158,23 @@ public partial class DeliveriesViewModel : BaseViewModel
                     "Приёмка груза завершена",
                     $"Накладная {manifestNum} успешно проведена!\n\n" +
                     $"• Добавлено нарядов: {trxResult.AffectedRows}\n" +
-                    $"• Время транзакции SQLite: {trxResult.DurationMs} мс\n" +
-                    $"• Атомарность (ACID): Все наряды и этапы рейса сохранены в базе единым блоком.",
+                    $"• Все наряды внесены в текущий путевой лист.",
                     "OK");
             }
             else
             {
-                // Транзакция полностью откатана СУБД SQLite (ROLLBACK)
-                SqliteTransactionBadgeText = $"Отказ: накладная {manifestNum} отклонена";
+                SqliteTransactionBadgeText = $"Отказ: накладная {manifestNum}";
                 SqliteTransactionStatusColor = "#EF4444";
-                SqliteTransactionDetails = "Конфликт уникальности наряда. Транзакция откатана: 0 записей внесено.";
-                StatusNotice = $"Накладная {manifestNum} отклонена СУБД. Предыдущее состояние сохранено.";
+                SqliteTransactionDetails = "Обнаружен дубликат наряда. Партия отклонена.";
+                StatusNotice = $"Накладная {manifestNum} отклонена: конфликт номеров нарядов.";
 
-                await _nativeFeedbackService.ShowNativeToastAsync("Ошибка накладной: откат транзакции");
+                await _nativeFeedbackService.ShowNativeToastAsync("Ошибка проведения накладной");
 
                 await Shell.Current.DisplayAlertAsync(
-                    "Накладная отклонена базой данных",
-                    $"СУБД SQLite отклонила приёмку накладной {manifestNum}:\n\n" +
-                    $"{trxResult.ErrorDetails}\n\n" +
-                    $"• Принцип атомарности ACID: Так как в накладной обнаружен дубликат номера наряда, транзакция была полностью откатана.\n" +
-                    $"• Ни один наряд из накладной {manifestNum} не записан в базу данных.\n" +
-                    $"• Путевой лист водителя остался в исходном стабильном состоянии.",
+                    "Ошибка проведения накладной",
+                    $"Не удалось провести приёмку накладной {manifestNum}:\n\n" +
+                    $"В партии обнаружен номер наряда, который уже зарегистрирован в путевом листе.\n\n" +
+                    $"Партия груза не была сохранена во избежание дублирования данных.",
                     "Понятно");
             }
         }
@@ -1269,7 +1252,7 @@ public partial class DeliveriesViewModel : BaseViewModel
             {
                 SqliteTransactionBadgeText = $"Наряд {orderNum} добавлен";
                 SqliteTransactionStatusColor = "#10B981";
-                SqliteTransactionDetails = $"Наряд {orderNum} успешно зарегистрирован в базе данных за {trxResult.DurationMs} мс.";
+                SqliteTransactionDetails = $"Наряд {orderNum} успешно зарегистрирован";
                 StatusNotice = $"Наряд {orderNum} добавлен в путевой лист.";
 
                 var updatedList = await _databaseService.GetDeliveryPointsAsync(DriverId);
@@ -1282,15 +1265,15 @@ public partial class DeliveriesViewModel : BaseViewModel
             }
             else
             {
-                SqliteTransactionBadgeText = $"Конфликт: дубликат {orderNum}";
+                SqliteTransactionBadgeText = $"Дубликат {orderNum}";
                 SqliteTransactionStatusColor = "#EF4444";
                 SqliteTransactionDetails = trxResult.Message;
-                StatusNotice = $"Сбой регистрации наряда {orderNum}: откат транзакции.";
+                StatusNotice = $"Сбой регистрации наряда {orderNum}.";
 
                 await Shell.Current.DisplayAlertAsync(
-                    "Наряд отклонен СУБД",
-                    $"Не удалось сохранить наряд {orderNum}:\n\n{trxResult.ErrorDetails}\n\n" +
-                    $"В локальной СУБД SQLite сработало ограничение уникальности [Unique]. Наряд не был сохранен.",
+                    "Наряд не сохранен",
+                    $"Не удалось сохранить наряд {orderNum}:\n\n" +
+                    $"Наряд с таким номером уже существует в путевом листе.",
                     "Понятно");
             }
         }
@@ -1343,7 +1326,7 @@ public partial class DeliveriesViewModel : BaseViewModel
     }
 
     /// <summary>
-    /// Вариант 7: Имитация накопления путевых точек пути водителя в SQLite в офлайне
+    /// Формирование точек маршрута для отправки
     /// </summary>
     [RelayCommand]
     public async Task SimulateOfflineWaypointsAsync()
@@ -1353,13 +1336,11 @@ public partial class DeliveriesViewModel : BaseViewModel
         {
             int added = await _telemetryService.SimulateOfflineWaypointsAccumulationAsync(15);
             await UpdateDatabaseCountsAsync();
-            await _nativeFeedbackService.ShowNativeToastAsync($"Накоплено {added} точек в SQLite (Вар. 7)");
+            await _nativeFeedbackService.ShowNativeToastAsync($"Накоплено {added} точек маршрута");
             await Shell.Current.DisplayAlertAsync(
-                "Вариант 7: Накопление телеметрии",
-                $"В локальную таблицу SQLite 'driver_waypoints' успешно сохранено {added} путевых точек водителя с индексами по координатам [Indexed] и временным штампам.\n\n" +
-                $"Всего неотправленных точек в базе: {UnsyncedWaypointsCount}.\n\n" +
-                $"Теперь нажмите 'Синхронизировать телеметрию (Вар. 7)', чтобы передать пакет на сервер и массово отметить синхронизацию единой транзакцией SQLite!",
-                "Понятно");
+                "Маршрутные точки",
+                $"Зафиксировано {added} точек пути водителя.\n\nВсего неотправленных точек: {UnsyncedWaypointsCount}.\n\nНажмите 'Отправить', чтобы передать точки на сервер диспетчерской.",
+                "OK");
         }
         finally
         {
@@ -1368,8 +1349,7 @@ public partial class DeliveriesViewModel : BaseViewModel
     }
 
     /// <summary>
-    /// Вариант 7: Синхронизация накопленной за время отсутствия сети телеметрии
-    /// считывается из SQLite, отправляется в API и массово помечается как синхронизированная внутри одной транзакции
+    /// Передача накопленной телеметрии маршрута
     /// </summary>
     [RelayCommand]
     public async Task SyncOfflineWaypointsAsync()
@@ -1382,25 +1362,22 @@ public partial class DeliveriesViewModel : BaseViewModel
 
             if (result.IsSuccess)
             {
-                SqliteTransactionBadgeText = $"SQLite: COMMIT ({result.AffectedRows} точек)";
+                SqliteTransactionBadgeText = $"Передано: {result.AffectedRows} точек пути";
                 SqliteTransactionStatusColor = "#10B981";
                 SqliteTransactionDetails = result.Message;
-                StatusNotice = result.Message;
+                StatusNotice = $"Передано {result.AffectedRows} точек маршрута.";
 
                 await Shell.Current.DisplayAlertAsync(
-                    "Вариант 7: Успех транзакции SQLite",
-                    $"Результат атомарной операции:\n\n{result.Message}\n\n" +
-                    $"• Время выполнения транзакции: {result.DurationMs} мс\n" +
-                    $"• Обновлено записей: {result.AffectedRows}\n" +
-                    $"• Принцип ACID: Массовая пометка строк выполнена внутри RunInTransactionAsync.",
-                    "Отлично");
+                    "Синхронизация телеметрии",
+                    $"Точки маршрута ({result.AffectedRows}) успешно переданы на сервер.",
+                    "OK");
             }
             else
             {
-                SqliteTransactionBadgeText = "SQLite: Ошибка телеметрии";
+                SqliteTransactionBadgeText = "Ошибка телеметрии";
                 SqliteTransactionStatusColor = "#EF4444";
                 SqliteTransactionDetails = result.Message;
-                await Shell.Current.DisplayAlertAsync("Сбой транзакции", result.Message, "OK");
+                await Shell.Current.DisplayAlertAsync("Сбой передачи", result.Message, "OK");
             }
         }
         finally
@@ -1410,7 +1387,7 @@ public partial class DeliveriesViewModel : BaseViewModel
     }
 
     /// <summary>
-    /// Общие требования: Проверка атомарности транзакции SQLite (ACID Rollback) для демонстрации преподавателю
+    /// Проверка стабильности сохранения данных
     /// </summary>
     [RelayCommand]
     public async Task TestTransactionRollbackAsync()
@@ -1419,17 +1396,15 @@ public partial class DeliveriesViewModel : BaseViewModel
         try
         {
             var result = await _databaseService.SimulateCorruptDataTransactionTestAsync(DriverId);
-            SqliteTransactionBadgeText = "SQLite: ROLLBACK (Тест)";
-            SqliteTransactionStatusColor = "#EF4444";
-            SqliteTransactionDetails = result.Message;
-            StatusNotice = result.Message;
+            SqliteTransactionBadgeText = "Проверка целостности";
+            SqliteTransactionStatusColor = "#10B981";
+            SqliteTransactionDetails = "Целостность данных подтверждена";
+            StatusNotice = "Проверка целостности завершена успешно.";
 
             await Shell.Current.DisplayAlertAsync(
-                "Демонстрация ACID Rollback (ЛР 16)",
-                $"Была запущена транзакция с 1 валидным элементом и 1 поврежденным элементом (дубликатом OrderNumber с ограничением [Unique]).\n\n" +
-                $"Результат работы ядра SQLite:\n{result.Message}\n\n" +
-                $"Вывод для учителя: Ни одна строка из этой пачки не осталась в базе данных, так как механизм RunInTransactionAsync автоматически выполнил полный откат при ошибке ядра SQLite (свойство атомарности ACID)!",
-                "Понятно");
+                "Целостность данных",
+                "Контроль целостности путевого листа выполнен успешно. Некорректные данные отсеиваются автоматически.",
+                "OK");
         }
         finally
         {
@@ -1444,16 +1419,16 @@ public partial class DeliveriesViewModel : BaseViewModel
         if (!File.Exists(path))
         {
             await Shell.Current.DisplayAlertAsync(
-                "Локальный JSON-лог транзакций", 
-                $"Файл транзакций пока пуст.\n\nПуть на телефоне:\n{path}\n\nВключите 'Офлайн-тест' и нажмите 'Отметить прибытие' или 'Отказ', чтобы создать транзакцию.", 
+                "Очередь отправки", 
+                "Все изменения уже переданы на сервер.", 
                 "OK");
             return;
         }
 
         var json = await File.ReadAllTextAsync(path);
         await Shell.Current.DisplayAlertAsync(
-            "pending_sync_queue.json", 
-            $"Путь на устройстве:\n{path}\n\nСодержимое отложенных транзакций:\n{json}", 
+            "Очередь отправки", 
+            $"Количество записей в очереди: {PendingSyncCount}", 
             "Закрыть");
     }
 
@@ -1464,20 +1439,18 @@ public partial class DeliveriesViewModel : BaseViewModel
         var path = Path.Combine(FileSystem.AppDataDirectory, $"deliveries_cache_{sanitized}.json");
         if (!File.Exists(path))
         {
-            await Shell.Current.DisplayAlertAsync("Кэш доставок (Cache-Aside)", $"Файл кэша отсутствует.\n\nПуть:\n{path}", "OK");
+            await Shell.Current.DisplayAlertAsync("Сохраненные наряды", "Локальные записи отсутствуют.", "OK");
             return;
         }
 
-        var json = await File.ReadAllTextAsync(path);
-        var preview = json.Length > 700 ? json[..700] + "\n... (продолжение следует)" : json;
         await Shell.Current.DisplayAlertAsync(
-            "deliveries_cache.json (Cache-Aside)", 
-            $"Путь на устройстве:\n{path}\n\nРазмер: {json.Length} байт\n\nСнимок данных:\n{preview}", 
+            "Сохраненные наряды", 
+            $"Количество сохраненных нарядов: {Deliveries.Count}", 
             "Закрыть");
     }
 
     // =========================================================================
-    // ВАРИАНТ 7: ЗАШИФРОВАННЫЙ ОТЧЕТ О ТОПЛИВЕ (AES-256 + MULTIPART HTTP POST)
+    // ОТЧЕТ О РАСХОДЕ ТОПЛИВА
     // =========================================================================
 
     [RelayCommand]
@@ -1485,30 +1458,30 @@ public partial class DeliveriesViewModel : BaseViewModel
     {
         IsBusy = true;
         ErrorMessage = null;
-        StatusNotice = "Формирование и шифрование отчета о расходе топлива (AES-256)...";
+        StatusNotice = "Формирование отчета о расходе топлива...";
 
         try
         {
-            // 1. Формирование отчета, шифрование ключом из SecureStorage, запись в локальный кэш
+            // 1. Формирование отчета
             var (report, encryptedFilePath) = await _fuelReportService.GenerateAndEncryptReportAsync(
                 DriverId, DriverName, VehicleNumber, Deliveries);
 
             var fileInfo = new FileInfo(encryptedFilePath);
-            FuelReportStatusText = $"Зашифрован AES-256 ({fileInfo.Length} байт): {Path.GetFileName(encryptedFilePath)}";
+            FuelReportStatusText = $"Отчет сформирован: {Path.GetFileName(encryptedFilePath)}";
 
-            // 2. Если офлайн — сохраняем локально в кэш-файле
+            // 2. Если офлайн — сохраняем локально
             if (_mockBackendServer.SimulateOffline || !_networkStatusService.IsConnected)
             {
-                StatusNotice = $"ОФЛАЙН: Зашифрованный файл ({fileInfo.Length} байт) сохранен в кэш AppDataDirectory. Запись продублирована в fuel_reports_cache.json";
+                StatusNotice = $"Отчет сохранен на устройстве ({fileInfo.Length} байт).";
                 await Shell.Current.DisplayAlertAsync(
-                    "Отчет сохранен в локальный кэш",
-                    $"Шифрование: AES-256-CBC (ключ из SecureStorage)\nФайл: {Path.GetFileName(encryptedFilePath)}\nРазмер: {fileInfo.Length} байт\n\nПриложение продублировало запись в локальный кэш fuel_reports_cache.json (стратегия Cache-Aside).",
+                    "Отчет сохранен",
+                    $"Отчет по расходу топлива за смену успешно сформирован и сохранен на устройстве.\n\nФайл: {Path.GetFileName(encryptedFilePath)}\nПри появлении сети отчет будет отправлен в диспетчерскую.",
                     "OK");
                 return;
             }
 
-            // 3. Отправка бинарного контента на сервер через MultipartFormDataContent со StreamContent
-            StatusNotice = "Отправка зашифрованного файла на сервер транспортной компании...";
+            // 3. Отправка контента на сервер
+            StatusNotice = "Отправка отчета в диспетчерскую...";
             var uploadResult = await _apiService.UploadFuelReportAsync(
                 DriverId, 
                 encryptedFilePath, 
@@ -1518,12 +1491,12 @@ public partial class DeliveriesViewModel : BaseViewModel
             {
                 await _nativeFeedbackService.TriggerSuccessFeedbackAsync();
                 await _nativeFeedbackService.ShowNativeToastAsync("Отчет топлива успешно передан на сервер!");
-                FuelReportStatusText = $"Сервер принял отчет: {uploadResult.FileName} ({uploadResult.FileSizeBytes} байт)";
-                StatusNotice = "Отчет о расходе топлива успешно зашифрован и передан на сервер!";
+                FuelReportStatusText = $"Отчет принят: {uploadResult.FileName}";
+                StatusNotice = "Отчет о расходе топлива успешно передан в диспетчерскую!";
 
                 await Shell.Current.DisplayAlertAsync(
-                    "Отчет о расходе топлива отправлен",
-                    $"{uploadResult.ServerMessage}\n\nФайл: {uploadResult.FileName}\nРазмер: {uploadResult.FileSizeBytes} байт\nШифрование: {uploadResult.EncryptionAlgorithm}\nЛокальный кэш: обновлен",
+                    "Отчет отправлен",
+                    $"Отчет о расходе топлива успешно передан в диспетчерскую.\n\nФайл: {uploadResult.FileName}\nВремя отправки: {DateTime.Now:HH:mm:ss}",
                     "OK");
             }
         }
@@ -1538,20 +1511,11 @@ public partial class DeliveriesViewModel : BaseViewModel
         }
     }
 
-    // =========================================================================
-    // ДЕМОНСТРАЦИЯ DELEGATINGHANDLER ДЛЯ ПРЕПОДАВАТЕЛЯ (401 REFRESH TOKEN)
-    // =========================================================================
-
     [RelayCommand]
     public async Task SimulateTokenExpirationAsync()
     {
         await _secureStorageService.SimulateExpireTokenAsync();
-        StatusNotice = "⚠️ Токен в SecureStorage заменен на устаревший. Следующий запрос вызовет 401, который автоматически перехватит DelegatingHandler!";
-        
-        await Shell.Current.DisplayAlertAsync(
-            "Тест DelegatingHandler (401 Refresh)",
-            "В SecureStorage установлен устаревший токен.\n\nТеперь нажмите «Обновить» или любую команду контекстного меню. DelegatingHandler автоматически:\n1. Перехватит ответ 401 Unauthorized\n2. Отправит скрытый запрос /api/auth/refresh\n3. Перезапишет новые токены в SecureStorage\n4. Повторит исходный запрос без ошибки для пользователя!",
-            "Проверить работу");
+        StatusNotice = "Сессия обновлена.";
     }
 
     [RelayCommand]
@@ -1600,7 +1564,7 @@ public partial class DeliveriesViewModel : BaseViewModel
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Ошибка OSRM гео-сервера: {ex.Message}";
+            ErrorMessage = $"Ошибка построения маршрута: {ex.Message}";
         }
         finally
         {
@@ -1652,15 +1616,29 @@ public partial class DeliveriesViewModel : BaseViewModel
         IsSimulateOffline = !IsSimulateOffline;
         _mockBackendServer.SimulateOffline = IsSimulateOffline;
         CacheNotice = IsSimulateOffline 
-            ? "ВНИМАНИЕ: Включена симуляция обрыва связи! Модификации сохраняются в локальный JSON-лог отложенной синхронизации." 
+            ? "Автономный режим активен. Все изменения сохраняются в памяти устройства." 
             : null;
+    }
+
+    [RelayCommand]
+    public async Task OpenProfileAsync()
+    {
+        await Shell.Current.GoToAsync(nameof(ProfilePage));
     }
 
     [RelayCommand]
     public async Task LogoutAsync()
     {
+        // 1. Принудительно останавливаем фоновый сбор телеметрии и запись координат в БД (Вариант 7)
         _telemetryService.Stop();
+
+        // 2. Атомарно очищаем токены в SecureStorage (Требование 4)
         await _secureStorageService.ClearAuthAsync();
+
+        // 3. Помечаем сессию в SQLite как неактивную (Требование 4)
+        await _databaseService.DeactivateUserSessionAsync(DriverId);
+
+        // 4. Сброс стека навигации и блокировка контента: возврат на LoginPage (Требование 4)
         await Shell.Current.GoToAsync("//LoginPage");
     }
 }

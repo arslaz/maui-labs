@@ -323,3 +323,40 @@ public class CargoCategoryAggregatedReport
     public double TotalDistanceKm { get; set; }
     public double TotalFuelLiters { get; set; }
 }
+
+/// <summary>
+/// Таблица 6: Локальные профили пользователей / водителей (Лабораторная работа 18).
+/// Хранит хэш пароля (SHA-256) для автономной аутентификации в офлайн-режиме,
+/// статус активности сессии и реквизиты водителя.
+/// </summary>
+[Table("user_profiles")]
+public class UserProfileEntity
+{
+    [PrimaryKey, AutoIncrement]
+    public int Id { get; set; }
+
+    [Indexed, Unique, NotNull, MaxLength(50)]
+    public string DriverId { get; set; } = string.Empty;
+
+    [MaxLength(100)]
+    public string Email { get; set; } = string.Empty;
+
+    [MaxLength(150)]
+    public string FullName { get; set; } = string.Empty;
+
+    [MaxLength(50)]
+    public string VehicleNumber { get; set; } = string.Empty;
+
+    [MaxLength(50)]
+    public string Phone { get; set; } = string.Empty;
+
+    [NotNull, MaxLength(128)]
+    public string PasswordHash { get; set; } = string.Empty;
+
+    [Indexed]
+    public bool IsSessionActive { get; set; } = false;
+
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    public DateTime? LastLoginAt { get; set; }
+}

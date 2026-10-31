@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:laba12.ViewModels"
+             xmlns:conv="clr-namespace:laba12.Converters"
+             x:Class="laba12.Views.RegisterPage"
+             x:DataType="vm:RegisterViewModel"
+             Title="{Binding Title}"
+             BackgroundColor="#0F172A">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <conv:BoolToInvertedConverter x:Key="InvertedBoolConverter" />
+            <conv:StringNotEmptyToBoolConverter x:Key="StringNotEmptyConverter" />
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+    <ContentPage.Padding>
+        <OnPlatform x:TypeArguments="Thickness">
+            <On Platform="iOS" Value="0,44,0,0" />
+            <On Platform="Android" Value="0,12,0,0" />
+            <On Platform="Default" Value="0,0,0,0" />
+        </OnPlatform>
+    </ContentPage.Padding>
+
+    <Grid>
+        <ScrollView>
+            <VerticalStackLayout Spacing="20" Padding="{OnPlatform Android='16,20', iOS='24,28', Default='20,24'}" MaximumWidthRequest="520" HorizontalOptions="Center">
+                
+                <!-- Заголовок / Логотип -->
+                <VerticalStackLayout Spacing="8" HorizontalOptions="Center">
+                    <Border StrokeShape="{OnPlatform Android='RoundRectangle 16', iOS='RoundRectangle 24', Default='RoundRectangle 20'}" 
+                            BackgroundColor="#1E293B" 
+                            Stroke="#334155" 
+                            StrokeThickness="1" 
+                            WidthRequest="{OnPlatform Android='64', iOS='76', Default='70'}" 
+                            HeightRequest="{OnPlatform Android='64', iOS='76', Default='70'}" 
+                            HorizontalOptions="Center">
+                        <Label Text="📝" FontSize="{OnPlatform Android='30', iOS='36', Default='34'}" HorizontalOptions="Center" VerticalOptions="Center"/>
+                    </Border>
+                    
+                    <Label Text="Регистрация водителя" 
+                           FontSize="{OnPlatform Android='22', iOS='25', Default='24'}" 
+                           FontAttributes="Bold" 
+                           TextColor="#F8FAFC" 
+                           HorizontalOptions="Center"/>
+                    <Label Text="Создание новой учетной записи водителя" 
+                           FontSize="{OnPlatform Android='12', iOS='13', Default='13'}" 
+                           TextColor="#94A3B8" 
+                           HorizontalOptions="Center"/>
+                </VerticalStackLayout>
+
+                <!-- Карточка формы регистрации -->
+                <Border StrokeShape="{OnPlatform Android='RoundRectangle 12', iOS='RoundRectangle 20', Default='RoundRectangle 16'}"
+                        BackgroundColor="#1E293B"
+                        Stroke="#334155"
+                        StrokeThickness="1"
+                        Padding="{OnPlatform Android='16,16', iOS='22,20', Default='18,18'}">
+                    <VerticalStackLayout Spacing="14">
+
+                        <!-- Табельный номер (ID) -->
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="Табельный номер (Логин водителя) *" FontSize="12" TextColor="#94A3B8" />
+                            <Border StrokeShape="RoundRectangle 8" BackgroundColor="#0F172A" Stroke="#334155" Padding="12,4">
+                                <Entry Text="{Binding DriverId}" 
+                                       Placeholder="Например: DRV-107" 
+                                       TextColor="#F8FAFC" 
+                                       PlaceholderColor="#64748B"/>
+                            </Border>
+                            <Label Text="{Binding DriverIdError}" 
+                                   IsVisible="{Binding DriverIdError, Converter={StaticResource StringNotEmptyConverter}}"
+                                   TextColor="#EF4444" 
+                                   FontSize="11" />
+                        </VerticalStackLayout>
+
+                        <!-- Email -->
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="Корпоративный Email *" FontSize="12" TextColor="#94A3B8" />
+                            <Border StrokeShape="RoundRectangle 8" BackgroundColor="#0F172A" Stroke="#334155" Padding="12,4">
+                                <Entry Text="{Binding Email}" 
+                                       Keyboard="Email"
+                                       Placeholder="driver@logistics.by" 
+                                       TextColor="#F8FAFC" 
+                                       PlaceholderColor="#64748B"/>
+                            </Border>
+                            <Label Text="{Binding EmailError}" 
+                                   IsVisible="{Binding EmailError, Converter={StaticResource StringNotEmptyConverter}}"
+                                   TextColor="#EF4444" 
+                                   FontSize="11" />
+                        </VerticalStackLayout>
+
+                        <!-- ФИО -->
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="ФИО водителя *" FontSize="12" TextColor="#94A3B8" />
+                            <Border StrokeShape="RoundRectangle 8" BackgroundColor="#0F172A" Stroke="#334155" Padding="12,4">
+                                <Entry Text="{Binding FullName}" 
+                                       Placeholder="Иван Иванов" 
+                                       TextColor="#F8FAFC" 
+                                       PlaceholderColor="#64748B"/>
+                            </Border>
+                            <Label Text="{Binding FullNameError}" 
+                                   IsVisible="{Binding FullNameError, Converter={StaticResource StringNotEmptyConverter}}"
+                                   TextColor="#EF4444" 
+                                   FontSize="11" />
+                        </VerticalStackLayout>
+
+                        <!-- Автомобиль -->
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="Госномер и марка ТС *" FontSize="12" TextColor="#94A3B8" />
+                            <Border StrokeShape="RoundRectangle 8" BackgroundColor="#0F172A" Stroke="#334155" Padding="12,4">
+                                <Entry Text="{Binding VehicleNumber}" 
+                                       Placeholder="АВ 9012-7 (ГАЗель NEXT)" 
+                                       TextColor="#F8FAFC" 
+                                       PlaceholderColor="#64748B"/>
+                            </Border>
+                            <Label Text="{Binding VehicleNumberError}" 
+                                   IsVisible="{Binding VehicleNumberError, Converter={StaticResource StringNotEmptyConverter}}"
+                                   TextColor="#EF4444" 
+                                   FontSize="11" />
+                        </VerticalStackLayout>
+
+                        <!-- Телефон -->
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="Номер телефона *" FontSize="12" TextColor="#94A3B8" />
+                            <Border StrokeShape="RoundRectangle 8" BackgroundColor="#0F172A" Stroke="#334155" Padding="12,4">
+                                <Entry Text="{Binding Phone}" 
+                                       Keyboard="Telephone"
+                                       Placeholder="+375 (29) 700-11-22" 
+                                       TextColor="#F8FAFC" 
+                                       PlaceholderColor="#64748B"/>
+                            </Border>
+                            <Label Text="{Binding PhoneError}" 
+                                   IsVisible="{Binding PhoneError, Converter={StaticResource StringNotEmptyConverter}}"
+                                   TextColor="#EF4444" 
+                                   FontSize="11" />
+                        </VerticalStackLayout>
+
+                        <!-- Пароль -->
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="Пароль (минимум 4 символа) *" FontSize="12" TextColor="#94A3B8" />
+                            <Border StrokeShape="RoundRectangle 8" BackgroundColor="#0F172A" Stroke="#334155" Padding="12,4">
+                                <Entry Text="{Binding Password}" 
+                                       IsPassword="True" 
+                                       Placeholder="Придумайте пароль" 
+                                       TextColor="#F8FAFC" 
+                                       PlaceholderColor="#64748B"/>
+                            </Border>
+                            <Label Text="{Binding PasswordError}" 
+                                   IsVisible="{Binding PasswordError, Converter={StaticResource StringNotEmptyConverter}}"
+                                   TextColor="#EF4444" 
+                                   FontSize="11" />
+                        </VerticalStackLayout>
+
+                        <!-- Подтверждение пароля -->
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="Подтверждение пароля *" FontSize="12" TextColor="#94A3B8" />
+                            <Border StrokeShape="RoundRectangle 8" BackgroundColor="#0F172A" Stroke="#334155" Padding="12,4">
+                                <Entry Text="{Binding ConfirmPassword}" 
+                                       IsPassword="True" 
+                                       Placeholder="Повторите пароль" 
+                                       TextColor="#F8FAFC" 
+                                       PlaceholderColor="#64748B"/>
+                            </Border>
+                            <Label Text="{Binding ConfirmPasswordError}" 
+                                   IsVisible="{Binding ConfirmPasswordError, Converter={StaticResource StringNotEmptyConverter}}"
+                                   TextColor="#EF4444" 
+                                   FontSize="11" />
+                        </VerticalStackLayout>
+
+                        <!-- Баннер ошибки -->
+                        <Border IsVisible="{Binding ErrorMessage, Converter={StaticResource StringNotEmptyConverter}}"
+                                BackgroundColor="#450A0A"
+                                Stroke="#EF4444"
+                                StrokeShape="RoundRectangle 8"
+                                Padding="12"
+                                Margin="0,4">
+                            <HorizontalStackLayout Spacing="10">
+                                <Label Text="⚠️" FontSize="16" VerticalOptions="Center"/>
+                                <Label Text="{Binding ErrorMessage}" TextColor="#FCA5A5" FontSize="12" LineBreakMode="WordWrap"/>
+                            </HorizontalStackLayout>
+                        </Border>
+
+                        <!-- Баннер статуса -->
+                        <Border IsVisible="{Binding StatusMessage, Converter={StaticResource StringNotEmptyConverter}}"
+                                BackgroundColor="#064E3B"
+                                Stroke="#10B981"
+                                StrokeShape="RoundRectangle 8"
+                                Padding="12"
+                                Margin="0,4">
+                            <HorizontalStackLayout Spacing="10">
+                                <Label Text="ℹ️" FontSize="16" VerticalOptions="Center"/>
+                                <Label Text="{Binding StatusMessage}" TextColor="#A7F3D0" FontSize="12" LineBreakMode="WordWrap"/>
+                            </HorizontalStackLayout>
+                        </Border>
+
+                        <!-- Кнопка регистрации -->
+                        <Button Text="Зарегистрироваться и войти" 
+                                Command="{Binding RegisterCommand}" 
+                                IsEnabled="{Binding IsNotBusy}"
+                                BackgroundColor="#10B981" 
+                                TextColor="#FFFFFF" 
+                                FontAttributes="Bold" 
+                                CornerRadius="{OnPlatform Android='8', iOS='22', Default='12'}" 
+                                HeightRequest="{OnPlatform Android='46', iOS='52', Default='48'}"
+                                FontSize="{OnPlatform Android='14', iOS='16', Default='15'}"
+                                Margin="0,6,0,0"/>
+
+                        <!-- Ссылка назад к авторизации -->
+                        <Button Text="Уже зарегистрированы? Войти в систему" 
+                                Command="{Binding NavigateToLoginCommand}" 
+                                BackgroundColor="Transparent" 
+                                TextColor="#38BDF8" 
+                                FontSize="13"
+                                CornerRadius="8"
+                                HeightRequest="40"/>
+
+                    </VerticalStackLayout>
+                </Border>
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- Loading Overlay -->
+        <Grid BackgroundColor="#CC000000" IsVisible="{Binding IsBusy}">
+            <VerticalStackLayout Spacing="16" HorizontalOptions="Center" VerticalOptions="Center">
+                <ActivityIndicator IsRunning="{Binding IsBusy}" Color="#10B981" WidthRequest="50" HeightRequest="50"/>
+                <Label Text="Регистрация водителя..." TextColor="#F8FAFC" FontSize="14" HorizontalOptions="Center"/>
+            </VerticalStackLayout>
+        </Grid>
+    </Grid>
+</ContentPage>

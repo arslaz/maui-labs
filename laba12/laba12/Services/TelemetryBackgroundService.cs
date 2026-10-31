@@ -48,7 +48,7 @@ public class TelemetryBackgroundService : ITelemetryService, IDisposable
     public double CurrentLatitude => _currentLat;
     public double CurrentLongitude => _currentLon;
     public int QueuedCount => _sqliteUnsyncedCount;
-    public string StatusMessage { get; private set; } = "Телеметрия не запущена";
+    public string StatusMessage { get; private set; } = "Навигация в режиме ожидания";
     public DateTime? LastSentTime { get; private set; }
     public NativeDeviceTelemetry? CurrentNativeTelemetry { get; private set; }
 
@@ -72,7 +72,7 @@ public class TelemetryBackgroundService : ITelemetryService, IDisposable
 
         _driverId = driverId;
         _cts = new CancellationTokenSource();
-        StatusMessage = "Фоновая телеметрия активна (интервал: 25-30 сек)";
+        StatusMessage = "Передача геопозиции активна (интервал 30 с)";
         OnTelemetryStatusChanged?.Invoke();
 
         _telemetryTask = Task.Run(() => RunTelemetryLoopAsync(_cts.Token));
@@ -85,7 +85,7 @@ public class TelemetryBackgroundService : ITelemetryService, IDisposable
             _cts?.Cancel();
             _cts?.Dispose();
             _cts = null;
-            StatusMessage = "Фоновая телеметрия остановлена";
+            StatusMessage = "Передача геопозиции приостановлена";
             OnTelemetryStatusChanged?.Invoke();
         }
         catch { }
@@ -211,7 +211,7 @@ public class TelemetryBackgroundService : ITelemetryService, IDisposable
         {
             await SaveWaypointToSqliteAsync(telemetry);
             await RefreshUnsyncedCountAsync();
-            StatusMessage = $"Разрыв связи на трассе! Точка сохранена в SQLite (накоплено в базе: {QueuedCount}) | {nativeTelemetry.FormattedBattery}";
+            StatusMessage = $"Автономный режим: точка сохранена локально (в очереди: {QueuedCount}) | {nativeTelemetry.FormattedBattery}";
             OnTelemetryStatusChanged?.Invoke();
             return false;
         }
@@ -238,7 +238,7 @@ public class TelemetryBackgroundService : ITelemetryService, IDisposable
             }
             else
             {
-                StatusMessage = $"POST-телеметрия: {LastSentTime:HH:mm:ss} | {nativeTelemetry.FormattedBattery} | {nativeTelemetry.FormattedNetwork}";
+                StatusMessage = $"Синхронизировано: {LastSentTime:HH:mm:ss} | {nativeTelemetry.FormattedBattery} | {nativeTelemetry.FormattedNetwork}";
             }
         }
         else
@@ -246,7 +246,7 @@ public class TelemetryBackgroundService : ITelemetryService, IDisposable
             // Сбой отправки — буферизируем в SQLite (Вариант 7)
             await SaveWaypointToSqliteAsync(telemetry);
             await RefreshUnsyncedCountAsync();
-            StatusMessage = $"Сбой отправки на трассе! Точка пути записана в SQLite (в базе: {QueuedCount})";
+            StatusMessage = $"Сбой отправки: точка сохранена локально (в очереди: {QueuedCount})";
         }
 
         OnTelemetryStatusChanged?.Invoke();
@@ -314,7 +314,7 @@ public class TelemetryBackgroundService : ITelemetryService, IDisposable
             {
                 result.IsSuccess = true;
                 result.IsCommitted = true;
-                result.Message = "В локальной базе SQLite нет неотправленных точек пути.";
+                result.Message = "Все накопленные путевые точки уже синхронизированы.";
                 return result;
             }
 
@@ -336,7 +336,7 @@ public class TelemetryBackgroundService : ITelemetryService, IDisposable
             {
                 result.IsSuccess = false;
                 result.IsCommitted = false;
-                result.Message = $"Сервер отклонил пакет телеметрии ({telemetryBatch.Count} точек). Данные сохранены в SQLite до следующей попытки.";
+                result.Message = $"Сервер временно недоступен ({telemetryBatch.Count} точек). Данные сохранены локально.";
                 return result;
             }
 
@@ -353,7 +353,7 @@ public class TelemetryBackgroundService : ITelemetryService, IDisposable
             result.IsSuccess = false;
             result.IsCommitted = false;
             result.ErrorDetails = ex.Message;
-            result.Message = $"Ошибка сброса телеметрии: {ex.Message}";
+            result.Message = $"Ошибка синхронизации: {ex.Message}";
             return result;
         }
     }
@@ -387,7 +387,7 @@ public class TelemetryBackgroundService : ITelemetryService, IDisposable
 
         int saved = await _databaseService.SaveBatchOfflineWaypointsAsync(waypoints);
         await RefreshUnsyncedCountAsync();
-        StatusMessage = $"Имитация офлайна: В SQLite сохранено {saved} точек пути водителя (всего в очереди: {QueuedCount})";
+        StatusMessage = $"Тестовый сбор: сохранено {saved} точек маршрута (всего в очереди: {QueuedCount})";
         OnTelemetryStatusChanged?.Invoke();
         return saved;
     }
