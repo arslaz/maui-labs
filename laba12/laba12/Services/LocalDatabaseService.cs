@@ -1,3 +1,5 @@
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 using laba12.Models;
 using SQLite;
@@ -32,6 +34,14 @@ public interface ILocalDatabaseService
     Task<List<DriverWaypointEntity>> GetUnsyncedWaypointsAsync(string driverId);
     Task<int> GetUnsyncedWaypointsCountAsync(string driverId);
     Task<SqliteTransactionResult> MarkWaypointsAsSyncedInTransactionAsync(IEnumerable<int> waypointIds, string serverBatchId);
+
+    // Лабораторная работа 18: Авторизация водителей, профили, офлайн-хэш пароля и сессии в SQLite
+    Task CreateEmptyUserStructureAsync(UserProfileEntity profile, string password);
+    Task<(bool Success, UserProfileEntity? User, string? ErrorMessage)> AuthenticateOfflineAsync(string loginOrEmail, string password);
+    Task ActivateUserSessionAsync(string driverId, string password, string driverName, string vehicleNumber, string email = "");
+    Task DeactivateUserSessionAsync(string driverId);
+    Task<UserProfileEntity?> GetUserProfileAsync(string driverId);
+    Task LinkWaybillToDriverProfileAsync(string driverId, string driverName, string vehicleNumber);
 
     // Приёмка накладных и нарядов внутри транзакции SQLite (ACID Commit & Rollback)
     Task<SqliteTransactionResult> AcceptCargoManifestBatchAsync(string driverId, string manifestNumber, IEnumerable<DeliveryPoint> items);
@@ -186,6 +196,7 @@ public class LocalDatabaseService : ILocalDatabaseService
             await _database.CreateTableAsync<DeliveryPointEntity>();
             await _database.CreateTableAsync<TripRecordEntity>();
             await _database.CreateTableAsync<DriverWaypointEntity>(); // Вариант 7: путевые точки телеметрии
+            await _database.CreateTableAsync<UserProfileEntity>(); // Лабораторная работа 18: локальные профили водителей
 
             // 5. Обеспечение наличия столбца внешнего ключа в delivery_points
             try
@@ -209,6 +220,8 @@ public class LocalDatabaseService : ILocalDatabaseService
             try { await _database.ExecuteAsync("CREATE INDEX IF NOT EXISTS idx_waypoints_driver_sync ON driver_waypoints(DriverId, IsSynced);"); } catch { }
             try { await _database.ExecuteAsync("CREATE INDEX IF NOT EXISTS idx_waypoints_coords ON driver_waypoints(Latitude, Longitude);"); } catch { }
             try { await _database.ExecuteAsync("CREATE INDEX IF NOT EXISTS idx_waypoints_timestamp ON driver_waypoints(Timestamp);"); } catch { }
+            try { await _database.ExecuteAsync("CREATE UNIQUE INDEX IF NOT EXISTS idx_user_profiles_driver_id ON user_profiles(DriverId);"); } catch { }
+            try { await _database.ExecuteAsync("CREATE INDEX IF NOT EXISTS idx_user_profiles_email ON user_profiles(Email);"); } catch { }
 
             // 7. Проверка наполненности справочника категорий грузов
             try
@@ -222,6 +235,20 @@ public class LocalDatabaseService : ILocalDatabaseService
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"[LocalDatabaseService] SeedDefaultCargoCategories check notice: {ex.Message}");
+            }
+
+            // 8. Лабораторная работа 18: Проверка наполненности локальных профилей водителей
+            try
+            {
+                var userCount = await _database.Table<UserProfileEntity>().CountAsync();
+                if (userCount == 0)
+                {
+                    await SeedDefaultUserProfilesAsync(_database);
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[LocalDatabaseService] SeedDefaultUserProfiles check notice: {ex.Message}");
             }
 
             System.Diagnostics.Debug.WriteLine($"[LocalDatabaseService] SQLite база данных инициализирована: {DatabasePath}");
@@ -322,6 +349,61 @@ public class LocalDatabaseService : ILocalDatabaseService
         }
     }
 
+    /// <summary>
+    /// Лабораторная работа 18: Первоначальное наполнение локальной SQLite профилями водителей
+    /// со статическими хэшами паролей (SHA-256) для автономного входа в офлайн-режиме.
+    /// </summary>
+    private static async Task SeedDefaultUserProfilesAsync(SQLiteAsyncConnection db)
+    {
+        var users = new List<UserProfileEntity>
+        {
+            new()
+            {
+                DriverId = "DRV-104",
+                Email = "sokolov@logistics.by",
+                FullName = "Алексей Соколов (Водитель 1 класса)",
+                VehicleNumber = "АВ 7412-7 (ГАЗель NEXT РБ)",
+                Phone = "+375 (29) 104-00-11",
+                PasswordHash = ComputeSha256Hash("1234"),
+                IsSessionActive = false,
+                CreatedAt = DateTime.UtcNow
+            },
+            new()
+            {
+                DriverId = "DRV-105",
+                Email = "kovalev@logistics.by",
+                FullName = "Дмитрий Ковалев (Водитель 2 класса)",
+                VehicleNumber = "ВК 3829-7 (МАЗ-Купава РБ)",
+                Phone = "+375 (29) 105-00-22",
+                PasswordHash = ComputeSha256Hash("4321"),
+                IsSessionActive = false,
+                CreatedAt = DateTime.UtcNow
+            },
+            new()
+            {
+                DriverId = "DRV-106",
+                Email = "vasiliev@logistics.by",
+                FullName = "Максим Васильев (Экспедитор)",
+                VehicleNumber = "ЕН 1102-7 (ГАЗон Next РБ)",
+                Phone = "+375 (29) 106-00-33",
+                PasswordHash = ComputeSha256Hash("5678"),
+                IsSessionActive = false,
+                CreatedAt = DateTime.UtcNow
+            }
+        };
+
+        foreach (var u in users)
+        {
+            await db.InsertOrReplaceAsync(u);
+        }
+    }
+
+    public static string ComputeSha256Hash(string rawData)
+    {
+        if (string.IsNullOrEmpty(rawData)) return string.Empty;
+        var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(rawData));
+        return Convert.ToHexString(bytes).ToLowerInvariant();
+    }
     /// <summary>
     /// Автоматическая миграция: считывание старых JSON-файлов кэша и запись в таблицы SQLite
     /// </summary>
@@ -1248,6 +1330,267 @@ public class LocalDatabaseService : ILocalDatabaseService
         }
 
         return result;
+    }
+
+    #endregion
+
+    #region ЛАБОРАТОРНАЯ РАБОТА 18: АВТОРИЗАЦИЯ ВОДИТЕЛЕЙ, ПРОФИЛИ, ОФЛАЙН-ХЭШ И СЕССИИ
+
+    /// <summary>
+    /// Лабораторная работа 18 (Требование 2): При успешной регистрации в локальной SQLite
+    /// создается пустая структура данных под нового пользователя.
+    /// Вариант 7: Локальная SQLite связывает путевой лист на текущую смену с профилем конкретного водителя.
+    /// </summary>
+    public async Task CreateEmptyUserStructureAsync(UserProfileEntity profile, string password)
+    {
+        await InitAsync();
+        if (_database == null) return;
+
+        await _semaphore.WaitAsync();
+        try
+        {
+            var hash = !string.IsNullOrEmpty(password) ? ComputeSha256Hash(password) : profile.PasswordHash;
+            profile.PasswordHash = hash;
+            profile.CreatedAt = DateTime.UtcNow;
+            profile.LastLoginAt = DateTime.UtcNow;
+            profile.IsSessionActive = true;
+
+            // Деактивируем предыдущие активные сессии
+            await _database.ExecuteAsync("UPDATE user_profiles SET IsSessionActive = 0;");
+
+            var existing = await _database.Table<UserProfileEntity>()
+                .Where(u => u.DriverId == profile.DriverId || (!string.IsNullOrEmpty(profile.Email) && u.Email == profile.Email))
+                .FirstOrDefaultAsync();
+
+            if (existing != null)
+            {
+                existing.Email = profile.Email;
+                existing.FullName = profile.FullName;
+                existing.VehicleNumber = profile.VehicleNumber;
+                existing.Phone = profile.Phone;
+                existing.PasswordHash = hash;
+                existing.IsSessionActive = true;
+                existing.LastLoginAt = DateTime.UtcNow;
+                await _database.UpdateAsync(existing);
+            }
+            else
+            {
+                await _database.InsertAsync(profile);
+            }
+
+            // Создаем чистую структуру данных под нового водителя (удаляем возможные устаревшие записи)
+            await _database.ExecuteAsync("DELETE FROM delivery_points WHERE DriverId = ?;", profile.DriverId);
+            await _database.ExecuteAsync("DELETE FROM trip_records WHERE DriverId = ?;", profile.DriverId);
+            await _database.ExecuteAsync("DELETE FROM driver_waypoints WHERE DriverId = ?;", profile.DriverId);
+
+            // Связываем путевой лист текущей смены с новым водителем
+            await LinkWaybillToDriverProfileInternalAsync(profile.DriverId, profile.FullName, profile.VehicleNumber);
+        }
+        finally
+        {
+            _semaphore.Release();
+        }
+    }
+
+    /// <summary>
+    /// Лабораторная работа 18 (Требование 5): Офлайн-режим.
+    /// Модуль авторизации сверяет введенный хэш пароля (SHA-256) с локально сохраненным в SQLite
+    /// профилем последнего активного пользователя для предоставления ограниченного автономного
+    /// доступа к закэшированным спискам.
+    /// Вариант 7: Авторизация водителей по табельному номеру (DriverId) и паролю.
+    /// </summary>
+    public async Task<(bool Success, UserProfileEntity? User, string? ErrorMessage)> AuthenticateOfflineAsync(string loginOrEmail, string password)
+    {
+        await InitAsync();
+        if (_database == null)
+            return (false, null, "Локальная база данных не инициализирована.");
+
+        if (string.IsNullOrWhiteSpace(loginOrEmail) || string.IsNullOrWhiteSpace(password))
+            return (false, null, "Логин/табельный номер и пароль не могут быть пустыми.");
+
+        var inputHash = ComputeSha256Hash(password);
+        var trimmedLogin = loginOrEmail.Trim();
+
+        var users = await _database.Table<UserProfileEntity>().ToListAsync();
+        var user = users.FirstOrDefault(u =>
+            string.Equals(u.DriverId, trimmedLogin, StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(u.Email, trimmedLogin, StringComparison.OrdinalIgnoreCase));
+
+        if (user == null)
+        {
+            return (false, null, $"Водитель '{trimmedLogin}' не найден в локальной базе данных SQLite. Для первого входа требуется онлайн-авторизация.");
+        }
+
+        if (!string.Equals(user.PasswordHash, inputHash, StringComparison.OrdinalIgnoreCase))
+        {
+            return (false, null, "Неверный пароль для автономного входа. Введенный хэш пароля (SHA-256) не совпал с локальной записью в SQLite.");
+        }
+
+        // Активируем локальную сессию
+        await _semaphore.WaitAsync();
+        try
+        {
+            await _database.ExecuteAsync("UPDATE user_profiles SET IsSessionActive = 0;");
+            user.IsSessionActive = true;
+            user.LastLoginAt = DateTime.UtcNow;
+            await _database.UpdateAsync(user);
+
+            // Связываем путевой лист смены с профилем водителя
+            await LinkWaybillToDriverProfileInternalAsync(user.DriverId, user.FullName, user.VehicleNumber);
+        }
+        finally
+        {
+            _semaphore.Release();
+        }
+
+        return (true, user, null);
+    }
+
+    /// <summary>
+    /// При успешной авторизации через онлайн API: обновляем профиль в SQLite,
+    /// сохраняем актуальный хэш пароля для последующего офлайна и выставляем IsSessionActive = true.
+    /// </summary>
+    public async Task ActivateUserSessionAsync(string driverId, string password, string driverName, string vehicleNumber, string email = "")
+    {
+        await InitAsync();
+        if (_database == null) return;
+
+        await _semaphore.WaitAsync();
+        try
+        {
+            await _database.ExecuteAsync("UPDATE user_profiles SET IsSessionActive = 0;");
+
+            var user = await _database.Table<UserProfileEntity>()
+                .Where(u => u.DriverId == driverId)
+                .FirstOrDefaultAsync();
+
+            var hash = !string.IsNullOrEmpty(password) ? ComputeSha256Hash(password) : string.Empty;
+
+            if (user != null)
+            {
+                if (!string.IsNullOrEmpty(hash)) user.PasswordHash = hash;
+                if (!string.IsNullOrEmpty(driverName)) user.FullName = driverName;
+                if (!string.IsNullOrEmpty(vehicleNumber)) user.VehicleNumber = vehicleNumber;
+                if (!string.IsNullOrEmpty(email)) user.Email = email;
+                user.IsSessionActive = true;
+                user.LastLoginAt = DateTime.UtcNow;
+                await _database.UpdateAsync(user);
+            }
+            else
+            {
+                var newUser = new UserProfileEntity
+                {
+                    DriverId = driverId,
+                    Email = email,
+                    FullName = driverName,
+                    VehicleNumber = vehicleNumber,
+                    PasswordHash = hash,
+                    IsSessionActive = true,
+                    CreatedAt = DateTime.UtcNow,
+                    LastLoginAt = DateTime.UtcNow
+                };
+                await _database.InsertAsync(newUser);
+            }
+
+            // Вариант 7: Связываем путевой лист смены с профилем конкретного водителя
+            await LinkWaybillToDriverProfileInternalAsync(driverId, driverName, vehicleNumber);
+        }
+        finally
+        {
+            _semaphore.Release();
+        }
+    }
+
+    /// <summary>
+    /// Лабораторная работа 18 (Требование 4): Помечает сессию в SQLite как неактивную.
+    /// </summary>
+    public async Task DeactivateUserSessionAsync(string driverId)
+    {
+        await InitAsync();
+        if (_database == null) return;
+
+        await _database.ExecuteAsync("UPDATE user_profiles SET IsSessionActive = 0 WHERE DriverId = ?;", driverId);
+        await _database.ExecuteAsync("UPDATE user_profiles SET IsSessionActive = 0;");
+    }
+
+    /// <summary>
+    /// Получение профиля водителя из SQLite
+    /// </summary>
+    public async Task<UserProfileEntity?> GetUserProfileAsync(string driverId)
+    {
+        await InitAsync();
+        if (_database == null) return null;
+
+        if (!string.IsNullOrEmpty(driverId))
+        {
+            var user = await _database.Table<UserProfileEntity>()
+                .Where(u => u.DriverId == driverId)
+                .FirstOrDefaultAsync();
+            if (user != null) return user;
+        }
+
+        // Возвращаем текущего активного пользователя или последнего вошедшего
+        return await _database.Table<UserProfileEntity>()
+            .OrderByDescending(u => u.IsSessionActive)
+            .ThenByDescending(u => u.LastLoginAt)
+            .FirstOrDefaultAsync();
+    }
+
+    /// <summary>
+    /// Вариант 7: Связывание путевого листа на текущую смену с профилем конкретного водителя.
+    /// </summary>
+    public async Task LinkWaybillToDriverProfileAsync(string driverId, string driverName, string vehicleNumber)
+    {
+        await InitAsync();
+        if (_database == null) return;
+
+        await _semaphore.WaitAsync();
+        try
+        {
+            await LinkWaybillToDriverProfileInternalAsync(driverId, driverName, vehicleNumber);
+        }
+        finally
+        {
+            _semaphore.Release();
+        }
+    }
+
+    private async Task LinkWaybillToDriverProfileInternalAsync(string driverId, string driverName, string vehicleNumber)
+    {
+        if (_database == null || string.IsNullOrWhiteSpace(driverId)) return;
+
+        var today = DateTime.Today;
+        var waybill = await _database.Table<WaybillEntity>()
+            .Where(w => w.DriverId == driverId && w.WaybillDate == today)
+            .FirstOrDefaultAsync();
+
+        if (waybill == null)
+        {
+            var waybillNum = $"PL-BY-{today:yyyyMMdd}-{driverId}";
+            var newWaybill = new WaybillEntity
+            {
+                WaybillNumber = waybillNum,
+                DriverId = driverId,
+                DriverName = !string.IsNullOrWhiteSpace(driverName) ? driverName : $"Водитель {driverId}",
+                VehicleNumber = !string.IsNullOrWhiteSpace(vehicleNumber) ? vehicleNumber : "АВ 7412-7 (ГАЗель NEXT)",
+                WaybillDate = today,
+                InitialOdometerKm = 145200.0,
+                CurrentOdometerKm = 145285.4,
+                FuelStartingLiters = 70.0,
+                FuelConsumedLiters = 9.8,
+                FuelRemainingLiters = 60.2,
+                Status = "Активен",
+                CreatedAt = DateTime.UtcNow
+            };
+            await _database.InsertAsync(newWaybill);
+        }
+        else
+        {
+            if (!string.IsNullOrWhiteSpace(driverName)) waybill.DriverName = driverName;
+            if (!string.IsNullOrWhiteSpace(vehicleNumber)) waybill.VehicleNumber = vehicleNumber;
+            waybill.Status = "Активен";
+            await _database.UpdateAsync(waybill);
+        }
     }
 
     #endregion

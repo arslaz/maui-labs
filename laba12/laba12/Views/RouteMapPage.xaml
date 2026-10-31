@@ -37,16 +37,17 @@
             <VerticalStackLayout Spacing="{OnIdiom Phone=6, Tablet=12, Desktop=8}">
                 <!-- Title & Stats text -->
                 <Grid ColumnDefinitions="*,Auto">
-                    <Label Text="НИТЬ МАРШРУТА OSRM (OpenStreetMap)" 
-                           FontSize="{OnIdiom Phone=11, Tablet=14, Desktop=12}" 
+                    <Label Text="КАРТА МАРШРУТА" 
+                           FontSize="{OnIdiom Phone=12, Tablet=14, Desktop=12}" 
                            TextColor="#38BDF8" 
-                           FontAttributes="Bold"/>
-                    <!-- Индикатор режима экрана -->
-                    <Border Grid.Column="1" StrokeShape="RoundRectangle 6" BackgroundColor="#0F172A" Padding="6,2">
-                        <Label Text="{OnIdiom Phone='📱 Phone UI', Tablet='📟 Tablet Driver Mode (Крупные кнопки)', Desktop='💻 Desktop UI'}" 
-                               FontSize="10" 
-                               TextColor="#10B981" 
-                               FontAttributes="Bold"/>
+                           FontAttributes="Bold"
+                           VerticalOptions="Center"/>
+                    <!-- Индикатор активности навигации -->
+                    <Border Grid.Column="1" StrokeShape="RoundRectangle 8" BackgroundColor="#064E3B" Padding="8,4">
+                        <HorizontalStackLayout Spacing="5" VerticalOptions="Center">
+                            <BoxView WidthRequest="6" HeightRequest="6" CornerRadius="3" Color="#10B981" VerticalOptions="Center"/>
+                            <Label Text="Навигация активна" FontSize="11" TextColor="#A7F3D0" FontAttributes="Bold"/>
+                        </HorizontalStackLayout>
                     </Border>
                 </Grid>
 
@@ -76,18 +77,18 @@
                     </HorizontalStackLayout>
                 </HorizontalStackLayout>
 
-                <!-- Вариант 7: Навигационные кнопки управления картой (Крупный размер на планшете для нажатия водителем в движении) -->
+                <!-- Навигационные кнопки управления картой -->
                 <Grid ColumnDefinitions="*,*,*" ColumnSpacing="{OnIdiom Phone=8, Tablet=14, Desktop=10}" Margin="0,4,0,0">
                     <Button Grid.Column="0"
-                            Text="📍 Где я (GPS)" 
+                            Text="📍 Где я" 
                             Command="{Binding LocateMeCommand}" 
                             IsEnabled="{Binding IsNotBusy}"
                             BackgroundColor="#059669" 
                             TextColor="White" 
                             FontAttributes="Bold"
-                            FontSize="{OnIdiom Phone=12, Tablet=17, Desktop=13}" 
-                            HeightRequest="{OnIdiom Phone=38, Tablet=62, Desktop=42}" 
-                            CornerRadius="{OnPlatform Android='8', iOS='18', Default='10'}"/>
+                            FontSize="{OnIdiom Phone=12, Tablet=16, Desktop=13}" 
+                            HeightRequest="{OnIdiom Phone=40, Tablet=58, Desktop=42}" 
+                            CornerRadius="10"/>
 
                     <Button Grid.Column="1"
                             Text="🔄 Обновить" 
@@ -96,9 +97,9 @@
                             BackgroundColor="#2563EB" 
                             TextColor="White" 
                             FontAttributes="Bold"
-                            FontSize="{OnIdiom Phone=12, Tablet=17, Desktop=13}" 
-                            HeightRequest="{OnIdiom Phone=38, Tablet=62, Desktop=42}" 
-                            CornerRadius="{OnPlatform Android='8', iOS='18', Default='10'}"/>
+                            FontSize="{OnIdiom Phone=12, Tablet=16, Desktop=13}" 
+                            HeightRequest="{OnIdiom Phone=40, Tablet=58, Desktop=42}" 
+                            CornerRadius="10"/>
 
                     <Button Grid.Column="2"
                             Text="← Назад" 
@@ -106,9 +107,9 @@
                             BackgroundColor="#334155" 
                             TextColor="White" 
                             FontAttributes="Bold"
-                            FontSize="{OnIdiom Phone=12, Tablet=17, Desktop=13}" 
-                            HeightRequest="{OnIdiom Phone=38, Tablet=62, Desktop=42}" 
-                            CornerRadius="{OnPlatform Android='8', iOS='18', Default='10'}"/>
+                            FontSize="{OnIdiom Phone=12, Tablet=16, Desktop=13}" 
+                            HeightRequest="{OnIdiom Phone=40, Tablet=58, Desktop=42}" 
+                            CornerRadius="10"/>
                 </Grid>
             </VerticalStackLayout>
         </Border>
@@ -144,19 +145,19 @@
                            LineBreakMode="TailTruncation"/>
                 </VerticalStackLayout>
 
-                <!-- Кнопка обновления нативной телеметрии (увеличенная для планшета) -->
+                <!-- Кнопка обновления нативной телеметрии -->
                 <Button Grid.Column="1"
-                        Text="⚡ Опросить ОС"
+                        Text="⚡ Обновить статус"
                         Command="{Binding ReadNativeTelemetryCommand}"
                         BackgroundColor="#1E293B"
                         BorderColor="#38BDF8"
                         BorderWidth="1"
                         TextColor="#38BDF8"
                         FontAttributes="Bold"
-                        FontSize="{OnIdiom Phone=11, Tablet=15, Desktop=12}"
-                        HeightRequest="{OnIdiom Phone=34, Tablet=54, Desktop=38}"
-                        CornerRadius="{OnPlatform Android='6', iOS='16', Default='8'}"
-                        Padding="{OnIdiom Phone='10,0', Tablet='18,0', Desktop='12,0'}"
+                        FontSize="11"
+                        HeightRequest="36"
+                        CornerRadius="8"
+                        Padding="10,0"
                         VerticalOptions="Center"/>
             </Grid>
         </Border>
@@ -208,7 +209,7 @@
         <Grid Grid.RowSpan="4" BackgroundColor="#CC000000" IsVisible="{Binding IsBusy}">
             <VerticalStackLayout Spacing="16" HorizontalOptions="Center" VerticalOptions="Center">
                 <ActivityIndicator IsRunning="{Binding IsBusy}" Color="#38BDF8" WidthRequest="50" HeightRequest="50"/>
-                <Label Text="Расчет оптимального маршрута через OSRM..." TextColor="#F8FAFC" FontSize="14"/>
+                <Label Text="Построение оптимального маршрута..." TextColor="#F8FAFC" FontSize="14"/>
                 <Button Text="Отмена" Command="{Binding CancelCurrentOperationCommand}" BackgroundColor="#EF4444" TextColor="White" CornerRadius="8"/>
             </VerticalStackLayout>
         </Grid>

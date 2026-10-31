@@ -74,12 +74,16 @@ public static class MauiProgram
 
         // 4. ViewModels
         builder.Services.AddTransient<LoginViewModel>();
+        builder.Services.AddTransient<RegisterViewModel>();
+        builder.Services.AddTransient<ProfileViewModel>();
         builder.Services.AddTransient<DeliveriesViewModel>();
         builder.Services.AddTransient<DeliveryDetailViewModel>();
         builder.Services.AddTransient<RouteMapViewModel>();
 
         // 5. Views
         builder.Services.AddTransient<LoginPage>();
+        builder.Services.AddTransient<RegisterPage>();
+        builder.Services.AddTransient<ProfilePage>();
         builder.Services.AddTransient<DeliveriesPage>();
         builder.Services.AddTransient<DeliveryDetailPage>();
         builder.Services.AddTransient<RouteMapPage>();

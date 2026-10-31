@@ -144,14 +144,14 @@ public partial class DeliveryDetailViewModel : BaseViewModel, IQueryAttributable
             }
 
             await _nativeFeedbackService.TriggerSuccessFeedbackAsync();
-            await _nativeFeedbackService.ShowNativeToastAsync("Изменения наряда успешно отправлены!");
+            await _nativeFeedbackService.ShowNativeToastAsync("Изменения наряда успешно сохранены!");
             IsSuccessNotice = true;
-            StatusFeedback = "Изменения успешно отправлены на сервер и сохранены в SQLite!";
+            StatusFeedback = "Изменения успешно сохранены!";
         }
         catch (OperationCanceledException)
         {
             await _nativeFeedbackService.TriggerWarningFeedbackAsync();
-            ErrorMessage = "Отправка изменений отменена пользователем.";
+            ErrorMessage = "Сохранение изменений отменено пользователем.";
             IsSuccessNotice = false;
         }
         catch (Exception ex)
@@ -159,7 +159,7 @@ public partial class DeliveryDetailViewModel : BaseViewModel, IQueryAttributable
             System.Diagnostics.Debug.WriteLine($"[DeliveryDetailViewModel] Update failed: {ex.Message}. Сохранение в локальную SQLite.");
             isOffline = true;
             IsSuccessNotice = true;
-            StatusFeedback = "ОФЛАЙН: Сервер недоступен. Изменения атомарно зафиксированы в SQLite (IsSyncPending=true).";
+            StatusFeedback = "Автономный режим: изменения сохранены на устройстве и будут отправлены при подключении.";
         }
         finally
         {

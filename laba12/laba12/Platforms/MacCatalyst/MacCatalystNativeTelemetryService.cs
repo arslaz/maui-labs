@@ -23,7 +23,7 @@ public class MacCatalystNativeTelemetryService : INativeTelemetryService
             NetworkConnectionType = "Wi-Fi (WLAN)",
             IsInternetAvailable = true,
             RecommendedTelemetryIntervalSeconds = 10,
-            OptimizationDescription = "MacCatalyst: Сетевое питание активно, максимальная точность (10 сек).",
+            OptimizationDescription = "Сетевое питание активно: максимальная точность (10 сек).",
             Timestamp = DateTime.UtcNow
         };
 

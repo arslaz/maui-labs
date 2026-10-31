@@ -107,27 +107,27 @@ public class IosNativeTelemetryService : INativeTelemetryService
         if (t.IsCharging)
         {
             t.RecommendedTelemetryIntervalSeconds = 10;
-            t.OptimizationDescription = "iOS: Питание подключено: максимальная частота координат (10 сек).";
+            t.OptimizationDescription = "Питание подключено: максимальная точность координат (10 сек).";
         }
         else if (t.BatteryPercent <= 20.0)
         {
             t.RecommendedTelemetryIntervalSeconds = 60;
-            t.OptimizationDescription = $"iOS: Критический уровень АКБ ({t.BatteryPercent:F0}%): эконом-режим (60 сек).";
+            t.OptimizationDescription = $"Низкий уровень заряда ({t.BatteryPercent:F0}%): эконом-режим (60 сек).";
         }
         else if (t.BatteryPercent <= 45.0)
         {
             t.RecommendedTelemetryIntervalSeconds = 35;
-            t.OptimizationDescription = $"iOS: Заряд АКБ ({t.BatteryPercent:F0}%): умеренная частота (35 сек).";
+            t.OptimizationDescription = $"Заряд батареи ({t.BatteryPercent:F0}%): умеренный интервал (35 сек).";
         }
         else if (t.IsCellular)
         {
             t.RecommendedTelemetryIntervalSeconds = 20;
-            t.OptimizationDescription = "iOS: Сотовая сеть Cellular: экономия трафика 4G/5G (20 сек).";
+            t.OptimizationDescription = "Мобильная сеть: баланс точности и экономии трафика (20 сек).";
         }
         else
         {
             t.RecommendedTelemetryIntervalSeconds = 12;
-            t.OptimizationDescription = "iOS: Wi-Fi соединение: высокая частота GPS (12 сек).";
+            t.OptimizationDescription = "Wi-Fi подключение: повышенная частота обновления (12 сек).";
         }
     }
 }
